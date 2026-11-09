@@ -72,6 +72,17 @@ Não foram testados leitores de tela, navegadores além do Chrome, nem dispositi
 - `supabase/tests/rls_policies.test.sql` (perfis usuário comum e administrador, restrições de validação): a execução pela integração MCP do Supabase foi recusada duas vezes pela própria ferramenta, mesmo após autorização do integrante, possivelmente por conter `UPDATE`/`DELETE` (ainda que dentro de `ROLLBACK`). Deve ser executado manualmente no SQL Editor.
 - Login real de administrador: nenhuma conta foi criada.
 
+### Finalização da Etapa 2A — revisão de segurança (09/11/2026)
+
+**Revisão técnica (ChatGPT):** aprovou parcialmente a Etapa 2A. Aprovou `is_demo`, admins via `app_metadata`, bloqueio de exclusão de pontos com leituras, desativação com histórico, identificação por `stop_code` e conectividade separada do estado ambiental. Decidiu que a classificação ambiental ocorre no ESP32, com validação no backend. Não aprovou ainda a autenticação por `x-device-key` e pediu revisão de segurança. Pediu também que os testes SQL não fossem executados no banco remoto sem nova autorização.
+
+**Execução (Claude Code):**
+
+- GitHub: o `gh` continuava sem login, sem credenciais do GitHub na máquina. Repositório **não** criado e push **não** realizado.
+- Revisão de segurança feita só com consultas de leitura (catálogo do Postgres, *Security Advisor*), busca de segredos em todo o histórico Git e no build. Resultado em `docs/security-review.md`: sem falhas ativas; um risco latente (privilégios padrão do schema `public`), com correção proposta e **não aplicada**.
+- Ajuste em `supabase/tests/rls_policies.test.sql`: o teste passou a criar seus próprios pontos (`TEST-ACTIVE`) em vez de usar o `DEMO-01` real. **O teste não foi executado.**
+- Proposta de ingestão segura (token por dispositivo) e atualização do contrato de dados com as decisões aprovadas.
+
 ## Princípios adotados
 
 - O código gerado por IA é revisado pela equipe antes de ser aprovado.

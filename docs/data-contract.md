@@ -103,7 +103,9 @@ Fonte da verdade do esquema: [`supabase/migrations/`](../supabase/migrations/).
 | `critical` | Crítico | Condições de risco. |
 | `null` | Não classificado | Leitura sem classificação. |
 
-**Os limites (ex.: a partir de quantos °C uma leitura é "atenção") ainda não foram aprovados** e não estão codificados no banco. Também está pendente decidir **quem classifica** a leitura: o ESP32, o endpoint de ingestão ou a análise em Python.
+**Quem classifica (aprovado):** o **ESP32 classifica localmente**, de modo que os alertas locais funcionam sem rede e sem depender de outros serviços. O endpoint de ingestão **valida** o estado recebido aplicando as **mesmas regras** e armazena o resultado. As análises em Python (Gui) são complementares e não são dependência dos alertas.
+
+**Limites (pendente):** os valores de "atenção" e "crítico" ainda não foram aprovados e não estão codificados no banco. Quando forem definidos, ficarão em um documento versionado de regras (ex.: `rules_version: 1`), compartilhado entre o firmware e o endpoint.
 
 ---
 
@@ -153,14 +155,14 @@ Nenhum usuário do navegador — nem administrador — insere leituras diretamen
 
 ### 7.1 Endpoint de ingestão para o ESP32 (proposta)
 
-Será uma **Supabase Edge Function** que valida uma credencial do dispositivo, valida o corpo e grava a leitura usando credencial de servidor (que nunca sai do servidor).
+Será uma **Supabase Edge Function** que autentica o dispositivo, valida o corpo e grava a leitura usando credencial de servidor (que nunca sai do servidor). O modelo de autenticação do dispositivo **ainda não está aprovado**; a proposta está em [architecture-decisions.md, item 13](architecture-decisions.md#13-ingestão-de-leituras-por-edge-function-proposta--a-implementar).
 
 **Requisição — exemplo para o Thiago:**
 
 ```http
 POST https://<projeto>.supabase.co/functions/v1/ingest-reading
 Content-Type: application/json
-x-device-key: <chave do dispositivo — definida na implementação, nunca versionada>
+Authorization: Bearer <token do dispositivo — proposta; nunca versionado nem em projeto Wokwi público>
 ```
 
 ```json
@@ -168,17 +170,22 @@ x-device-key: <chave do dispositivo — definida na implementação, nunca versi
   "stop_code": "DEMO-01",
   "temperature_c": 31.4,
   "humidity_pct": 48.2,
+  "environmental_status": "attention",
+  "rules_version": 1,
   "source": "simulation",
   "measured_at": "2026-11-09T17:45:00Z"
 }
 ```
 
+> Os valores acima são **exemplo de formato**. `"attention"` não reflete nenhum limite aprovado.
+
 Observações para o firmware:
 
-- `stop_code` (e não o UUID) é usado para facilitar a configuração do dispositivo.
+- `stop_code` (e não o UUID) identifica o ponto (**aprovado**). O endpoint confere se o token pertence ao dispositivo daquele ponto.
+- `environmental_status` é calculado **no ESP32** (aprovado); `rules_version` indica qual versão das regras foi usada.
 - `measured_at` exige relógio sincronizado (NTP). **A decidir:** se o ESP32 não tiver horário confiável, o campo poderá ser omitido e o servidor usará o horário de recebimento.
 - Enviar números com ponto decimal (`31.4`), não vírgula.
-- `environmental_status` não é enviado pelo dispositivo nesta proposta (ver seção 4).
+- Usar HTTPS (`WiFiClientSecure`).
 
 **Respostas propostas:**
 
@@ -187,6 +194,9 @@ Observações para o firmware:
 | `201` | Leitura gravada | `{ "id": "<uuid>", "received_at": "2026-11-09T17:45:02Z" }` |
 | `400` | Corpo inválido | `{ "error": { "code": "validation_error", "message": "humidity_pct deve estar entre 0 e 100", "field": "humidity_pct" } }` |
 | `401` | Credencial ausente ou inválida | `{ "error": { "code": "unauthorized", "message": "..." } }` |
+| `403` | Token válido, mas de outro ponto | `{ "error": { "code": "forbidden_stop", "message": "..." } }` |
+| `422` | `environmental_status` incompatível com as regras da `rules_version` | `{ "error": { "code": "status_mismatch", "message": "..." } }` |
+| `429` | Envios mais frequentes que o permitido | `{ "error": { "code": "rate_limited", "message": "..." } }` |
 | `404` | `stop_code` inexistente ou inativo | `{ "error": { "code": "stop_not_found", "message": "..." } }` |
 | `409` | Leitura duplicada (reenvio) | `{ "error": { "code": "duplicate_reading", "message": "..." } }` — o dispositivo pode descartá-la com segurança. |
 | `500` | Erro interno | `{ "error": { "code": "internal_error", "message": "..." } }` |
@@ -216,7 +226,9 @@ A camada `services/` converte falhas em `Error` com mensagem em português e pre
 ## 9. Pendências deste contrato
 
 - [ ] Validar formato do payload e intervalo de envio com o Thiago.
-- [ ] Definir limites ambientais e quem classifica as leituras.
-- [ ] Definir limites de conectividade.
-- [ ] Definir o modelo de credencial dos dispositivos (uma chave por dispositivo ou compartilhada no protótipo).
+- [x] Quem classifica as leituras: o ESP32, com validação no endpoint (aprovado).
+- [ ] Definir limites ambientais (e `rules_version` inicial).
+- [ ] Definir limites de conectividade (regra 2×/5× é provisória; depende do intervalo de envio).
+- [ ] Aprovar o modelo de autenticação dos dispositivos (proposta: token por dispositivo).
+- [ ] Adicionar `rules_version` à tabela `readings` (migração futura, junto com o endpoint).
 - [ ] Definir comportamento quando o ESP32 não tiver relógio sincronizado.

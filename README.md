@@ -95,7 +95,8 @@ GLOBAL-SOLUTION/
 ├── AI.md                         # Registro do uso de IA
 ├── docs/
 │   ├── data-contract.md          # Contrato de dados (ESP32, Python, front-end)
-│   └── architecture-decisions.md # Decisões técnicas
+│   ├── architecture-decisions.md # Decisões técnicas
+│   └── security-review.md        # Revisão de segurança e testes
 ├── supabase/
 │   ├── migrations/               # Esquema, restrições, índices, RLS
 │   ├── seed.sql                  # Pontos demonstrativos
@@ -121,7 +122,7 @@ GLOBAL-SOLUTION/
 - **Administradores:** gerenciam pontos; não inserem leituras.
 - **Leituras:** entrarão apenas por um endpoint de ingestão protegido (a implementar).
 
-Detalhes em [docs/data-contract.md](docs/data-contract.md) e [docs/architecture-decisions.md](docs/architecture-decisions.md).
+Detalhes em [docs/data-contract.md](docs/data-contract.md), [docs/architecture-decisions.md](docs/architecture-decisions.md) e [docs/security-review.md](docs/security-review.md). A revisão de segurança também traz o passo a passo para rodar os testes SQL em um Supabase **local** (Docker).
 
 ## O que já funciona
 

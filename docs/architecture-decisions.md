@@ -1,6 +1,6 @@
 # Decisões arquiteturais — ClimaPonto
 
-Registro curto das decisões técnicas do front-end e da infraestrutura de dados. Cada item indica se a decisão foi **aprovada** pela revisão técnica ou se ainda é **proposta**.
+Registro curto das decisões técnicas do front-end e da infraestrutura de dados, com o status de cada uma na revisão técnica.
 
 | # | Decisão | Status |
 | --- | --- | --- |
@@ -9,43 +9,82 @@ Registro curto das decisões técnicas do front-end e da infraestrutura de dados
 | 3 | Oxlint como linter (padrão do template Vite) | Aprovada (Etapa 1) |
 | 4 | Supabase como backend (PostgreSQL + API REST + Auth) | Aprovada (Etapa 2A) |
 | 5 | Repositório GitHub privado `climaponto-gs-2026` | Aprovada (Etapa 2A) |
-| 6–14 | Itens abaixo | Propostas — aguardam revisão |
+| 6 | Tabelas `stops` e `readings`; ponto com leituras não pode ser excluído, apenas desativado | Aprovada (Etapa 2A) |
+| 7 | Campo `is_demo` em `stops` | Aprovada (Etapa 2A) |
+| 8 | Restrições como `CHECK` em vez de `ENUM` | Proposta |
+| 9 | Faixas de plausibilidade no banco, não limites ambientais | Proposta |
+| 10 | Conectividade calculada e separada do estado ambiental | Aprovada (Etapa 2A); regra 2×/5× **provisória** |
+| 11 | Administradores via `app_metadata.role = 'admin'` | Aprovada (Etapa 2A) |
+| 12 | Grants explícitos + RLS | Proposta |
+| 13 | Ingestão por Edge Function com token por dispositivo | **Proposta — autenticação não aprovada** |
+| 14 | Fallback para dados locais só sem configuração | Proposta |
+| 15 | Classificação ambiental no ESP32, validada pelo backend | Aprovada (Etapa 2A) |
+| 16 | Dispositivo identifica o ponto por `stop_code` | Aprovada (Etapa 2A) |
 
 ## 6. Duas tabelas: `stops` e `readings`
 
-Leituras referenciam pontos por `stop_id` com `ON DELETE RESTRICT`: um ponto com histórico não pode ser apagado, apenas desativado (`active = false`). Preserva o histórico e evita perda acidental de dados.
+Leituras referenciam pontos por `stop_id` com `ON DELETE RESTRICT`: um ponto com histórico não pode ser apagado, apenas desativado (`active = false`). Assim o histórico é preservado e não há perda acidental de dados.
 
 ## 7. Campo `is_demo` em `stops`
 
-Campo adicional (não previsto na lista inicial) para marcar pontos fictícios no próprio banco, de forma que a interface possa sinalizá-los sem depender do nome.
+Marca no próprio banco os pontos fictícios, de forma que a interface possa sinalizá-los sem depender do nome.
 
 ## 8. Restrições como `CHECK` em vez de `ENUM`
 
-`environmental_status` e `source` são texto com `CHECK`. Alterar a lista de valores exige apenas recriar a restrição, o que é mais simples que alterar um tipo `ENUM`.
+`environmental_status` e `source` são texto com `CHECK`. Para mudar a lista de valores basta recriar a restrição, o que é mais simples que alterar um tipo `ENUM`.
 
 ## 9. Faixas de plausibilidade, não limites ambientais
 
-O banco rejeita apenas valores fisicamente impossíveis para o sensor previsto (DHT22: −40 a 80 °C, 0 a 100 %). Os limites de "atenção"/"crítico" não estão no banco porque ainda não foram aprovados.
+O banco rejeita apenas valores fisicamente impossíveis para o sensor previsto (DHT22: −40 a 80 °C, 0 a 100 %). Os limites de "atenção" e "crítico" ainda não foram aprovados e por isso não estão no banco.
 
 ## 10. Conectividade calculada, não armazenada
 
-O estado online/atrasado/offline depende da idade da última leitura e muda com o passar do tempo, mesmo sem novos dados. Por isso é calculado na leitura (view `stop_latest_readings` + regra no front-end), e não gravado.
+O estado online/atrasado/offline depende da idade da última leitura e muda com o passar do tempo, mesmo sem dados novos. Por isso é calculado na hora da leitura (view `stop_latest_readings` + regra no front-end), e não gravado. A regra 2×/5× do intervalo de envio é provisória até o Thiago definir o intervalo.
 
 ## 11. Administradores via `app_metadata.role = 'admin'`
 
-- Contas administrativas são criadas manualmente no painel do Supabase; o cadastro público deve ser desabilitado.
-- O papel fica em `app_metadata`, que só pode ser alterado com credencial de servidor. Um usuário não consegue se promover.
-- As políticas usam a função `private.is_admin()`, em um schema não exposto pela API.
-- Alternativa descartada por ora: tabela `admins`. Seria útil se houvesse vários papéis ou gestão de admins pela própria aplicação.
+- Contas administrativas são criadas manualmente no painel do Supabase, e o cadastro público fica desabilitado.
+- O papel fica em `app_metadata`, que só pode ser alterado com credencial de servidor; o usuário não consegue se promover.
+- As políticas usam `private.is_admin()`, que fica em um schema não exposto pela API.
 
 ## 12. Grants explícitos + RLS (defesa em profundidade)
 
-As permissões de tabela são revogadas e concedidas explicitamente: visitantes têm apenas `SELECT`; `authenticated` tem escrita em `stops`, filtrada pelo RLS para admins; ninguém do navegador tem escrita em `readings`. Assim a segurança não depende dos privilégios padrão do projeto.
+As permissões de tabela são revogadas e depois concedidas explicitamente: visitantes têm apenas `SELECT`; `authenticated` pode escrever em `stops`, com o RLS restringindo a admins; nenhum papel do navegador pode escrever em `readings`. Ver também a proposta sobre privilégios padrão em [security-review.md](security-review.md#21-privilégios-padrão-do-schema-public-risco-latente--correção-proposta).
 
-## 13. Ingestão de leituras por Edge Function (a implementar)
+## 13. Ingestão de leituras por Edge Function (proposta — a implementar)
 
-O ESP32 não grava direto no banco. Uma Supabase Edge Function receberá a leitura, validará uma credencial do dispositivo e gravará com credencial de servidor. É o recurso mínimo para não expor escrita pública. Detalhes em [data-contract.md](data-contract.md#71-endpoint-de-ingestão-para-o-esp32-proposta).
+**Requisitos:** nenhuma escrita pública; nenhum segredo em projeto Wokwi público; viável para um protótipo acadêmico.
+
+**Proposta recomendada: token por dispositivo, de escopo mínimo e revogável.**
+
+1. Nova tabela `devices` (migração futura): `id`, `code`, `stop_id`, `token_hash` (SHA-256), `allowed_source`, `active`, `last_seen_at`. O RLS fica habilitado **sem políticas** e sem grants para `anon`/`authenticated`: só o servidor acessa.
+2. O admin gera, para cada dispositivo, um token aleatório de 32 bytes. Ele é exibido uma única vez; o banco guarda só o hash.
+3. A Edge Function `ingest-reading` recebe `Authorization: Bearer <token>` e então:
+   - procura o dispositivo ativo pelo hash do token (resposta `401` se não encontrar);
+   - exige que `stop_code` seja o ponto do dispositivo (`403` se não for);
+   - valida faixas, `measured_at`, e se `environmental_status` está coerente com a `rules_version` (`422` se não estiver);
+   - **força** `source = allowed_source` (dispositivos Wokwi só gravam `simulation`);
+   - recusa envios mais frequentes que o intervalo combinado (`429`);
+   - grava a leitura com credencial de servidor e atualiza `last_seen_at`.
+4. **Wokwi:** o token nunca vai para um projeto público. Há dois modos:
+   - **Projeto privado** (uso da equipe): o token fica num arquivo `secrets.h` do projeto privado e nunca é versionado no Git.
+   - **Projeto público** (demonstração): firmware com token vazio, funcionando em modo local. Ele classifica, aciona os alertas locais e imprime o JSON no Serial, sem enviar.
+5. **Se um token vazar**, o impacto fica limitado a leituras `simulation` de **um** ponto, com limite de frequência. Basta desativar o dispositivo ou gerar um token novo.
+
+**Alternativas consideradas:**
+
+- *Chave publishable + política de INSERT no RLS:* descartada, pois equivale a escrita pública.
+- *`x-device-key` compartilhada por todos os dispositivos:* mais simples, mas um vazamento afeta todos os pontos e não há como identificar qual dispositivo enviou.
+- *ESP32 → MQTT público → ponte em Python → banco:* tira o segredo do dispositivo, mas exige um processo sempre ligado, o tópico público aceita mensagens falsas e cria uma dependência de outro serviço.
 
 ## 14. Fallback local apenas sem configuração
 
-Sem as variáveis `VITE_SUPABASE_*`, a aplicação usa dados demonstrativos locais (útil para quem só quer rodar a interface). Com o Supabase configurado, falhas são exibidas como erro, sem troca silenciosa para dados locais.
+Sem as variáveis `VITE_SUPABASE_*`, a aplicação usa dados demonstrativos locais, útil para quem só quer rodar a interface. Com o Supabase configurado, falhas aparecem como erro, sem troca silenciosa para dados locais.
+
+## 15. Classificação ambiental no ESP32
+
+O dispositivo classifica localmente, então os alertas funcionam sem rede. O backend aplica as mesmas regras (versionadas) para validar e armazenar. As análises em Python são complementares.
+
+## 16. Identificação por `stop_code`
+
+O firmware é configurado com o código legível do ponto (ex.: `DEMO-01`), não com o UUID.
