@@ -83,6 +83,26 @@ Não foram testados leitores de tela, navegadores além do Chrome, nem dispositi
 - Ajuste em `supabase/tests/rls_policies.test.sql`: o teste passou a criar seus próprios pontos (`TEST-ACTIVE`) em vez de usar o `DEMO-01` real. **O teste não foi executado.**
 - Proposta de ingestão segura (token por dispositivo) e atualização do contrato de dados com as decisões aprovadas.
 
+### Fechamento técnico e de segurança da Etapa 2A (09/11/2026)
+
+**Revisão técnica (ChatGPT):** autorizou testes com Supabase CLI + Docker apenas localmente, com proibição explícita de qualquer operação no remoto. Aprovou três correções (privilégios padrão, proteção de `created_at`, leituras `test` privadas) e a direção da credencial por dispositivo, sem implementação.
+
+**Decisões do integrante (Enrico):** diante do Docker sem WSL, pediu para seguir das duas formas: instalar o necessário para o Docker e testar já com uma alternativa local. Aprovou a janela de administrador do Windows para instalar o WSL.
+
+**Execução (Claude Code):**
+
+1. Docker Desktop não iniciava: diagnóstico apontou WSL ausente. O WSL 3.0.3 foi instalado (`wsl --install --no-distribution`, com elevação), mas exige **reinicialização do Windows**, não realizada. Por isso o teste com Supabase CLI + Docker **não foi executado**.
+2. `supabase init` (CLI 2.122.0 via `npx`) criou `supabase/config.toml`, ajustado para `project_id = "climaponto-local"`, cadastro público desativado e `site_url` do Vite. Nenhum `supabase link` foi feito.
+3. Consultou a documentação do Supabase (*Securing your API*, *Function Configuration*).
+4. Criou três migrações e reescreveu `rls_policies.test.sql` (50 verificações, separando leituras `simulation` públicas de `test` privadas).
+5. Testou em **PostgreSQL 17.10 embarcado** (pacote `embedded-postgres`, fora do repositório), com um *bootstrap* que emula papéis, `auth.jwt()` e privilégios padrão do Supabase.
+   - Primeira execução: 44/50. Duas causas: um erro no próprio teste (literal interpretado como array), corrigido sem mudar expectativas; e um erro real na migração (revogação de `EXECUTE` de `PUBLIC` por schema não tem efeito no PostgreSQL), corrigido com revogação global.
+   - Resultado final: **50/50** com todas as migrações; **34/50** só com as migrações já aplicadas no remoto, sendo as 16 falhas exatamente os pontos corrigidos.
+6. Documentou a estratégia de credenciais de dispositivos, incluindo `verify_jwt = false` no gateway e a validação no código da função.
+7. GitHub: `gh` continua sem login; nada publicado.
+
+**Nada foi aplicado no banco remoto nesta etapa** (nenhuma migração, nenhuma alteração de dados).
+
 ## Princípios adotados
 
 - O código gerado por IA é revisado pela equipe antes de ser aprovado.

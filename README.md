@@ -56,13 +56,24 @@ Sem configurar o Supabase, a aplicação funciona com **dados demonstrativos loc
 
 ### Criar o banco do zero (outro projeto Supabase)
 
-No *SQL Editor* do Supabase, execute em ordem:
+No *SQL Editor* do Supabase, execute **todos** os arquivos de `supabase/migrations/` em ordem de nome (data), e depois `supabase/seed.sql` (pontos demonstrativos).
 
-1. `supabase/migrations/20261109202656_create_core_schema.sql`
-2. `supabase/migrations/20261109202658_security_policies.sql`
-3. `supabase/seed.sql` (pontos demonstrativos)
+> **Atenção:** o projeto remoto `climaponto-gs-2026` tem aplicadas apenas as duas primeiras migrações (`…202656` e `…202658`). As três de `…230000` em diante foram testadas só localmente e aguardam revisão antes de ir para o remoto.
 
 Depois, em *Authentication › Sign In / Providers*, desative **Allow new users to sign up**.
+
+### Ambiente local e testes do banco
+
+`supabase/config.toml` configura um Supabase **local** (`project_id = "climaponto-local"`), que não está vinculado ao projeto remoto. Requer Docker Desktop (no Windows, com WSL 2):
+
+```bash
+npx supabase@2.122.0 start
+npx supabase@2.122.0 db reset    # apenas no ambiente local
+psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -f supabase/tests/rls_policies.test.sql
+npx supabase@2.122.0 stop
+```
+
+Nunca execute `db push` ou `db reset --linked` sem aprovação. Resultados e detalhes em [docs/security-review.md](docs/security-review.md#3-testes-locais).
 
 ### Administradores
 

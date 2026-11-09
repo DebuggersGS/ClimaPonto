@@ -134,6 +134,16 @@ O **intervalo de envio** do ESP32 precisa ser definido com o Thiago (exemplo par
 
 Dados `simulation` e `test` **nunca devem ser apresentados como medições reais**. A interface deve sinalizar a origem.
 
+**Visibilidade por origem** (migração `20261109230200`, testada localmente, **ainda não aplicada no remoto**):
+
+| Origem | Visitantes e usuários comuns | Administradores |
+| --- | --- | --- |
+| `simulation` | Sim, se o ponto estiver ativo | Sim |
+| `sensor` | Sim, se o ponto estiver ativo | Sim |
+| `test` | **Não** | Sim |
+
+Leituras enviadas por dispositivos Wokwi são gravadas como `simulation`, e o servidor força esse valor.
+
 ---
 
 ## 7. Operações de API previstas
@@ -144,18 +154,20 @@ O front-end usa o cliente `@supabase/supabase-js`, que fala com a API REST do Su
 | --- | --- | --- |
 | Listar pontos | Todos (visitantes veem só ativos; admins veem todos) | `GET /rest/v1/stops?select=*&order=code` |
 | Detalhar ponto | Todos (mesma regra) | `GET /rest/v1/stops?id=eq.{id}` |
-| Criar ponto | Admin autenticado | `POST /rest/v1/stops` |
-| Editar ponto | Admin autenticado | `PATCH /rest/v1/stops?id=eq.{id}` |
+| Criar ponto | Admin autenticado | `POST /rest/v1/stops` (campos graváveis abaixo) |
+| Editar ponto | Admin autenticado | `PATCH /rest/v1/stops?id=eq.{id}` (campos graváveis abaixo) |
 | Excluir ponto | Admin autenticado (só sem leituras) | `DELETE /rest/v1/stops?id=eq.{id}` |
-| Listar leituras de um ponto | Todos (pontos visíveis) | `GET /rest/v1/readings?stop_id=eq.{id}&order=measured_at.desc&limit=50` |
-| Última leitura por ponto | Todos (pontos visíveis) | `GET /rest/v1/stop_latest_readings` |
+| Listar leituras de um ponto | Todos (pontos visíveis; `test` só admins) | `GET /rest/v1/readings?stop_id=eq.{id}&order=measured_at.desc&limit=50` |
+| Última leitura por ponto | Todos (última leitura **visível** a quem consulta) | `GET /rest/v1/stop_latest_readings` |
+
+**Campos graváveis em `stops`** (migração `20261109230100`, **ainda não aplicada no remoto**): `code`, `name`, `neighborhood`, `description`, `latitude`, `longitude`, `is_demo`, `active`. Enviar `id`, `created_at` ou `updated_at` em um `POST`/`PATCH` resulta em erro `42501`; `updated_at` é atualizado automaticamente.
 | **Enviar leitura (ESP32)** | **Dispositivo autorizado** | `POST /functions/v1/ingest-reading` — **ainda não implementado** |
 
 Nenhum usuário do navegador — nem administrador — insere leituras diretamente na tabela.
 
 ### 7.1 Endpoint de ingestão para o ESP32 (proposta)
 
-Será uma **Supabase Edge Function** que autentica o dispositivo, valida o corpo e grava a leitura usando credencial de servidor (que nunca sai do servidor). O modelo de autenticação do dispositivo **ainda não está aprovado**; a proposta está em [architecture-decisions.md, item 13](architecture-decisions.md#13-ingestão-de-leituras-por-edge-function-proposta--a-implementar).
+Será uma **Supabase Edge Function** que autentica o dispositivo, valida o corpo e grava a leitura usando credencial de servidor (que nunca sai do servidor). A **direção aprovada** é uma credencial individual por dispositivo. Detalhes em [security-review.md, seção 4](security-review.md#4-estratégia-de-autenticação-dos-dispositivos-aprovada-como-direção-não-implementada). **Ainda não implementado.**
 
 **Requisição — exemplo para o Thiago:**
 
@@ -229,6 +241,7 @@ A camada `services/` converte falhas em `Error` com mensagem em português e pre
 - [x] Quem classifica as leituras: o ESP32, com validação no endpoint (aprovado).
 - [ ] Definir limites ambientais (e `rules_version` inicial).
 - [ ] Definir limites de conectividade (regra 2×/5× é provisória; depende do intervalo de envio).
-- [ ] Aprovar o modelo de autenticação dos dispositivos (proposta: token por dispositivo).
+- [x] Modelo de autenticação dos dispositivos: credencial individual, aleatória e revogável (direção aprovada; ver `security-review.md`, seção 4).
+- [ ] Implementar a ingestão (fora do escopo atual).
 - [ ] Adicionar `rules_version` à tabela `readings` (migração futura, junto com o endpoint).
 - [ ] Definir comportamento quando o ESP32 não tiver relógio sincronizado.

@@ -16,10 +16,17 @@ Registro curto das decisões técnicas do front-end e da infraestrutura de dados
 | 10 | Conectividade calculada e separada do estado ambiental | Aprovada (Etapa 2A); regra 2×/5× **provisória** |
 | 11 | Administradores via `app_metadata.role = 'admin'` | Aprovada (Etapa 2A) |
 | 12 | Grants explícitos + RLS | Proposta |
-| 13 | Ingestão por Edge Function com token por dispositivo | **Proposta — autenticação não aprovada** |
+| 13 | Ingestão por Edge Function com credencial por dispositivo | Aprovada como **direção** (fechamento 2A); não implementada |
 | 14 | Fallback para dados locais só sem configuração | Proposta |
 | 15 | Classificação ambiental no ESP32, validada pelo backend | Aprovada (Etapa 2A) |
 | 16 | Dispositivo identifica o ponto por `stop_code` | Aprovada (Etapa 2A) |
+| 17 | Leituras `test` visíveis só para admins; `simulation`/`sensor` públicas em pontos ativos | Aprovada (fechamento 2A); migração testada localmente, não aplicada no remoto |
+| 18 | `INSERT`/`UPDATE` em `stops` só nas colunas editáveis | Aprovada (fechamento 2A); migração testada localmente, não aplicada no remoto |
+| 19 | Privilégios padrão revogados para objetos futuros (papel `postgres`) | Aprovada (fechamento 2A); migração testada localmente, não aplicada no remoto |
+
+## 17–19. Fechamento da Etapa 2A
+
+Detalhes, SQL e resultados dos testes em [security-review.md](security-review.md#2-fechamento-da-etapa-2a--correções-não-aplicadas-no-remoto).
 
 ## 6. Duas tabelas: `stops` e `readings`
 
@@ -51,7 +58,9 @@ O estado online/atrasado/offline depende da idade da última leitura e muda com 
 
 As permissões de tabela são revogadas e depois concedidas explicitamente: visitantes têm apenas `SELECT`; `authenticated` pode escrever em `stops`, com o RLS restringindo a admins; nenhum papel do navegador pode escrever em `readings`. Ver também a proposta sobre privilégios padrão em [security-review.md](security-review.md#21-privilégios-padrão-do-schema-public-risco-latente--correção-proposta).
 
-## 13. Ingestão de leituras por Edge Function (proposta — a implementar)
+## 13. Ingestão de leituras por Edge Function (direção aprovada — a implementar)
+
+> Decisões registradas e detalhes de implementação (hash, schema privado, `verify_jwt = false` no gateway) em [security-review.md, seção 4](security-review.md#4-estratégia-de-autenticação-dos-dispositivos-aprovada-como-direção-não-implementada). O texto abaixo é a proposta original; onde houver diferença, vale a seção 4 da revisão de segurança, que guarda as credenciais em schema privado e não em `public.devices`.
 
 **Requisitos:** nenhuma escrita pública; nenhum segredo em projeto Wokwi público; viável para um protótipo acadêmico.
 
