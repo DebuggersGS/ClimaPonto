@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { listStops } from '../services/stopsService.js'
+import { listStops, stopsDataSource } from '../services/stopsService.js'
 
 /**
  * Carrega a lista de pontos a partir da camada de serviços,
- * expondo estados de carregamento e erro para a interface.
+ * expondo estados de carregamento e erro e a origem dos dados
+ * ('supabase' ou 'local') para a interface.
  */
 export function useStops() {
   const [stops, setStops] = useState([])
@@ -29,5 +30,5 @@ export function useStops() {
     }
   }, [])
 
-  return { stops, isLoading, error }
+  return { stops, isLoading, error, source: stopsDataSource }
 }

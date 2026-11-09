@@ -1,13 +1,15 @@
 import Card from '../components/ui/Card.jsx'
+import DataSourceBadge from '../components/ui/DataSourceBadge.jsx'
 import PageHeader from '../components/ui/PageHeader.jsx'
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js'
 import { useStops } from '../hooks/useStops.js'
 
 export default function DashboardPage() {
   useDocumentTitle('Dashboard')
-  const { stops, isLoading, error } = useStops()
+  const { stops, isLoading, error, source } = useStops()
 
-  let stopsSummary = `${stops.length} pontos demonstrativos cadastrados.`
+  const demoCount = stops.filter((stop) => stop.isDemo).length
+  let stopsSummary = `${stops.length} pontos cadastrados, ${demoCount} demonstrativos.`
   if (isLoading) stopsSummary = 'Carregando pontos…'
   if (error) stopsSummary = 'Não foi possível carregar os pontos.'
 
@@ -17,6 +19,8 @@ export default function DashboardPage() {
         title="Dashboard"
         description="Visão geral das condições ambientais nos pontos de ônibus monitorados."
       />
+
+      <DataSourceBadge source={source} />
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         <Card title="Pontos">
