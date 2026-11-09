@@ -8,7 +8,8 @@
     "build": "vite build",
     "lint": "oxlint",
     "preview": "vite preview",
-    "check:supabase": "node --env-file=.env.local scripts/check-supabase-access.mjs"
+    "check:supabase": "node --env-file=.env.local scripts/check-supabase-access.mjs",
+    "check:supabase:roles": "node --env-file-if-exists=.env.check.local scripts/check-supabase-roles.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.119.0",
