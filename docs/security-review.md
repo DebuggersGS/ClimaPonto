@@ -87,9 +87,21 @@ alter default privileges for role postgres in schema public grant all on sequenc
 alter default privileges for role postgres in schema public grant all on functions to anon, authenticated, service_role;
 ```
 
-**Limites dessa emulação:** não inclui Supabase Auth, PostgREST nem os demais serviços. O `postgres` local é superusuário, enquanto no Supabase não é; os testes trocam para `anon`/`authenticated`, então isso não afeta as verificações de permissão. **O teste com Supabase CLI + Docker continua pendente.**
+**Limites dessa emulação:** não inclui Supabase Auth, PostgREST nem os demais serviços. O `postgres` local é superusuário, enquanto no Supabase não é; os testes trocam para `anon`/`authenticated`, então isso não afeta as verificações de permissão.
 
-### 3.2 Resultados (`supabase/tests/rls_policies.test.sql`, 50 verificações)
+#### Validação com Supabase CLI + Docker (concluída após reiniciar o Windows)
+
+- Ambiente: Docker Desktop 29.6.2 (WSL 2), Supabase CLI 2.122.0 via `npx`, imagem oficial `supabase/postgres:17.11.0.006` (PostgreSQL 17.11). Serviços em execução: Postgres, Auth (GoTrue v2.197.0), Data API (PostgREST v16.5) e gateway (Kong). Studio, Storage, Realtime, logs e Edge Runtime foram excluídos com `-x` por não serem necessários.
+- No ambiente oficial, o papel `postgres` **não** é superusuário (`rolsuper = false`, `rolbypassrls = true`), como no projeto hospedado.
+- `supabase start` e depois `supabase db reset --local` (apenas local) aplicaram as **5 migrações** e o `seed.sql` sem erro, reconstruindo o banco do zero.
+- `supabase/tests/rls_policies.test.sql` via `psql` dentro do container: **50/50 aprovados** (visitante 10/10, usuário 7/7, admin 15/15, restrições 6/6, privilégios 12/12). Zero registros `TEST-*` após o `ROLLBACK`.
+- **Teste com tokens reais do Supabase Auth** (`web/scripts/check-supabase-roles.mjs`): duas contas de teste criadas apenas no Auth **local** (`admin.teste@climaponto.local` com `app_metadata.role = 'admin'` e `usuario.teste@climaponto.local` sem papel), com senhas aleatórias geradas em memória. Resultado: **14/14**. O usuário comum não cria pontos (`42501`), não edita nem exclui (0 linhas) e não vê pontos inativos. O admin cria, edita campos autorizados, desativa, vê inativos e exclui pontos sem leituras, mas não altera `created_at` (`42501`) nem insere leituras (`42501`). O ponto `TEST-ROLES-*` criado foi excluído pelo próprio teste.
+- `check-supabase-access.mjs` (visitante) contra o ambiente local: **8/8**.
+- A pasta continua **sem vínculo** com o projeto remoto (`supabase/.temp/project-ref` inexistente).
+
+### 3.2 Resultados no PostgreSQL embarcado (`supabase/tests/rls_policies.test.sql`, 50 verificações)
+
+Os resultados finais foram confirmados depois no Supabase local oficial (seção 3.1). A comparação abaixo, entre o estado do remoto e o estado com as migrações novas, foi feita no ambiente embarcado.
 
 | Perfil | Somente migrações já aplicadas no remoto (*baseline*) | Todas as migrações |
 | --- | --- | --- |
@@ -109,15 +121,17 @@ Nos dois cenários, nenhum registro `TEST-*` permaneceu após o `ROLLBACK`.
 1. Erro no próprio teste: em PL/pgSQL, `text[] || 'literal'` interpretava o literal como array (`malformed array literal`) nos ramos de sucesso. Corrigido com `text '...'`; as expectativas não mudaram.
 2. Erro real na migração: a revogação de `EXECUTE` de `PUBLIC` por schema não tem efeito (seção 2.1). Corrigido com revogação global.
 
-### 3.3 Como repetir com Supabase CLI (após reiniciar o Windows)
+### 3.3 Como repetir com Supabase CLI
 
 ```bash
 # na raiz do repositório; o Docker Desktop precisa estar em execução
-npx supabase@2.122.0 start        # ambiente LOCAL
-npx supabase@2.122.0 db reset     # SOMENTE local: aplica migrations/ + seed.sql
-psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -f supabase/tests/rls_policies.test.sql
+npx supabase@2.122.0 start -x studio,imgproxy,vector,logflare,edge-runtime,realtime,storage-api,mailpit,postgres-meta,supavisor
+npx supabase@2.122.0 db reset --local     # SOMENTE local: aplica migrations/ + seed.sql
+docker exec -i supabase_db_climaponto-local psql -U postgres -d postgres < supabase/tests/rls_policies.test.sql
 npx supabase@2.122.0 stop
 ```
+
+Para o teste com tokens reais, crie no Auth local uma conta admin (`app_metadata.role = 'admin'`) e uma comum, coloque `SUPABASE_URL`, `SUPABASE_PUBLISHABLE_KEY` e `CHECK_*` em `web/.env.check.local` (não versionado) e rode `npm run check:supabase:roles` em `web/`. O script recusa endereços não locais, porque grava dados de teste.
 
 Proibido nesta fase: `db push`, `db reset --linked/--remote` ou qualquer comando contra o projeto remoto.
 

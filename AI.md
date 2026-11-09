@@ -103,6 +103,24 @@ Não foram testados leitores de tela, navegadores além do Chrome, nem dispositi
 
 **Nada foi aplicado no banco remoto nesta etapa** (nenhuma migração, nenhuma alteração de dados).
 
+### Publicação no GitHub e validação no Supabase local (09/11/2026)
+
+**Pedido do integrante (Enrico):** investigar acessos ao GitHub já existentes antes de pedir login, sem exibir credenciais, e depois validar o Supabase local após a reinicialização do Windows.
+
+**Execução (Claude Code):**
+
+1. GitHub: o Git Credential Manager já tinha a conta `EnricoVidal` (usada pelo `git` nos outros projetos); o GitHub CLI não tinha login próprio.
+   - Uma tentativa de extrair a credencial por arquivo temporário foi **bloqueada** pelo classificador de segurança do Claude Code, e não houve tentativa de contorno.
+   - O integrante escolheu liberar o uso. A credencial foi repassada ao `gh` só em memória, no mesmo processo, sem exibição nem gravação em disco.
+   - Antes de publicar, nova busca de segredos em todo o histórico: nada encontrado.
+   - Criado o repositório **privado** `EnricoVidal/climaponto-gs-2026`; os 12 commits foram publicados na `main`. A visibilidade foi confirmada pela API (`isPrivate = true`).
+2. Após o reinício, o Docker funcionou. O Supabase local (CLI 2.122.0, imagem `supabase/postgres:17.11.0.006`) aplicou as 5 migrações e o seed; `db reset --local` reconstruiu tudo do zero.
+3. Suíte SQL no Supabase local oficial: **50/50**.
+4. Criado `web/scripts/check-supabase-roles.mjs` (testes com tokens reais do Supabase Auth, restrito a endereços locais). Com contas de teste criadas só no Auth local: **14/14**.
+5. Corrigido um encerramento instável dos scripts de verificação no Windows (assertion da libuv ao chamar `process.exit()`), usando `process.exitCode`.
+
+**Nada foi aplicado no banco remoto** (continua com 2 migrações). Nenhuma tela de CRUD foi implementada.
+
 ## Princípios adotados
 
 - O código gerado por IA é revisado pela equipe antes de ser aprovado.

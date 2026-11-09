@@ -6,6 +6,8 @@ O objetivo é coletar leituras de temperatura e umidade com ESP32, processar est
 
 > **Situação atual:** Etapa 2A — infraestrutura de dados. O banco Supabase está criado, com tabelas, permissões e 3 pontos **demonstrativos**. Ainda **não há leituras** de sensores, nem telas de cadastro/edição.
 
+Repositório (privado): https://github.com/EnricoVidal/climaponto-gs-2026
+
 ## Equipe
 
 | Integrante | Responsabilidade |
@@ -68,8 +70,8 @@ Depois, em *Authentication › Sign In / Providers*, desative **Allow new users 
 
 ```bash
 npx supabase@2.122.0 start
-npx supabase@2.122.0 db reset    # apenas no ambiente local
-psql "postgresql://postgres:postgres@127.0.0.1:54322/postgres" -f supabase/tests/rls_policies.test.sql
+npx supabase@2.122.0 db reset --local    # apenas no ambiente local
+docker exec -i supabase_db_climaponto-local psql -U postgres -d postgres < supabase/tests/rls_policies.test.sql
 npx supabase@2.122.0 stop
 ```
 
@@ -97,6 +99,7 @@ Contas administrativas são criadas manualmente:
 | `npm run preview` | Serve localmente a versão de produção |
 | `npm run lint` | Analisa o código com Oxlint |
 | `npm run check:supabase` | Testa pela API real o que um visitante pode e não pode fazer (requer `.env.local`) |
+| `npm run check:supabase:roles` | Testa permissões de admin e de usuário comum com login real; **só roda contra Supabase local** (requer `.env.check.local`) |
 
 ## Estrutura do projeto
 
