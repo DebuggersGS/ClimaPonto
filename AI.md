@@ -41,6 +41,37 @@ O integrante responsável (Enrico) conduz o processo: repassa as instruções, r
 
 Não foram testados leitores de tela, navegadores além do Chrome, nem dispositivos móveis físicos.
 
+### Etapa 2A — GitHub, Supabase e contrato de dados (09/11/2026)
+
+**Planejamento (ChatGPT):** definiu os objetivos da etapa (repositório privado, Supabase como backend, modelo das tabelas `stops` e `readings`, modelo de segurança visitante/administrador, contrato de dados) e as restrições (sem CRUD visual, sem credenciais no front-end, sem leituras inventadas).
+
+**Decisões do integrante (Enrico)**, consultado pelo Claude Code durante a execução:
+
+- Autorizou instalar o GitHub CLI e criar o projeto Supabase `climaponto-gs-2026` (região `sa-east-1`) pela integração do Supabase conectada ao Claude.
+- Autorizou executar os testes SQL de RLS no banco.
+
+**Execução (Claude Code):**
+
+1. Consultou a documentação oficial do Supabase (ferramenta de busca de docs da integração) sobre chaves *publishable*, grants da Data API e boas práticas de RLS.
+2. Criou o projeto Supabase e aplicou duas migrações: esquema (tabelas, restrições, índices, trigger de `updated_at`, view de última leitura) e segurança (grants explícitos, RLS, função `private.is_admin()`).
+3. Inseriu 3 pontos demonstrativos (`DEMO-01` a `DEMO-03`), sem endereços reais nem leituras.
+4. Consultou os *advisors* do Supabase: nenhum alerta de segurança; apenas o aviso informativo de índice ainda não usado (esperado, tabela vazia).
+5. Integrou o front-end com `@supabase/supabase-js` (cliente, serviço de pontos, indicação de fonte de dados) mantendo fallback local quando não há configuração.
+6. Criou `npm run check:supabase`, que testa pela API real o acesso de visitante.
+7. Escreveu `docs/data-contract.md`, `docs/architecture-decisions.md` e atualizou o README.
+8. Instalou o GitHub CLI: a tentativa via `winget` travou sem exibir a janela de permissão e foi cancelada; foi usado o pacote portátil oficial (v2.103.3), com SHA-256 conferido.
+
+**Verificações realmente executadas:**
+
+- `npm run check:supabase` contra o banco real: **8/8** — visitante lê pontos ativos e consulta leituras/view; criar, editar e excluir pontos e inserir leituras foram negados (`42501`).
+- `npm run build` e `npm run lint`: sem erros.
+- Captura de tela (Chrome headless, desktop e mobile) das páginas Dashboard e Pontos exibindo os 3 pontos lidos do Supabase.
+
+**Não executado:**
+
+- `supabase/tests/rls_policies.test.sql` (perfis usuário comum e administrador, restrições de validação): a execução pela integração MCP do Supabase foi recusada duas vezes pela própria ferramenta, mesmo após autorização do integrante, possivelmente por conter `UPDATE`/`DELETE` (ainda que dentro de `ROLLBACK`). Deve ser executado manualmente no SQL Editor.
+- Login real de administrador: nenhuma conta foi criada.
+
 ## Princípios adotados
 
 - O código gerado por IA é revisado pela equipe antes de ser aprovado.
