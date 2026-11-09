@@ -95,4 +95,6 @@ for (const r of results) {
 }
 const failed = results.filter((r) => !r.passed).length
 console.log(`\n${results.length - failed}/${results.length} verificações passaram.`)
-process.exit(failed ? 1 : 0)
+// exitCode em vez de process.exit(): no Windows, encerrar à força com conexões
+// HTTP ainda fechando pode abortar o Node (assertion em libuv).
+process.exitCode = failed ? 1 : 0
