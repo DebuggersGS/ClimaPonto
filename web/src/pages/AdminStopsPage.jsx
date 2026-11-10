@@ -211,6 +211,7 @@ export default function AdminStopsPage() {
 
       {!isLoading && !error && (
         <>
+          <h2 className="sr-only">Pontos cadastrados</h2>
           <p className="mb-3 text-sm text-slate-600" aria-live="polite">
             {visibleStops.length} de {stops.length} pontos
           </p>
