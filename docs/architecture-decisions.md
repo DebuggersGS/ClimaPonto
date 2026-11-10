@@ -20,9 +20,24 @@ Registro curto das decisões técnicas do front-end e da infraestrutura de dados
 | 14 | Fallback para dados locais só sem configuração | Proposta |
 | 15 | Classificação ambiental no ESP32, validada pelo backend | Aprovada (Etapa 2A) |
 | 16 | Dispositivo identifica o ponto por `stop_code` | Aprovada (Etapa 2A) |
-| 17 | Leituras `test` visíveis só para admins; `simulation`/`sensor` públicas em pontos ativos | Aprovada (fechamento 2A); migração testada localmente, não aplicada no remoto |
-| 18 | `INSERT`/`UPDATE` em `stops` só nas colunas editáveis | Aprovada (fechamento 2A); migração testada localmente, não aplicada no remoto |
-| 19 | Privilégios padrão revogados para objetos futuros (papel `postgres`) | Aprovada (fechamento 2A); migração testada localmente, não aplicada no remoto |
+| 17 | Leituras `test` visíveis só para admins; `simulation`/`sensor` públicas em pontos ativos | Aprovada (fechamento 2A); aplicada no remoto (Etapa 2B) |
+| 18 | `INSERT`/`UPDATE` em `stops` só nas colunas editáveis | Aprovada (fechamento 2A); aplicada no remoto (Etapa 2B) |
+| 19 | Privilégios padrão revogados para objetos futuros (papel `postgres`) | Aprovada (fechamento 2A); aplicada no remoto (Etapa 2B) |
+| 20 | Sessão em contexto React (`AuthProvider` + `useAuth`); `RequireAdmin` só controla a interface | Implementada (Etapa 2B) |
+| 21 | CRUD sem bibliotecas novas: formulário com `useState`, `<dialog>` nativo, validação própria espelhando o banco | Implementada (Etapa 2B) |
+| 22 | Área administrativa carregada sob demanda (`React.lazy`) | Implementada (Etapa 2B) |
+| 23 | Migração `hide_test_readings` com `ALTER POLICY` (sem `DROP`) | Aplicada no remoto (Etapa 2B) |
+
+## 20–22. Área administrativa (Etapa 2B)
+
+- **Sessão:** o `supabase-js` renova o token automaticamente. Se a renovação falhar, ele emite `SIGNED_OUT`; quando isso acontece sem logout manual, a interface informa "sessão expirada". Erros de token vencido vindos do banco (`PGRST301`/`PGRST303`) também encerram a sessão.
+- **Conta sem papel admin:** é recusada no login e a sessão é encerrada na hora.
+- **UPDATE e DELETE bloqueados pelo RLS:** o banco não retorna erro, apenas 0 linhas afetadas. A camada `services/` trata esse caso como falta de permissão.
+- **Exclusão:** antes de excluir, a interface conta as leituras do ponto e, se houver alguma, oferece desativar. O banco continua sendo a barreira final (FK `ON DELETE RESTRICT` → mensagem traduzida).
+- **Bibliotecas avaliadas e não adotadas:**
+  - React Hook Form: o formulário tem só 8 campos.
+  - Zod: a validação ficou em `utils/stopValidation.js`; Zod pode voltar a ser avaliado para compartilhar esquema com a futura Edge Function.
+  - TanStack Query: a lista é atualizada com a linha devolvida pelo banco, sem recarregar tudo. Faz sentido reavaliar quando houver atualização periódica de leituras.
 
 ## 17–19. Fechamento da Etapa 2A
 

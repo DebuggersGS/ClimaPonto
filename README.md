@@ -4,7 +4,7 @@ Protótipo de monitoramento inteligente de condições ambientais em pontos de �
 
 O objetivo é coletar leituras de temperatura e umidade com ESP32, processar estados ambientais (ex.: calor extremo) e apresentá-los em uma aplicação web, ajudando a identificar pontos de ônibus com condições desconfortáveis ou de risco para quem espera o transporte.
 
-> **Situação atual:** Etapa 2A — infraestrutura de dados. O banco Supabase está criado, com tabelas, permissões e 3 pontos **demonstrativos**. Ainda **não há leituras** de sensores, nem telas de cadastro/edição.
+> **Situação atual:** Etapa 2B. Banco Supabase com tabelas, permissões (RLS) e 3 pontos **demonstrativos**; área administrativa com login e CRUD de pontos. Ainda **não há leituras** de sensores.
 
 Repositório (privado): https://github.com/EnricoVidal/climaponto-gs-2026
 
@@ -60,7 +60,7 @@ Sem configurar o Supabase, a aplicação funciona com **dados demonstrativos loc
 
 No *SQL Editor* do Supabase, execute **todos** os arquivos de `supabase/migrations/` em ordem de nome (data), e depois `supabase/seed.sql` (pontos demonstrativos).
 
-> **Atenção:** o projeto remoto `climaponto-gs-2026` tem aplicadas apenas as duas primeiras migrações (`…202656` e `…202658`). As três de `…230000` em diante foram testadas só localmente e aguardam revisão antes de ir para o remoto.
+O projeto remoto `climaponto-gs-2026` tem as **5 migrações** aplicadas, e as versões dos arquivos coincidem com o histórico remoto. Há um plano de recuperação em `supabase/rollback/`; ele **não** é uma migração.
 
 Depois, em *Authentication › Sign In / Providers*, desative **Allow new users to sign up**.
 
@@ -90,6 +90,14 @@ Contas administrativas são criadas manualmente:
    ```
 3. O papel passa a valer no próximo login do usuário.
 
+### Área administrativa
+
+- Acesso pelo link **Área administrativa**, no rodapé, ou pelo endereço `/admin/login`. Não existe cadastro público.
+- Depois do login, `/admin/pontos` permite **listar** (ativos e inativos), **pesquisar**, **filtrar**, **cadastrar**, **editar**, **desativar/reativar** e **excluir** pontos.
+- **Exclusão:** só é permitida para pontos **sem leituras**. Para pontos com histórico, a interface oferece desativar.
+- **Contas sem papel admin:** são recusadas no login. Quando a sessão expira, a interface volta ao login com um aviso.
+- **Autoridade das permissões:** a interface só esconde o que o usuário não pode fazer. Quem decide de fato são o RLS e os privilégios do banco.
+
 ### Scripts disponíveis (dentro de `web/`)
 
 | Comando | Descrição |
@@ -112,22 +120,33 @@ GLOBAL-SOLUTION/
 │   ├── architecture-decisions.md # Decisões técnicas
 │   └── security-review.md        # Revisão de segurança e testes
 ├── supabase/
-│   ├── migrations/               # Esquema, restrições, índices, RLS
+│   ├── config.toml               # Supabase LOCAL (climaponto-local)
+│   ├── migrations/               # Esquema, restrições, índices, RLS, privilégios
+│   ├── rollback/                 # Plano de recuperação (não é migração)
 │   ├── seed.sql                  # Pontos demonstrativos
 │   └── tests/rls_policies.test.sql  # Testes de permissões e restrições (SQL)
 └── web/                          # Aplicação React (Vite)
     ├── .env.example
-    ├── scripts/check-supabase-access.mjs
+    ├── scripts/                  # check-supabase-access / check-supabase-roles
     └── src/
-        ├── components/  layout/ e ui/   # Apresentação
-        ├── pages/                       # Dashboard, Pontos, Histórico, 404
-        ├── hooks/                       # useStops, useDocumentTitle
-        ├── services/                    # supabaseClient, stopsService
-        ├── data/                        # Dados demonstrativos locais
+        ├── components/
+        │   ├── admin/            # StopForm, AdminStopCard
+        │   ├── auth/             # AuthProvider, RequireAdmin
+        │   ├── layout/           # AppLayout, Header, MainNav
+        │   └── ui/               # Button, Card, ConfirmDialog, TextField, ...
+        ├── pages/                # Dashboard, Pontos, Histórico, 404, AdminLogin, AdminStops
+        ├── hooks/                # useAuth, useAdminStops, useStops, useDocumentTitle
+        ├── services/             # supabaseClient, authService, stopsService, errors
+        ├── utils/                # stopValidation, formatters
+        ├── data/                 # Dados demonstrativos locais
         └── styles/
 ```
 
-**Separação de responsabilidades:** `components/` e `pages/` cuidam da apresentação; `hooks/` da lógica e do estado (`useState`, `useEffect`); `services/` do acesso a dados (Supabase ou dados locais).
+**Separação de responsabilidades:**
+- `components/` e `pages/` cuidam da apresentação.
+- `hooks/` cuida da lógica e do estado (`useState`, `useEffect`, contexto de sessão).
+- `services/` cuida do acesso a dados e da tradução de erros.
+- `utils/` reúne funções puras de validação e formatação.
 
 ## Modelo de dados e segurança (resumo)
 
@@ -142,12 +161,13 @@ Detalhes em [docs/data-contract.md](docs/data-contract.md), [docs/architecture-d
 
 - Interface responsiva com Dashboard, Pontos, Histórico e página 404.
 - Banco Supabase com tabelas, restrições, índices, RLS e 3 pontos demonstrativos.
-- Listagem de pontos lida do Supabase (ou de dados locais, sem configuração), com indicação da fonte.
-- Permissões de visitante verificadas pela API real (`npm run check:supabase`).
+- Listagem pública de pontos ativos, lida do Supabase (ou de dados locais quando não há configuração), com indicação da fonte.
+- Login administrativo e CRUD completo de pontos, com validação, diálogos de confirmação e mensagens de retorno.
+- Permissões verificadas pela API real (visitante) e, no Supabase local, com contas reais de admin e de usuário comum. A interface administrativa foi testada de ponta a ponta no Supabase local; detalhes em `docs/security-review.md`.
 
 ## Pendente
 
-- Telas de CRUD de pontos e login de administradores (Etapa 2B).
+- Criar as contas administrativas reais no projeto remoto e validar o CRUD lá.
 - Endpoint de ingestão para o ESP32 e leituras reais/simuladas.
 - Limites ambientais e de conectividade (aguardando aprovação).
 - Histórico e indicadores no Dashboard.

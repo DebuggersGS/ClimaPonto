@@ -134,7 +134,7 @@ O **intervalo de envio** do ESP32 precisa ser definido com o Thiago (exemplo par
 
 Dados `simulation` e `test` **nunca devem ser apresentados como medições reais**. A interface deve sinalizar a origem.
 
-**Visibilidade por origem** (migração `20261109230200`, testada localmente, **ainda não aplicada no remoto**):
+**Visibilidade por origem** (migração `20261110193817_hide_test_readings`, aplicada no remoto):
 
 | Origem | Visitantes e usuários comuns | Administradores |
 | --- | --- | --- |
@@ -160,7 +160,7 @@ O front-end usa o cliente `@supabase/supabase-js`, que fala com a API REST do Su
 | Listar leituras de um ponto | Todos (pontos visíveis; `test` só admins) | `GET /rest/v1/readings?stop_id=eq.{id}&order=measured_at.desc&limit=50` |
 | Última leitura por ponto | Todos (última leitura **visível** a quem consulta) | `GET /rest/v1/stop_latest_readings` |
 
-**Campos graváveis em `stops`** (migração `20261109230100`, **ainda não aplicada no remoto**): `code`, `name`, `neighborhood`, `description`, `latitude`, `longitude`, `is_demo`, `active`. Enviar `id`, `created_at` ou `updated_at` em um `POST`/`PATCH` resulta em erro `42501`; `updated_at` é atualizado automaticamente.
+**Campos graváveis em `stops`** (migração `20261109224553_restrict_stop_write_columns`, aplicada no remoto): `code`, `name`, `neighborhood`, `description`, `latitude`, `longitude`, `is_demo`, `active`. Enviar `id`, `created_at` ou `updated_at` em um `POST`/`PATCH` resulta em erro `42501`; `updated_at` é atualizado automaticamente.
 | **Enviar leitura (ESP32)** | **Dispositivo autorizado** | `POST /functions/v1/ingest-reading` — **ainda não implementado** |
 
 Nenhum usuário do navegador — nem administrador — insere leituras diretamente na tabela.

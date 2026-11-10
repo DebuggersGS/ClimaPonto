@@ -121,6 +121,31 @@ Não foram testados leitores de tela, navegadores além do Chrome, nem dispositi
 
 **Nada foi aplicado no banco remoto** (continua com 2 migrações). Nenhuma tela de CRUD foi implementada.
 
+### Etapa 2B — autenticação administrativa e CRUD (10/11/2026)
+
+**Revisão técnica (ChatGPT):** aprovou o fechamento da 2A e autorizou aplicar as três migrações no remoto, implementar login administrativo e CRUD de pontos, sem bibliotecas novas e sem gráficos ou integração IoT.
+
+**Decisão do integrante (Enrico):** depois que a integração recusou a migração com `DROP POLICY`, aprovou aplicar a versão reescrita com `ALTER POLICY`.
+
+**Execução (Claude Code):**
+
+1. **Remoto:** verificação prévia, plano de recuperação e aplicação das três migrações.
+   - A primeira tentativa da última falhou por erro 502; a verificação mostrou que nada tinha sido aplicado.
+   - A segunda foi recusada pela integração; as alterações foram interrompidas e o caso, reportado.
+   - A terceira, já com `ALTER POLICY`, foi aplicada após aprovação.
+   - Arquivos renomeados para as versões remotas. Verificação posterior e teste de visitante (8/8) feitos.
+2. **Autenticação:** `authService`, `errors.js` (tradução de erros), `AuthProvider`/`useAuth`, `RequireAdmin`, página `/admin/login`, logout e aviso de sessão expirada.
+3. **CRUD:** `stopsService` (criar, editar, ativar/desativar, excluir, contar leituras), `useAdminStops`, `StopForm`, `AdminStopCard`, `ConfirmDialog` (`<dialog>` nativo), `TextField`, `Button`, `FeedbackMessage`, `utils/stopValidation.js` e `utils/formatters.js`, página `/admin/pontos` com pesquisa e filtro. Área administrativa carregada com `React.lazy`.
+4. **Testes executados:**
+   - build e lint;
+   - SQL 50/50 e papéis 14/14 no Supabase local;
+   - teste de interface de ponta a ponta no Supabase local, 21/21 na execução final.
+     - A primeira execução deu 20/21 e revelou um defeito real no logout, que foi corrigido.
+     - Uma execução intermediária falhou por processos de teste antigos ainda abertos (problema do roteiro de teste, não da aplicação).
+   - revisão visual das capturas de tela, que levou a um ajuste na posição dos selos;
+   - busca de credenciais nos arquivos e no bundle.
+5. **Não executado:** CRUD no remoto com conta real de admin (não há conta), leitores de tela e outros navegadores.
+
 ## Princípios adotados
 
 - O código gerado por IA é revisado pela equipe antes de ser aprovado.

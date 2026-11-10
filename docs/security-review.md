@@ -29,15 +29,15 @@ Outros pontos (aceitos e documentados):
 
 ---
 
-## 2. Fechamento da Etapa 2A — correções (não aplicadas no remoto)
+## 2. Fechamento da Etapa 2A — correções (aplicadas no remoto na Etapa 2B, ver seção 5)
 
-Três migrações novas. **Foram testadas apenas localmente; nenhuma foi aplicada no projeto remoto.** Aguardam revisão.
+Três migrações, testadas localmente na Etapa 2A e **aplicadas no projeto remoto na Etapa 2B** (seção 5). Os nomes dos arquivos foram alinhados às versões registradas no remoto.
 
 | Migração | Problema | Correção |
 | --- | --- | --- |
-| `20261109230000_restrict_default_privileges.sql` | Objetos futuros criados pelo papel `postgres` em `public` recebiam acesso total para `anon`, `authenticated` e `service_role`, e funções novas recebiam `EXECUTE` para `PUBLIC`. | Revoga esses privilégios padrão, seguindo a estratégia da documentação do Supabase (*Securing your API › Default privileges*). |
-| `20261109230100_restrict_stop_write_columns.sql` | Admin podia alterar `created_at`, `updated_at` e `id`, e definir `created_at` ao criar. | Troca o `INSERT`/`UPDATE` de tabela por privilégios por **coluna**, só nos campos editáveis. |
-| `20261109230200_hide_test_readings.sql` | Leituras `test` eram públicas. | Nova política: `simulation`/`sensor` públicas em pontos visíveis; `test` só para admins. |
+| `20261109224540_restrict_default_privileges.sql` | Objetos futuros criados pelo papel `postgres` em `public` recebiam acesso total para `anon`, `authenticated` e `service_role`, e funções novas recebiam `EXECUTE` para `PUBLIC`. | Revoga esses privilégios padrão, seguindo a estratégia da documentação do Supabase (*Securing your API › Default privileges*). |
+| `20261109224553_restrict_stop_write_columns.sql` | Admin podia alterar `created_at`, `updated_at` e `id`, e definir `created_at` ao criar. | Troca o `INSERT`/`UPDATE` de tabela por privilégios por **coluna**, só nos campos editáveis. |
+| `20261110193817_hide_test_readings.sql` | Leituras `test` eram públicas. | Nova política: `simulation`/`sensor` públicas em pontos visíveis; `test` só para admins. |
 
 ### 2.1 Privilégios padrão — papéis proprietários e decisão
 
@@ -160,3 +160,59 @@ verify_jwt = false
 Com isso, **qualquer requisição chega à função**, e é obrigação do código recusar tudo o que não tiver credencial válida (`401`), antes de qualquer outro processamento. Nenhuma outra função deve desabilitar `verify_jwt`.
 
 **Acesso aos dados pela função** (decidir na implementação): o schema `private` não é acessível pela API REST. Opções: conexão direta ao Postgres pela variável de ambiente da função, ou uma função SQL `SECURITY DEFINER` com `EXECUTE` concedido apenas a `service_role`.
+
+---
+
+## 5. Etapa 2B — aplicação no remoto e testes da área administrativa (10/11/2026)
+
+### 5.1 Migrações no projeto remoto
+
+**Verificação prévia** (somente leitura):
+- Projeto `climaponto-gs-2026`, `ACTIVE_HEALTHY`.
+- 2 migrações aplicadas.
+- Política antiga de `readings` presente; grants de tabela em `stops`; privilégios padrão de fábrica.
+- Dados: 3 pontos e 0 leituras.
+
+**Plano de recuperação** escrito antes da aplicação: `supabase/rollback/etapa-2b-remote-fixes.rollback.sql`. Não foi usado.
+
+| Migração | Resultado |
+| --- | --- |
+| `restrict_default_privileges` (versão `20261109224540`) | Aplicada. |
+| `restrict_stop_write_columns` (versão `20261109224553`) | Aplicada. |
+| `hide_test_readings` (versão `20261110193817`) | Detalhado abaixo. |
+
+**Histórico da `hide_test_readings`:**
+- **1ª tentativa:** erro 502 do proxy da integração. A verificação posterior confirmou que **não** tinha sido aplicada; o banco estava consistente.
+- **2ª tentativa:** **recusada** pela integração, provavelmente por conter `DROP POLICY`. As alterações remotas foram interrompidas e o caso, reportado.
+- **Reescrita sem `DROP`:** a migração passou a usar `ALTER POLICY`, que troca a expressão e o nome da política existente. A política final é a mesma e não existe nenhum instante sem política. Essa versão passou nos testes **50/50** no Supabase local.
+- **3ª tentativa:** aplicada depois da aprovação do integrante.
+
+**Verificação posterior:**
+- 5 migrações no histórico.
+- Política nova ativa.
+- `authenticated` com `DELETE`/`SELECT` na tabela `stops` e `INSERT`/`UPDATE` apenas nas 8 colunas editáveis.
+- Privilégios padrão de `public` restritos ao `postgres`; `EXECUTE` de funções revogado de `PUBLIC` globalmente.
+- Dados intactos (3 pontos, 0 leituras).
+- *Security Advisor* sem alertas.
+- `npm run check:supabase` (visitante, API real do remoto): **8/8**.
+- Nenhum `db reset`, `db push` ou comando destrutivo foi executado no remoto.
+
+### 5.2 Testes no Supabase local (mesmas 5 migrações)
+
+- `db reset --local` com os arquivos renomeados: aplicou as 5 migrações e o seed.
+- Suíte SQL: **50/50**.
+- `check-supabase-roles.mjs` com tokens reais: **14/14**.
+- **Interface de ponta a ponta:** script de teste fora do repositório, com o Chrome headless controlado via DevTools Protocol, o Vite apontando para o Supabase local e contas de teste criadas só no Auth local. Resultado: **21/21 cenários**.
+  - **Acesso:** rota protegida sem login redireciona; senha errada; usuário comum recusado; login de admin.
+  - **Formulário:** validação de campos vazios, de código inválido e de latitude sem longitude; cadastro válido; código duplicado.
+  - **Operações:** edição; desativação com confirmação; filtro e pesquisa; página pública sem ponto inativo; reativação; Esc fechando o diálogo; exclusão sem leituras; bloqueio de exclusão com leituras.
+  - **Mobile (375 px):** lista, formulário e login sem rolagem horizontal.
+  - **Sessão:** logout; sessão expirada, simulada revogando os tokens no servidor e vencendo o token local, levando ao login com aviso.
+  - Nenhum erro no console do navegador e nenhum ponto `TEST-*` restante.
+- **Problema encontrado e corrigido:** ao sair, a rota protegida reagia ao fim da sessão e redirecionava para o login antes da navegação para o início. Agora a navegação acontece antes do encerramento da sessão.
+
+### 5.3 Não validado
+
+- **CRUD no projeto remoto com conta real de administrador:** nenhuma conta administrativa foi criada no remoto, porque isso exige ação humana.
+- **Leitores de tela reais e navegadores além do Chrome:** não testados.
+- **Cadastro público no remoto:** a configuração não está acessível pelas ferramentas usadas; precisa ser conferida no painel.
