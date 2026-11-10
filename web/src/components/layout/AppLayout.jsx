@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router'
+import { Link, Outlet } from 'react-router'
 import DemoNotice from '../ui/DemoNotice.jsx'
 import Header from './Header.jsx'
 
@@ -20,9 +20,12 @@ export default function AppLayout() {
       </main>
 
       <footer className="border-t border-slate-200 bg-white">
-        <p className="mx-auto max-w-6xl px-4 py-4 text-sm text-slate-500 sm:px-6">
-          ClimaPonto · Global Solution FIAP 2026.2 · Protótipo acadêmico
-        </p>
+        <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-4 text-sm text-slate-500 sm:flex-row sm:justify-between sm:px-6">
+          <p>ClimaPonto · Global Solution FIAP 2026.2 · Protótipo acadêmico</p>
+          <Link to="/admin/login" className="rounded underline hover:text-slate-700 focus-visible:outline-2 focus-visible:outline-brand-600">
+            Área administrativa
+          </Link>
+        </div>
       </footer>
     </div>
   )
