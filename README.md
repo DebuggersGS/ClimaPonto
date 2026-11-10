@@ -118,7 +118,9 @@ GLOBAL-SOLUTION/
 ├── docs/
 │   ├── data-contract.md          # Contrato de dados (ESP32, Python, front-end)
 │   ├── architecture-decisions.md # Decisões técnicas
-│   └── security-review.md        # Revisão de segurança e testes
+│   ├── security-review.md        # Revisão de segurança e testes
+│   ├── deploy.md                 # Deploy na Vercel (preparado)
+│   └── etapa-3-proposta.md       # Proposta do dashboard (em revisão)
 ├── supabase/
 │   ├── config.toml               # Supabase LOCAL (climaponto-local)
 │   ├── migrations/               # Esquema, restrições, índices, RLS, privilégios
@@ -127,6 +129,7 @@ GLOBAL-SOLUTION/
 │   └── tests/rls_policies.test.sql  # Testes de permissões e restrições (SQL)
 └── web/                          # Aplicação React (Vite)
     ├── .env.example
+    ├── vercel.json               # Build, rewrites e cabeçalhos de segurança
     ├── scripts/                  # check-supabase-access / check-supabase-roles
     └── src/
         ├── components/
@@ -155,7 +158,7 @@ GLOBAL-SOLUTION/
 - **Administradores:** gerenciam pontos; não inserem leituras.
 - **Leituras:** entrarão apenas por um endpoint de ingestão protegido (a implementar).
 
-Detalhes em [docs/data-contract.md](docs/data-contract.md), [docs/architecture-decisions.md](docs/architecture-decisions.md) e [docs/security-review.md](docs/security-review.md). A revisão de segurança também traz o passo a passo para rodar os testes SQL em um Supabase **local** (Docker).
+Detalhes em [docs/data-contract.md](docs/data-contract.md), [docs/architecture-decisions.md](docs/architecture-decisions.md), [docs/security-review.md](docs/security-review.md), [docs/deploy.md](docs/deploy.md) e [docs/etapa-3-proposta.md](docs/etapa-3-proposta.md). A revisão de segurança também traz o passo a passo para rodar os testes SQL em um Supabase **local** (Docker).
 
 ## O que já funciona
 
@@ -163,11 +166,14 @@ Detalhes em [docs/data-contract.md](docs/data-contract.md), [docs/architecture-d
 - Banco Supabase com tabelas, restrições, índices, RLS e 3 pontos demonstrativos.
 - Listagem pública de pontos ativos, lida do Supabase (ou de dados locais quando não há configuração), com indicação da fonte.
 - Login administrativo e CRUD completo de pontos, com validação, diálogos de confirmação e mensagens de retorno.
-- Permissões verificadas pela API real (visitante) e, no Supabase local, com contas reais de admin e de usuário comum. A interface administrativa foi testada de ponta a ponta no Supabase local; detalhes em `docs/security-review.md`.
+- CRUD e permissões **validados no Supabase remoto** com contas reais de teste (31/31: API e interface) e no Supabase local (SQL 50/50, papéis 14/14, interface 24/24). Detalhes em `docs/security-review.md`.
+- Acessibilidade básica verificada com axe-core (0 violações) e deploy na Vercel preparado e validado localmente ([docs/deploy.md](docs/deploy.md)), **ainda não publicado**.
 
 ## Pendente
 
-- Criar as contas administrativas reais no projeto remoto e validar o CRUD lá.
+- **Desativar o cadastro público** no painel do Supabase (*Authentication › Sign In / Providers*): hoje está ligado.
+- Criar a(s) conta(s) administrativa(s) definitiva(s) da equipe pelo painel (passos na seção *Administradores*).
+- Executar o deploy na Vercel (aguarda aprovação).
 - Endpoint de ingestão para o ESP32 e leituras reais/simuladas.
 - Limites ambientais e de conectividade (aguardando aprovação).
 - Histórico e indicadores no Dashboard.

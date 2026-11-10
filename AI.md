@@ -146,6 +146,26 @@ Não foram testados leitores de tela, navegadores além do Chrome, nem dispositi
    - busca de credenciais nos arquivos e no bundle.
 5. **Não executado:** CRUD no remoto com conta real de admin (não há conta), leitores de tela e outros navegadores.
 
+### Finalização da Etapa 2B (10/11/2026)
+
+**Pedido do integrante (Enrico), com planejamento do ChatGPT:** concluir de forma autônoma as pendências da 2B (Auth remoto, validação remota do CRUD, auditoria, qualidade, preparação do deploy), sem contornar bloqueios de segurança.
+
+**Decisão do integrante:** autorizou criar duas contas de teste por SQL no remoto e desativá-las ao final.
+
+**Execução (Claude Code):**
+
+1. Leu a configuração pública de Auth (`/auth/v1/settings`): **cadastro público ligado**. Não foi possível desligá-lo, porque a integração não oferece API de configuração de Auth. Ficou como ação humana.
+2. Tentou criar contas pelo cadastro público oficial: recusado (domínio `.test` inválido; domínios reais exigiriam envio de e-mail).
+3. Testou no Supabase local o provisionamento por SQL (login e RLS funcionaram). No remoto, criou as duas contas com **somente hashes bcrypt**; as senhas ficaram só na memória do processo de teste.
+4. **Validação remota:** 31/31 (API 15/15 e interface 16/16), apenas com pontos `TEST-*`, removidos ao final. `DEMO-01..03` comprovadamente inalterados (md5 de todas as colunas antes e depois).
+5. Retirou o papel admin e bloqueou as duas contas. Confirmou 0 sessões ativas e apagou os perfis temporários do navegador e o arquivo de hashes.
+6. Auditoria somente leitura do remoto (RLS, políticas, grants, funções, advisors): sem problemas.
+7. **Acessibilidade com axe-core:** encontrou e corrigiu `heading-order` na lista administrativa. Resultado final de 0 violações nas telas auditadas.
+8. **Deploy:** `web/vercel.json` (rewrite do React Router, CSP e cabeçalhos de segurança, cache), validado localmente (25/25) com servidor que aplica as mesmas regras. **Deploy não executado.**
+9. Documentos: `docs/deploy.md`, `docs/etapa-3-proposta.md` (proposta, nada instalado), atualização de `security-review.md`, README e este arquivo.
+
+**Ferramentas de teste fora do repositório** (pasta temporária da sessão): `axe-core` e scripts de navegador via Chrome DevTools Protocol. Nenhuma dependência nova no aplicativo.
+
 ## Princípios adotados
 
 - O código gerado por IA é revisado pela equipe antes de ser aprovado.

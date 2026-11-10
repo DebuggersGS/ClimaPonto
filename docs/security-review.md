@@ -216,3 +216,55 @@ Com isso, **qualquer requisição chega à função**, e é obrigação do códi
 - **CRUD no projeto remoto com conta real de administrador:** nenhuma conta administrativa foi criada no remoto, porque isso exige ação humana.
 - **Leitores de tela reais e navegadores além do Chrome:** não testados.
 - **Cadastro público no remoto:** a configuração não está acessível pelas ferramentas usadas; precisa ser conferida no painel.
+
+---
+
+## 6. Finalização da Etapa 2B — validação remota com contas reais (10/11/2026)
+
+### 6.1 Configuração de Auth do projeto remoto
+
+Lida pelo endpoint público `/auth/v1/settings`, somente leitura:
+
+| Configuração | Valor | Situação |
+| --- | --- | --- |
+| `disable_signup` | `false` | ⚠️ **Cadastro público LIGADO.** Precisa ser desativado no painel. As ferramentas disponíveis (integração MCP sem API de configuração de Auth, sem token de gerenciamento) não permitem alterar isso. Mitigação existente: contas cadastradas não recebem `app_metadata.role` e, portanto, só têm leitura (RLS). |
+| Provedores | apenas `email` | ✅ telefone, SAML e login anônimo desativados. |
+| `mailer_autoconfirm` | `false` | ✅ cadastro por e-mail exige confirmação. |
+
+### 6.2 Contas de teste: provisionamento e encerramento
+
+Método autorizado pelo integrante:
+
+- **Por que SQL:** a *Admin API* exige a chave secreta (indisponível) e o cadastro público exige confirmação por e-mail (o domínio reservado `.test` é recusado). Restou o provisionamento por SQL na tabela `auth.users` + `auth.identities`. **O método foi testado antes no Supabase local:** login e RLS funcionaram.
+- **Senhas:** aleatórias (24 bytes), mantidas **apenas na memória** do processo de teste. Ao banco e à conversa foram somente os **hashes bcrypt**, calculados no Postgres local.
+- **Contas criadas:** `admin.teste@climaponto.test` (com `app_metadata.role = 'admin'`) e `usuario.teste@climaponto.test` (sem papel). Não existiam outras contas no projeto: 0 usuários antes.
+- **Ao final:** o papel `admin` foi **removido** e as duas contas foram **bloqueadas** (`banned_until = infinity`).
+  - Sessões ativas no servidor: 0.
+  - Os perfis temporários do navegador, que guardavam tokens, e o arquivo de hashes foram apagados.
+  - Nenhuma credencial utilizável permanece. As contas continuam existindo (bloqueadas) e podem ser excluídas pelo painel.
+
+### 6.3 Resultado da validação remota — 31/31
+
+**Pela API** (`check-supabase-roles.mjs` com `CHECK_ALLOW_REMOTE=1`, tokens reais do Auth remoto): **15/15**.
+
+| Perfil | Comportamento verificado |
+| --- | --- |
+| Usuário comum | Token sem papel admin. Lê só pontos ativos. Não cria pontos (`42501`), não edita nem exclui (0 linhas), não vê inativos. |
+| Admin | Token com papel admin. Cria, edita campos autorizados, desativa, vê inativos e exclui pontos sem leituras. Não altera `created_at` (`42501`) e não insere leituras (`42501`). |
+
+**Pela interface** (Vite com `.env.local` → Supabase remoto; Chrome headless): **16/16**.
+
+- **Acesso:** rota protegida redireciona; senha errada; usuário comum recusado; login de admin.
+- **CRUD do ponto temporário:** validação; cadastro; código duplicado `DEMO-01` recusado; pesquisa; edição; desativação com confirmação; ponto inativo oculto na página pública; reativação; exclusão.
+- **Sessão:** logout; sessão expirada, simulada invalidando o *refresh token*, levando ao login com aviso.
+- Limpeza: nenhum `TEST-*` restante. Erros de console: 0.
+
+**Pontos demonstrativos:** `DEMO-01..03` têm a mesma impressão digital (md5 de todas as colunas) e o mesmo `updated_at` antes e depois. Não foram alterados.
+
+**Não validado no remoto:** bloqueio de exclusão de ponto **com leituras**. Exigiria inserir uma leitura por SQL e depois removê-la; o cenário foi validado no Supabase local (24/24).
+
+### 6.4 Acessibilidade e deploy
+
+- **axe-core 4.14** (WCAG 2.1 A/AA + boas práticas): 0 violações nas páginas públicas e no login (desktop e mobile, build de produção) e na lista, no formulário com erros e no diálogo administrativos (local).
+  - **Problema encontrado e corrigido:** `heading-order` na lista administrativa (cartões `h3` sem `h2`). Foi adicionado um `h2` de seção visível só para leitores de tela.
+- **`web/vercel.json`:** validado localmente (25/25). Detalhes em [deploy.md](deploy.md).
