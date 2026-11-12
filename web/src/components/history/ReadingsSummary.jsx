@@ -1,57 +1,69 @@
+import { ArrowDownRight, ArrowUpRight, Droplets, Minus, Thermometer } from 'lucide-react'
 import { summarizeSeries } from '../../utils/readings.js'
 
-function Value({ value, formatValue }) {
-  if (value === null || value === undefined) {
-    return (
-      <>
-        <span aria-hidden="true">—</span>
-        <span className="sr-only">indisponível</span>
-      </>
-    )
-  }
-  return formatValue(value)
+const FIELD_ICONS = { temperatureC: Thermometer, humidityPct: Droplets }
+
+function Stat({ term, value, formatValue }) {
+  const unavailable = value === null || value === undefined
+  return (
+    <div className="rounded-lg bg-slate-50 px-3 py-2 ring-1 ring-inset ring-slate-900/5">
+      <dt className="text-xs text-slate-600">{term}</dt>
+      <dd className="text-lg font-semibold tabular-nums text-slate-900">
+        {unavailable ? (
+          <>
+            <span aria-hidden="true">—</span>
+            <span className="sr-only">indisponível</span>
+          </>
+        ) : (
+          formatValue(value)
+        )}
+      </dd>
+    </div>
+  )
 }
 
-function TrendText({ trend, formatValue }) {
-  if (trend.status !== 'available') return 'Dados insuficientes para indicar tendência'
+function Trend({ trend, formatValue }) {
+  if (trend.status !== 'available') {
+    return <span className="text-slate-600">Dados insuficientes para indicar tendência</span>
+  }
   const { variation } = trend
+  const Icon = variation > 0 ? ArrowUpRight : variation < 0 ? ArrowDownRight : Minus
   const sign = variation > 0 ? '+' : variation < 0 ? '−' : ''
-  const word = variation > 0 ? 'subiu' : variation < 0 ? 'caiu' : 'estável'
-  return `${word} (${sign}${formatValue(Math.abs(variation))})`
+  const word = variation > 0 ? 'Subiu' : variation < 0 ? 'Caiu' : 'Estável'
+  return (
+    <span className="inline-flex items-center gap-1.5 font-semibold text-slate-900">
+      <Icon aria-hidden="true" className="h-4 w-4" />
+      {word} ({sign}{formatValue(Math.abs(variation))})
+    </span>
+  )
 }
 
 /**
- * Mínimo, máximo, média e tendência de uma grandeza (valores ausentes nunca viram zero).
- * @param {{ readings: object[], field: 'temperatureC'|'humidityPct', label: string, formatValue: (value: number|null) => string }} props
+ * Resumo estatístico em cartões: mínima, máxima, média e tendência (só com
+ * leituras suficientes). Valores ausentes nunca viram zero. O `id` permite
+ * que o gráfico o referencie em aria-describedby.
+ * @param {{ readings: object[], field: 'temperatureC'|'humidityPct', label: string, formatValue: (v: number|null) => string, id?: string }} props
  */
-export default function ReadingsSummary({ readings, field, label, formatValue }) {
+export default function ReadingsSummary({ readings, field, label, formatValue, id }) {
   const summary = summarizeSeries(readings, field)
-  const rows = [
-    { term: 'Mínima', value: summary.min },
-    { term: 'Máxima', value: summary.max },
-  ]
+  const Icon = FIELD_ICONS[field]
   return (
-    <dl aria-label={`Resumo de ${label}`} className="grid grid-cols-2 gap-3 text-sm">
-      {rows.map(({ term, value }) => (
-        <div key={term}>
-          <dt className="text-slate-600">{term}</dt>
-          <dd className="text-lg font-semibold tabular-nums text-slate-900">
-            <Value value={value} formatValue={formatValue} />
+    <dl id={id} aria-label={`Resumo de ${label}`} className="grid grid-cols-3 gap-2 text-sm">
+      <Stat term="Mínima" value={summary.min} formatValue={formatValue} />
+      <Stat term="Máxima" value={summary.max} formatValue={formatValue} />
+      <Stat term="Média" value={summary.average} formatValue={formatValue} />
+      <div className="col-span-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600">
+        <div className="inline-flex items-center gap-1.5">
+          {Icon && <Icon aria-hidden="true" className="h-4 w-4" />}
+          <dt>Amostras válidas:</dt>
+          <dd className="font-semibold tabular-nums text-slate-900">{summary.count}</dd>
+        </div>
+        <div className="inline-flex items-center gap-1.5">
+          <dt>Tendência:</dt>
+          <dd>
+            <Trend trend={summary.trend} formatValue={formatValue} />
           </dd>
         </div>
-      ))}
-      <div>
-        <dt className="text-slate-600">Média</dt>
-        <dd className="text-lg font-semibold tabular-nums text-slate-900">
-          <Value value={summary.average} formatValue={formatValue} />
-          <span className="block text-xs font-normal text-slate-600">({summary.count} amostras válidas)</span>
-        </dd>
-      </div>
-      <div>
-        <dt className="text-slate-600">Tendência</dt>
-        <dd className="font-medium text-slate-900">
-          <TrendText trend={summary.trend} formatValue={formatValue} />
-        </dd>
       </div>
     </dl>
   )

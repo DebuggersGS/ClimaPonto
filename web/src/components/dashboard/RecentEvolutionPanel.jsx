@@ -3,6 +3,7 @@ import { useReadingsHistory } from '../../hooks/useReadingsHistory.js'
 import EmptyState from '../ui/EmptyState.jsx'
 import FeedbackMessage from '../ui/FeedbackMessage.jsx'
 import Button from '../ui/Button.jsx'
+import Skeleton from '../ui/Skeleton.jsx'
 import StopHistoryLink from '../ui/StopHistoryLink.jsx'
 import ReadingsEvolution from '../history/ReadingsEvolution.jsx'
 import StopSelect from '../history/StopSelect.jsx'
@@ -64,9 +65,7 @@ export default function RecentEvolutionPanel({ stops, items, latest }) {
       )}
 
       {selectedStop && !error && isLoading && readings.length === 0 && (
-        <p className="text-sm text-slate-600" role="status">
-          Carregando leituras…
-        </p>
+        <Skeleton shape="chart" label="Carregando leituras…" />
       )}
 
       {selectedStop && !error && !isLoading && readings.length === 0 && (
@@ -76,7 +75,7 @@ export default function RecentEvolutionPanel({ stops, items, latest }) {
         />
       )}
 
-      {selectedStop && !error && readings.length > 0 && <ReadingsEvolution readings={readings} headingLevel={3} />}
+      {selectedStop && !error && readings.length > 0 && <ReadingsEvolution readings={readings} periodId={PERIOD_ID} headingLevel={3} />}
     </div>
   )
 }

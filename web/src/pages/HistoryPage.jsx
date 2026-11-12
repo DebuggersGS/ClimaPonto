@@ -8,6 +8,7 @@ import Button from '../components/ui/Button.jsx'
 import DataSourceBadge from '../components/ui/DataSourceBadge.jsx'
 import EmptyState from '../components/ui/EmptyState.jsx'
 import FeedbackMessage from '../components/ui/FeedbackMessage.jsx'
+import Skeleton from '../components/ui/Skeleton.jsx'
 import PageHeader from '../components/ui/PageHeader.jsx'
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js'
 import { useReadingsHistory } from '../hooks/useReadingsHistory.js'
@@ -87,9 +88,7 @@ export default function HistoryPage() {
       )}
 
       {showResults && isLoading && readings.length === 0 && (
-        <p className="text-slate-600" role="status">
-          Carregando leituras…
-        </p>
+        <Skeleton shape="chart" label="Carregando leituras…" />
       )}
 
       {showResults && !isLoading && readings.length === 0 && (
@@ -119,7 +118,7 @@ export default function HistoryPage() {
             <h2 id="evolution-heading" className="mb-3 text-xl font-semibold text-slate-900">
               Evolução
             </h2>
-            <ReadingsEvolution readings={readings} headingLevel={3} />
+            <ReadingsEvolution readings={readings} periodId={periodId} headingLevel={3} />
           </section>
           <section aria-labelledby="table-heading">
             <h2 id="table-heading" className="mb-3 text-xl font-semibold text-slate-900">
