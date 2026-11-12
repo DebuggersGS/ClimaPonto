@@ -1,18 +1,54 @@
-const VARIANTS = {
-  primary: 'bg-brand-600 text-white hover:bg-brand-700 disabled:bg-brand-600/60',
-  secondary: 'border border-slate-300 bg-white text-slate-800 hover:bg-slate-50 disabled:text-slate-400',
-  danger: 'bg-red-700 text-white hover:bg-red-800 disabled:bg-red-700/60',
-  ghost: 'text-slate-700 hover:bg-slate-100 disabled:text-slate-400',
-}
+import { cva } from 'class-variance-authority'
+import { LoaderCircle } from 'lucide-react'
+import { cn } from '../../utils/cn.js'
 
-/** Botão padrão da aplicação. Altura mínima de 40px para toque. */
-export default function Button({ variant = 'primary', type = 'button', className = '', children, ...props }) {
+const button = cva(
+  'inline-flex items-center justify-center gap-2 whitespace-nowrap font-medium transition-[background-color,box-shadow,transform,color] duration-150 ease-out-soft active:translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed',
+  {
+    variants: {
+      variant: {
+        primary:
+          'bg-linear-to-b from-brand-600 to-brand-700 text-white shadow-card hover:from-brand-700 hover:to-brand-800 disabled:from-brand-600/60 disabled:to-brand-700/60 disabled:shadow-none',
+        secondary:
+          'bg-white text-slate-800 shadow-xs ring-1 ring-slate-300 hover:bg-slate-50 disabled:text-slate-500 disabled:shadow-none',
+        danger: 'bg-red-700 text-white shadow-card hover:bg-red-800 disabled:bg-red-700/60 disabled:shadow-none',
+        ghost: 'text-slate-700 hover:bg-slate-900/5 disabled:text-slate-500',
+        subtle: 'bg-brand-50 text-brand-800 hover:bg-brand-100 disabled:text-slate-500 disabled:bg-slate-100',
+      },
+      size: {
+        sm: 'min-h-10 rounded-full px-3.5 py-1.5 text-sm',
+        md: 'min-h-10 rounded-full px-4 py-2 text-sm',
+        lg: 'min-h-12 rounded-full px-6 py-2.5 text-base',
+      },
+    },
+    defaultVariants: { variant: 'primary', size: 'md' },
+  },
+)
+
+/**
+ * Botão padrão. Altura mínima de 40 px para toque; `loading` mostra spinner,
+ * bloqueia o clique e marca aria-busy (o rótulo continua visível).
+ * @param {{ variant?: 'primary'|'secondary'|'danger'|'ghost'|'subtle', size?: 'sm'|'md'|'lg', loading?: boolean }} props
+ */
+export default function Button({
+  variant,
+  size,
+  type = 'button',
+  loading = false,
+  disabled,
+  className,
+  children,
+  ...props
+}) {
   return (
     <button
       type={type}
-      className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 disabled:cursor-not-allowed ${VARIANTS[variant]} ${className}`}
+      disabled={disabled || loading}
+      aria-busy={loading || undefined}
+      className={cn(button({ variant, size }), className)}
       {...props}
     >
+      {loading && <LoaderCircle aria-hidden="true" className="h-4 w-4 animate-spin-slow" />}
       {children}
     </button>
   )

@@ -26,7 +26,7 @@ export const TONE_CLASSES = {
 }
 
 /** Resolve o NOME de ícone usado em utils/statusTones.js para o componente lucide. */
-const ICONS_BY_NAME = {
+export const ICONS_BY_NAME = {
   CheckCircle2: CircleCheck,
   AlertTriangle: TriangleAlert,
   Flame,
@@ -42,8 +42,4 @@ const ICONS_BY_NAME = {
 
 export function getToneClasses(tone) {
   return TONE_CLASSES[Object.hasOwn(TONE_CLASSES, tone) ? tone : 'neutral']
-}
-
-export function getIconByName(name) {
-  return ICONS_BY_NAME[name] ?? CircleHelp
 }

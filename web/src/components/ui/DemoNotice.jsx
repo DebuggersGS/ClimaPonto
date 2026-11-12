@@ -1,7 +1,8 @@
 import { useDataMode } from '../../hooks/useDataMode.js'
 import { getDataModeTone } from '../../utils/statusTones.js'
 import { cn } from '../../utils/cn.js'
-import { getIconByName, getToneClasses } from './tones.js'
+import StatusIcon from './StatusIcon.jsx'
+import { getToneClasses } from './tones.js'
 
 /**
  * Aviso persistente sobre a natureza dos dados (modo de dados do shell).
@@ -10,7 +11,6 @@ import { getIconByName, getToneClasses } from './tones.js'
 export default function DemoNotice({ className }) {
   const { mode, label, description } = useDataMode()
   const tone = getDataModeTone(mode)
-  const Icon = getIconByName(tone.icon)
 
   return (
     <aside
@@ -22,7 +22,7 @@ export default function DemoNotice({ className }) {
         className,
       )}
     >
-      <Icon aria-hidden="true" focusable="false" className="mt-0.5 h-4 w-4 shrink-0" />
+      <StatusIcon name={tone.icon} className="mt-0.5 h-4 w-4 shrink-0" />
       <p>
         {mode === 'supabase' ? (
           <>

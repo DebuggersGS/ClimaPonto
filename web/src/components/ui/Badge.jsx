@@ -1,6 +1,7 @@
 import { cva } from 'class-variance-authority'
 import { cn } from '../../utils/cn.js'
-import { getIconByName, getToneClasses } from './tones.js'
+import StatusIcon from './StatusIcon.jsx'
+import { getToneClasses } from './tones.js'
 
 const badge = cva('inline-flex items-center gap-1.5 whitespace-nowrap font-medium ring-1 ring-inset', {
   variants: {
@@ -19,12 +20,11 @@ const badge = cva('inline-flex items-center gap-1.5 whitespace-nowrap font-mediu
  */
 export default function Badge({ tone = 'neutral', icon, size, dot = false, className, children }) {
   const classes = getToneClasses(tone)
-  const Icon = icon ? getIconByName(icon) : null
   const iconSize = size === 'sm' ? 'h-3 w-3' : 'h-3.5 w-3.5'
   return (
     <span className={cn(badge({ size }), classes.soft, className)}>
       {dot && <span aria-hidden="true" className={cn('h-1.5 w-1.5 shrink-0 rounded-full', classes.dot)} />}
-      {!dot && Icon && <Icon aria-hidden="true" focusable="false" className={cn('shrink-0', iconSize)} />}
+      {!dot && icon && <StatusIcon name={icon} className={cn('shrink-0', iconSize)} />}
       {children}
     </span>
   )
