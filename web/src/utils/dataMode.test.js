@@ -63,6 +63,34 @@ describe('resolveDataMode', () => {
   })
 })
 
+describe('resolveDataMode: 3 x 2 combinações com variações de caixa e espaços', () => {
+  const variantes = { mock: ['MOCK', '  Mock  ', '\tmock\n'], supabase: ['SUPABASE', ' Supabase '], auto: ['AUTO', ' Auto '] }
+  const esperado = {
+    mock: { true: 'mock', false: 'mock' },
+    supabase: { true: 'supabase', false: 'unconfigured' },
+    auto: { true: 'supabase', false: 'mock' },
+  }
+  for (const [pedido, valores] of Object.entries(variantes)) {
+    for (const configurado of [true, false]) {
+      it(`${pedido} (${valores.length} variações) com Supabase ${configurado ? 'configurado' : 'não configurado'}`, () => {
+        for (const valor of valores) {
+          const resultado = resolveDataMode(valor, { supabaseConfigured: configurado })
+          assert.equal(resultado.mode, esperado[pedido][configurado], JSON.stringify(valor))
+          assert.equal(resultado.requested, pedido)
+          assert.ok(resultado.reason.length > 0)
+        }
+      })
+    }
+  }
+
+  it('só "supabase" sem configuração resulta em unconfigured, em qualquer entrada', () => {
+    const entradas = [undefined, '', 'mock', 'auto', 'xyz', 'MOCK', ' auto ']
+    for (const valor of entradas) {
+      assert.notEqual(resolveDataMode(valor, { supabaseConfigured: false }).mode, 'unconfigured')
+    }
+  })
+})
+
 describe('getDataModeInfo', () => {
   it('cada modo efetivo tem rótulo e descrição em português', () => {
     for (const modo of ['mock', 'supabase', 'unconfigured']) {

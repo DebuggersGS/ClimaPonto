@@ -11,6 +11,7 @@ import {
   getSourceTone,
 } from './statusTones.js'
 import { CONNECTIVITY_LABELS } from './connectivity.js'
+import { DATA_MODE_INFO } from './dataMode.js'
 import { ENVIRONMENTAL_STATUS_LABELS, READING_SOURCES } from './readings.js'
 
 const TONES = ['neutral', 'info', 'success', 'warning', 'danger', 'demo']
@@ -126,5 +127,20 @@ describe('labels coincidem com readings.js e connectivity.js', () => {
     for (const [key, info] of Object.entries(READING_SOURCES)) {
       assert.equal(getSourceTone(key).label, info.label)
     }
+  })
+})
+
+describe('modo de dados e dataMode.js', () => {
+  it('cobre exatamente os mesmos modos efetivos de DATA_MODE_INFO', () => {
+    assert.deepEqual(Object.keys(DATA_MODE_PRESENTATION).sort(), Object.keys(DATA_MODE_INFO).sort())
+  })
+
+  it('o modo não configurado nunca usa o tom de sucesso nem o de demonstração', () => {
+    assert.notEqual(getDataModeTone('unconfigured').tone, 'success')
+    assert.notEqual(getDataModeTone('unconfigured').tone, 'demo')
+  })
+
+  it('o modo mock é sinalizado com o tom de demonstração', () => {
+    assert.equal(getDataModeTone('mock').tone, 'demo')
   })
 })

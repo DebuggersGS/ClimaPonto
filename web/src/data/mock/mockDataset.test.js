@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import { describe, it } from 'node:test'
 import { getConnectivity } from '../../utils/connectivity.js'
 import { HISTORY_LIMIT, getPeriodStart } from '../../utils/historyPeriods.js'
@@ -58,6 +59,15 @@ describe('createMockDataset: determinismo', () => {
     const comuns = depois.readingsByStopId['mock-stop-normal'].filter((row) => antes.has(row.measured_at))
     assert.ok(comuns.length > 100)
     for (const row of comuns) assert.deepEqual(row, antes.get(row.measured_at))
+  })
+
+  it('o código-fonte não usa Math.random nem Date.now (pureza)', () => {
+    const codigo = readFileSync(new URL('./mockDataset.js', import.meta.url), 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/\/\/.*$/gm, '')
+    assert.doesNotMatch(codigo, /Math\.random/)
+    assert.doesNotMatch(codigo, /Date\.now/)
+    assert.doesNotMatch(codigo, /new Date\(\s*\)/)
   })
 
   it('exige "agora" injetado', () => {

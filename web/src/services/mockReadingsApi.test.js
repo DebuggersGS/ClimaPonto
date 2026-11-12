@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
 import { describe, it } from 'node:test'
 import { MOCK_SCENARIOS } from '../data/mock/mockDataset.js'
 import { getConnectivity } from '../utils/connectivity.js'
@@ -11,6 +12,16 @@ import { isAbortedError } from './readingsApi.js'
 const AGORA = new Date('2026-11-12T15:07:30.500Z')
 const stopId = (scenarioId) => MOCK_SCENARIOS.find((scenario) => scenario.id === scenarioId).stopId
 const criar = (options) => createMockReadingsApi({ now: () => AGORA, ...options })
+
+describe('createMockReadingsApi: isolamento do Supabase', () => {
+  it('o código não importa supabaseClient.js nem lê import.meta.env', () => {
+    const codigo = readFileSync(new URL('./mockReadingsApi.js', import.meta.url), 'utf8')
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/\/\/.*$/gm, '')
+    assert.doesNotMatch(codigo, /supabaseClient/)
+    assert.doesNotMatch(codigo, /import\.meta\.env/)
+  })
+})
 
 describe('createMockReadingsApi: pontos', () => {
   it('lista os 8 pontos ordenados pelo código, no formato camelCase da interface', async () => {
@@ -170,6 +181,22 @@ describe('createMockReadingsApi: estabilidade no tempo', () => {
       assert.equal(status('normal'), 'online')
       assert.equal(status('delayed'), 'delayed')
       assert.equal(status('offline'), 'offline')
+    }
+  })
+})
+
+describe('createMockReadingsApi: estabilidade em T e T + 15 min com histórico', () => {
+  it('a última leitura de cada cenário mantém a conectividade ao consultar o histórico em T e T + 15 min', async () => {
+    const esperado = { normal: 'online', delayed: 'delayed', offline: 'offline' }
+    for (const deslocamentoMin of [0, 15]) {
+      const instante = new Date(AGORA.getTime() + deslocamentoMin * 60 * 1000)
+      for (const [cenario, status] of Object.entries(esperado)) {
+        const { readings } = await criar({ now: () => instante }).fetchReadingHistory({
+          stopId: stopId(cenario),
+          periodId: '24h',
+        })
+        assert.equal(getConnectivity(readings[0].measuredAt, instante).status, status, `${cenario} +${deslocamentoMin}`)
+      }
     }
   })
 })
