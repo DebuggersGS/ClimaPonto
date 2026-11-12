@@ -1,19 +1,67 @@
 import { useId } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useSearchParams } from 'react-router'
+import HistoryHeader from '../components/history/HistoryHeader.jsx'
 import PeriodFilter from '../components/history/PeriodFilter.jsx'
 import ReadingsEvolution from '../components/history/ReadingsEvolution.jsx'
 import ReadingsTable from '../components/history/ReadingsTable.jsx'
 import StopSelect from '../components/history/StopSelect.jsx'
 import Button from '../components/ui/Button.jsx'
-import DataSourceBadge from '../components/ui/DataSourceBadge.jsx'
+import Card from '../components/ui/Card.jsx'
 import EmptyState from '../components/ui/EmptyState.jsx'
 import FeedbackMessage from '../components/ui/FeedbackMessage.jsx'
-import Skeleton from '../components/ui/Skeleton.jsx'
 import PageHeader from '../components/ui/PageHeader.jsx'
+import Skeleton from '../components/ui/Skeleton.jsx'
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js'
 import { useReadingsHistory } from '../hooks/useReadingsHistory.js'
 import { useStops } from '../hooks/useStops.js'
 import { HISTORY_LIMIT, HISTORY_PERIODS, parsePeriodId } from '../utils/historyPeriods.js'
+
+const FADE = { initial: { opacity: 0, y: 6 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0 }, transition: { duration: 0.2 } }
+
+function SectionTitle({ id, children }) {
+  return (
+    <h2 id={id} className="mb-3 text-xl font-semibold text-slate-900">
+      {children}
+    </h2>
+  )
+}
+
+function LoadingState() {
+  return (
+    <div className="space-y-6" aria-busy="true">
+      <Skeleton shape="chart" label="Carregando leituras…" />
+      <Skeleton shape="table" rows={6} label="Carregando tabela de leituras…" />
+    </div>
+  )
+}
+
+function ResultsContent({ stop, period, periodId, readings, truncated, discardedCount }) {
+  return (
+    <div className="space-y-6">
+      {truncated && (
+        <FeedbackMessage tone="info" className="mb-0">
+          Exibindo as {HISTORY_LIMIT} leituras mais recentes do período; leituras mais antigas foram omitidas.
+        </FeedbackMessage>
+      )}
+      {discardedCount > 0 && (
+        <FeedbackMessage tone="info" className="mb-0">
+          {discardedCount === 1
+            ? '1 leitura recebida foi descartada por estar inválida.'
+            : `${discardedCount} leituras recebidas foram descartadas por estarem inválidas.`}
+        </FeedbackMessage>
+      )}
+      <section aria-labelledby="evolution-heading">
+        <SectionTitle id="evolution-heading">Evolução</SectionTitle>
+        <ReadingsEvolution readings={readings} periodId={periodId} headingLevel={3} />
+      </section>
+      <section aria-labelledby="table-heading">
+        <SectionTitle id="table-heading">Leituras</SectionTitle>
+        <ReadingsTable readings={readings} caption={`Leituras de ${stop.name} (${stop.code}) — ${period.label.toLowerCase()}`} />
+      </section>
+    </div>
+  )
+}
 
 export default function HistoryPage() {
   useDocumentTitle('Histórico')
@@ -40,8 +88,85 @@ export default function HistoryPage() {
     setSearchParams(next, { replace: true })
   }
 
-  const notFound = !stopsLoading && !stopsError && code !== '' && !stop
+  const unconfigured = source === 'unconfigured'
+  const notFound = !stopsLoading && !stopsError && !unconfigured && code !== '' && !stop
   const showResults = Boolean(stop) && !error
+  const loading = showResults && isLoading && readings.length === 0
+  const empty = showResults && !isLoading && readings.length === 0
+
+  let content = null
+  let contentKey = 'none'
+  if (stopsLoading) {
+    contentKey = 'stops-loading'
+    content = <LoadingState />
+  } else if (unconfigured) {
+    contentKey = 'unconfigured'
+    content = (
+      <EmptyState
+        variant="warning"
+        title="Supabase não configurado"
+        message="Não há fonte de dados configurada, então o histórico não pode ser exibido. Configure o Supabase ou use o modo de demonstração."
+      />
+    )
+  } else if (stopsError) {
+    contentKey = 'stops-error'
+    content = <EmptyState variant="error" title="Não foi possível carregar os pontos" message={stopsError} />
+  } else if (!code) {
+    contentKey = 'no-stop'
+    content = <EmptyState variant="info" title="Selecione um ponto" message="Escolha um ponto monitorado para ver o histórico de leituras." />
+  } else if (notFound) {
+    contentKey = 'not-found'
+    content = (
+      <EmptyState
+        variant="warning"
+        title="Ponto não encontrado ou inativo"
+        message={`Não há ponto visível com o código "${code.slice(0, 32)}${code.length > 32 ? '…' : ''}". Escolha outro ponto na lista.`}
+      />
+    )
+  } else if (stop && error) {
+    contentKey = 'error'
+    content = (
+      <EmptyState
+        variant="error"
+        title="Não foi possível carregar as leituras"
+        message={error.message}
+        action={<Button variant="secondary" onClick={retry}>Tentar novamente</Button>}
+      />
+    )
+  } else if (loading) {
+    contentKey = 'loading'
+    content = <LoadingState />
+  } else if (empty) {
+    contentKey = `empty-${stop.code}-${periodId}`
+    const others = HISTORY_PERIODS.filter((item) => item.id !== periodId)
+    content = (
+      <EmptyState
+        title="Nenhuma leitura no período"
+        message={`${stop.name} não tem leituras visíveis em: ${period.label.toLowerCase()}. Tente outro período.`}
+        action={
+          <div className="flex flex-wrap justify-center gap-2">
+            {others.map((item) => (
+              <Button key={item.id} variant="secondary" onClick={() => updateParams({ periodo: item.id })}>
+                {item.label}
+              </Button>
+            ))}
+          </div>
+        }
+      />
+    )
+  } else if (showResults) {
+    contentKey = `results-${stop.code}-${periodId}`
+    content = (
+      <ResultsContent
+        stop={stop}
+        period={period}
+        periodId={periodId}
+        readings={readings}
+        truncated={truncated}
+        discardedCount={discardedCount}
+      />
+    )
+  }
 
   return (
     <>
@@ -50,84 +175,25 @@ export default function HistoryPage() {
         description="Registro das leituras de temperatura e umidade ao longo do tempo."
       />
 
-      <DataSourceBadge source={source} />
+      <HistoryHeader stop={stop} period={period} source={source} />
 
-      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end">
-        <div className="sm:w-80">
-          <StopSelect stops={stops} value={stop?.code ?? ''} onChange={(value) => updateParams({ ponto: value })} id={selectId} />
+      {/* Fixa só a partir de sm: no celular a topbar quebra em várias linhas e cobriria o filtro. */}
+      <Card variant="glass" className="z-30 mb-6 sm:sticky sm:top-20" aria-label="Filtros do histórico">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+          <div className="sm:w-80">
+            <StopSelect stops={stops} value={stop?.code ?? ''} onChange={(value) => updateParams({ ponto: value })} id={selectId} />
+          </div>
+          <PeriodFilter value={periodId} onChange={(value) => updateParams({ periodo: value })} />
         </div>
-        <PeriodFilter value={periodId} onChange={(value) => updateParams({ periodo: value })} />
+      </Card>
+
+      <div className="min-h-64">
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div key={contentKey} {...FADE}>
+            {content}
+          </motion.div>
+        </AnimatePresence>
       </div>
-
-      {stopsLoading && (
-        <p className="text-slate-600" role="status">
-          Carregando pontos…
-        </p>
-      )}
-
-      {stopsError && <FeedbackMessage tone="error">Não foi possível carregar os pontos. {stopsError}</FeedbackMessage>}
-
-      {!stopsLoading && !stopsError && !code && (
-        <EmptyState title="Selecione um ponto" message="Escolha um ponto monitorado para ver o histórico de leituras." />
-      )}
-
-      {notFound && (
-        <EmptyState
-          title="Ponto não encontrado ou inativo"
-          message={`Não há ponto visível com o código "${code.slice(0, 32)}${code.length > 32 ? '…' : ''}". Escolha outro ponto na lista.`}
-        />
-      )}
-
-      {stop && error && (
-        <div>
-          <FeedbackMessage tone="error">{error.message}</FeedbackMessage>
-          <Button variant="secondary" onClick={retry}>
-            Tentar novamente
-          </Button>
-        </div>
-      )}
-
-      {showResults && isLoading && readings.length === 0 && (
-        <Skeleton shape="chart" label="Carregando leituras…" />
-      )}
-
-      {showResults && !isLoading && readings.length === 0 && (
-        <EmptyState
-          title="Nenhuma leitura no período"
-          message={`${stop.name} não tem leituras visíveis em: ${period.label.toLowerCase()}.`}
-        />
-      )}
-
-      {showResults && truncated && (
-        <FeedbackMessage tone="info">
-          Exibindo as {HISTORY_LIMIT} leituras mais recentes do período; leituras mais antigas foram omitidas.
-        </FeedbackMessage>
-      )}
-
-      {showResults && discardedCount > 0 && (
-        <FeedbackMessage tone="info">
-          {discardedCount === 1
-            ? '1 leitura recebida foi descartada por estar inválida.'
-            : `${discardedCount} leituras recebidas foram descartadas por estarem inválidas.`}
-        </FeedbackMessage>
-      )}
-
-      {showResults && readings.length > 0 && (
-        <div className="space-y-8">
-          <section aria-labelledby="evolution-heading">
-            <h2 id="evolution-heading" className="mb-3 text-xl font-semibold text-slate-900">
-              Evolução
-            </h2>
-            <ReadingsEvolution readings={readings} periodId={periodId} headingLevel={3} />
-          </section>
-          <section aria-labelledby="table-heading">
-            <h2 id="table-heading" className="mb-3 text-xl font-semibold text-slate-900">
-              Leituras
-            </h2>
-            <ReadingsTable readings={readings} caption={`Leituras de ${stop.name} (${stop.code}) — ${period.label.toLowerCase()}`} />
-          </section>
-        </div>
-      )}
     </>
   )
 }
