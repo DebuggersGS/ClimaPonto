@@ -1,5 +1,10 @@
 import { Link, useNavigate } from 'react-router'
+import { Bus, ThermometerSun } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth.js'
+import { useDataMode } from '../../hooks/useDataMode.js'
+import { getDataModeTone } from '../../utils/statusTones.js'
+import Badge from '../ui/Badge.jsx'
+import Button from '../ui/Button.jsx'
 import MainNav from './MainNav.jsx'
 
 function UserMenu() {
@@ -16,40 +21,52 @@ function UserMenu() {
   }
 
   return (
-    <div className="flex items-center gap-2 text-sm">
-      <span className="max-w-48 truncate text-slate-600" title={user?.email}>
+    <div className="flex min-w-0 items-center gap-2 text-sm">
+      <span className="max-w-40 truncate text-slate-600" title={user?.email}>
         {user?.email}
       </span>
-      <button
-        type="button"
-        onClick={handleSignOut}
-        className="inline-flex min-h-10 items-center rounded-md border border-slate-300 px-3 py-2 font-medium text-slate-700 hover:bg-slate-50 focus-visible:outline-2 focus-visible:outline-brand-600"
-      >
+      <Button variant="secondary" size="sm" onClick={handleSignOut}>
         Sair
-      </button>
+      </Button>
     </div>
+  )
+}
+
+/** Indicador persistente do modo de dados (sempre texto + ícone). */
+function DataModeIndicator() {
+  const { mode, label } = useDataMode()
+  const tone = getDataModeTone(mode)
+  return (
+    <Badge tone={tone.tone} icon={tone.icon} size="sm">
+      <span className="sr-only">Modo de dados: </span>
+      {label}
+    </Badge>
+  )
+}
+
+function Logo() {
+  return (
+    <Link to="/" className="flex items-center gap-2.5 rounded-full pr-2 focus-visible:outline-2 focus-visible:outline-brand-600">
+      <span
+        aria-hidden="true"
+        className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-linear-to-br from-brand-600 to-accent-500 text-white shadow-glow"
+      >
+        <Bus className="h-5 w-5" />
+        <ThermometerSun className="absolute -right-1 -top-1 h-4 w-4 rounded-full bg-ink p-0.5 text-amber-300" />
+      </span>
+      <span className="text-lg font-semibold tracking-tight text-slate-900">ClimaPonto</span>
+    </Link>
   )
 }
 
 export default function Header() {
   return (
-    <header className="border-b border-slate-200 bg-white">
-      <div className="mx-auto flex max-w-6xl flex-col gap-3 px-4 py-4 lg:flex-row lg:items-center lg:justify-between sm:px-6">
-        <Link to="/" className="flex items-center gap-2 rounded-md focus-visible:outline-2 focus-visible:outline-brand-600">
-          <span
-            aria-hidden="true"
-            className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-600 text-lg font-bold text-white"
-          >
-            C
-          </span>
-          <span className="flex flex-col leading-tight">
-            <span className="text-lg font-semibold text-brand-900">ClimaPonto</span>
-            <span className="text-xs text-slate-500">Condições ambientais em pontos de ônibus</span>
-          </span>
-        </Link>
-
-        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between lg:justify-end lg:gap-4">
-          <MainNav />
+    <header className="surface-glass sticky top-0 z-40 rounded-none border-x-0 border-t-0">
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2.5 sm:px-6 lg:px-8">
+        <Logo />
+        <MainNav className="order-last w-full sm:order-none sm:w-auto" />
+        <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
+          <DataModeIndicator />
           <UserMenu />
         </div>
       </div>
