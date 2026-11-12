@@ -66,12 +66,6 @@ export default function HistoryPage() {
 
       {stopsError && <FeedbackMessage tone="error">Não foi possível carregar os pontos. {stopsError}</FeedbackMessage>}
 
-      {source === 'local' && (
-        <FeedbackMessage tone="info">
-          O Supabase não está configurado: os pontos demonstrativos locais não têm leituras, então não há histórico.
-        </FeedbackMessage>
-      )}
-
       {!stopsLoading && !stopsError && !code && (
         <EmptyState title="Selecione um ponto" message="Escolha um ponto monitorado para ver o histórico de leituras." />
       )}

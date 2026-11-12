@@ -1,12 +1,14 @@
 import { useCallback, useEffect, useState } from 'react'
-import { isAbortedError, listReadingHistory, readingsDataSource } from '../services/readingsService.js'
+import { dataMode } from '../services/dataSource.js'
+import { isAbortedError, listReadingHistory } from '../services/readingsService.js'
 
 const EMPTY_READINGS = []
 
 /**
  * Histórico de leituras de um ponto em um período (da mais recente à mais antiga).
  *
- * Retorno: { readings, truncated, discardedCount, from, isLoading, error, retry, source }.
+ * Retorno: { readings, truncated, discardedCount, from, isLoading, error, retry, source },
+ * onde source é o modo efetivo de dados ('mock' | 'supabase' | 'unconfigured').
  *
  * Regras:
  * - sem stopId: estado ocioso (readings [], isLoading false, nenhuma consulta);
@@ -64,6 +66,6 @@ export function useReadingsHistory({ stopId, periodId, reloadKey } = {}) {
     isLoading: key !== null && (isFetching || !isCurrent),
     error: isCurrent ? state.error : null,
     retry,
-    source: readingsDataSource,
+    source: dataMode,
   }
 }

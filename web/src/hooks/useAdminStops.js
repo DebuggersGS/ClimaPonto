@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { dataMode } from '../services/dataSource.js'
 import { toAppError } from '../services/errors.js'
 import {
   countStopReadings,
@@ -17,7 +18,8 @@ const byCode = (a, b) => a.code.localeCompare(b.code)
  *
  * Após cada operação, a lista local é atualizada com a linha devolvida pelo
  * banco (sem recarregar tudo). Erros de sessão expirada encerram a sessão e
- * levam o usuário de volta ao login.
+ * levam o usuário de volta ao login. `source` é o modo efetivo de dados: no
+ * modo mock as escritas rejeitam com erro de indisponibilidade.
  */
 export function useAdminStops() {
   const { handleSessionExpired } = useAuth()
@@ -105,5 +107,5 @@ export function useAdminStops() {
 
   const readingsCount = useCallback((id) => run(() => countStopReadings(id)), [run])
 
-  return { stops, isLoading, error, reload, create, update, setActive, remove, readingsCount }
+  return { stops, isLoading, error, reload, create, update, setActive, remove, readingsCount, source: dataMode }
 }

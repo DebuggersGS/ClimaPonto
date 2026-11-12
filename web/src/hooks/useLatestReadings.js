@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { isAbortedError, listLatestReadings, readingsDataSource } from '../services/readingsService.js'
+import { dataMode } from '../services/dataSource.js'
+import { isAbortedError, listLatestReadings } from '../services/readingsService.js'
 import { SEND_INTERVAL_MS } from '../utils/connectivity.js'
 
 /**
@@ -14,12 +15,15 @@ import { SEND_INTERVAL_MS } from '../utils/connectivity.js'
  * - lastUpdatedAt: Date da última consulta bem-sucedida (ou null);
  * - isStale: a última tentativa falhou, mas há dados anteriores (mantidos);
  * - refresh: consulta manual (estável); ignorada se já houver consulta em curso;
- * - source: 'supabase' ou 'local'.
+ * - source: modo efetivo de dados ('mock' | 'supabase' | 'unconfigured').
  *
  * Regras: um AbortController por requisição, abortado no desmonte; nunca há
  * requisições sobrepostas; o polling só roda com a aba visível (ao voltar,
- * consulta de imediato se os dados forem mais antigos que `intervalMs`);
- * com source local faz uma única carga e não faz polling.
+ * consulta de imediato se os dados forem mais antigos que `intervalMs`).
+ * No modo mock o polling continua com o mesmo intervalo: não há custo de rede
+ * e as leituras fictícias são geradas relativas ao relógio, então sem nova
+ * consulta um ponto "online" envelheceria até aparecer offline. No modo
+ * 'unconfigured' faz uma única carga (que já resulta em erro) e não faz polling.
  *
  * @param {{ intervalMs?: number }} [options]
  */
@@ -70,7 +74,7 @@ export function useLatestReadings({ intervalMs = SEND_INTERVAL_MS } = {}) {
 
   useEffect(() => {
     load()
-    if (readingsDataSource === 'local') {
+    if (dataMode === 'unconfigured') {
       return () => {
         inFlightRef.current?.abort()
         inFlightRef.current = null
@@ -117,6 +121,6 @@ export function useLatestReadings({ intervalMs = SEND_INTERVAL_MS } = {}) {
     lastUpdatedAt,
     isStale,
     refresh: load,
-    source: readingsDataSource,
+    source: dataMode,
   }
 }
