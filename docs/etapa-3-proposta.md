@@ -1,3 +1,27 @@
+# Status atualizado — Etapa 3B (12/11/2026)
+
+**Implementado:**
+- Dashboard: resumo, última medição, conectividade provisória, visão por ponto e evolução recente, com atualização automática pausada com a aba oculta.
+- Histórico: filtros de ponto e período na URL, gráfico SVG com alternativa textual, tabela e limite de 500 registros com aviso.
+- `utils/connectivity.js`, `readings.js`, `historyPeriods.js`, `chartGeometry.js`; `services/readingsApi.js` e `readingsService.js`; hooks `useLatestReadings`, `useReadingsHistory` e `useNow`.
+- Testes `node:test` (`cd web && node --test`).
+
+**Divergiu da proposta:**
+- Sem Recharts e sem Lucide: gráfico SVG próprio e ícones inline (decisão 24 em `architecture-decisions.md`).
+- Sem função SQL de agregação: consulta limitada com aviso de truncamento (decisão 27).
+- Sem `environmentalRules.js`: os limites ambientais não foram aprovados, então o front só exibe o `environmental_status` gravado.
+- Componentes em `components/history` e `components/dashboard` (a proposta citava só `components/dashboard`); `useConnectivity` virou o utilitário `utils/connectivity.js`.
+
+**Segue pendente:**
+- Limites ambientais e `rules_version`; intervalo de envio e regra de conectividade definitivos.
+- Ingestão (Edge Function) e leituras reais ou simuladas.
+- Agregação SQL para períodos longos.
+- Validação visual em navegador (375/768/1366 px, teclado, axe-core) e conferência com Supabase configurado (aceite humano).
+
+---
+
+## Texto original da proposta (histórico)
+
 # Proposta — Etapa 3: dashboard de monitoramento ambiental
 
 > **Status:** proposta para revisão técnica. Nada foi instalado ou implementado.

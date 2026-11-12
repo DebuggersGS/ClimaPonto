@@ -2,6 +2,7 @@ import Card from '../components/ui/Card.jsx'
 import DataSourceBadge from '../components/ui/DataSourceBadge.jsx'
 import EmptyState from '../components/ui/EmptyState.jsx'
 import PageHeader from '../components/ui/PageHeader.jsx'
+import StopHistoryLink from '../components/ui/StopHistoryLink.jsx'
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js'
 import { useStops } from '../hooks/useStops.js'
 
@@ -43,6 +44,9 @@ export default function StopsPage() {
                     <span className="rounded-full bg-amber-100 px-2 py-0.5 text-amber-900">Demonstrativo</span>
                   )}
                   <span className="rounded-full bg-slate-100 px-2 py-0.5 text-slate-700">Sem sensor vinculado</span>
+                </div>
+                <div className="mt-3 border-t border-slate-100 pt-2">
+                  <StopHistoryLink code={stop.code} />
                 </div>
               </Card>
             </li>

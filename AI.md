@@ -166,6 +166,28 @@ Não foram testados leitores de tela, navegadores além do Chrome, nem dispositi
 
 **Ferramentas de teste fora do repositório** (pasta temporária da sessão): `axe-core` e scripts de navegador via Chrome DevTools Protocol. Nenhuma dependência nova no aplicativo.
 
+### Etapa 3B — Dashboard e Histórico (12/11/2026)
+
+**Processo:** Claude Code (CLI, no WSL) com o Engineering Harness 0.3.1. O orquestrador foi o Claude Opus 5.5; o planejamento e as revisões independentes (code-reviewer e security-reviewer) usam Opus; a implementação foi feita por subagentes frontend-dev e data-dev em Sonnet 5.5. O ambiente não tem navegador, Docker nem `web/.env.local`.
+
+**Fatos do processo:**
+
+1. Houve uma interrupção por limite de uso da API durante as tarefas T4, T6 e T7. As tarefas foram retomadas e os arquivos parciais, revisados e commitados.
+2. Implementados (12 commits de código antes desta documentação): `utils/` (connectivity, readings, historyPeriods, chartGeometry, formatters), `services/readingsApi` e `readingsService`, hooks `useLatestReadings`, `useReadingsHistory` e `useNow`, componentes em `components/dashboard`, `components/history` e `components/ui`, e as páginas Dashboard e Histórico.
+3. Sem bibliotecas novas: gráfico SVG próprio e ícones SVG inline (ver `docs/architecture-decisions.md`).
+
+**Comandos executados nesta tarefa (cwd `web/`) e resultados:**
+
+- `npm run lint`: terminou sem erros; exibiu 2 avisos `react(set-state-in-effect)`, em `useReadingsHistory.js` e `useLatestReadings.js` (conhecidos, mantidos como trade-off).
+- `npm run build`: concluído com sucesso (bundle principal 321,08 kB, 101,14 kB gzip).
+- `node --test`: 88 testes, 22 suítes, 88 aprovados, 0 falhas.
+
+**Não afirmado aqui:** resultado dos gates finais e das revisões independentes; consultar o `report.md` do harness.
+
+**Pendente (validação humana):** conferir Dashboard e Histórico em navegador real (375/768/1366 px, teclado, axe-core) e com `web/.env.local` apontando para o Supabase (somente leitura). Nada disso foi executado neste ambiente.
+
+**Integração futura:** os branches `harness/G-20261111-4f0f88` e `harness/G-20261112-096aab` (não mesclados) também alteram `AI.md`/`docs`; pode haver conflitos simples de documentação.
+
 ## Princípios adotados
 
 - O código gerado por IA é revisado pela equipe antes de ser aprovado.

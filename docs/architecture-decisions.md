@@ -27,6 +27,15 @@ Registro curto das decisões técnicas do front-end e da infraestrutura de dados
 | 21 | CRUD sem bibliotecas novas: formulário com `useState`, `<dialog>` nativo, validação própria espelhando o banco | Implementada (Etapa 2B) |
 | 22 | Área administrativa carregada sob demanda (`React.lazy`) | Implementada (Etapa 2B) |
 | 23 | Migração `hide_test_readings` com `ALTER POLICY` (sem `DROP`) | Aplicada no remoto (Etapa 2B) |
+| 24 | Gráfico SVG próprio e ícones SVG inline (sem Recharts nem Lucide) | Implementada (Etapa 3B); adoção futura proposta |
+| 25 | Polling pausado com a aba oculta, em vez de Realtime | Implementada (Etapa 3B) |
+| 26 | Conectividade provisória parametrizada em `utils/connectivity.js` | Implementada (Etapa 3B); regra **provisória** |
+| 27 | Limite de consulta (`HISTORY_LIMIT + 1`) com aviso de truncamento, em vez de função de agregação | Implementada (Etapa 3B); agregação pendente |
+| 28 | Separação `readingsApi` / `readingsService` | Implementada (Etapa 3B) |
+| 29 | `node:test` nativo como executor de testes | Implementada (Etapa 3B) |
+| 30 | Lacunas de tempo no gráfico (`maxGapMs` = limiar de offline) | Implementada (Etapa 3B) |
+| 31 | Manter os avisos `set-state-in-effect` dos hooks de leitura | Aceita como trade-off (Etapa 3B) |
+
 
 ## 20–22. Área administrativa (Etapa 2B)
 
@@ -112,3 +121,49 @@ O dispositivo classifica localmente, então os alertas funcionam sem rede. O bac
 ## 16. Identificação por `stop_code`
 
 O firmware é configurado com o código legível do ponto (ex.: `DEMO-01`), não com o UUID.
+
+## 24–31. Dashboard e Histórico (Etapa 3B)
+
+### 24. Gráfico SVG próprio e ícones SVG inline
+- **Decisão:** `ReadingsChart` desenha o SVG a partir de `utils/chartGeometry.js` (puro e testado); os ícones ficam em `components/ui/icons.jsx`. Nenhuma dependência foi instalada.
+- **Alternativas:** Recharts e Lucide React (propostos em `etapa-3-proposta.md`).
+- **Trade-off:** menos recursos (sem tooltip rico nem zoom), mas bundle menor, controle da alternativa textual e nenhuma dependência nova sem decisão.
+- **Proposta objetiva de adoção futura (nada instalado):**
+  - *Necessidade:* só se surgirem tooltip, zoom, várias séries ou eixos complexos.
+  - *Recharts:* licença MIT; cerca de 90–100 kB gzip (estimativa da proposta, não medida); carregar com `React.lazy` apenas na página Histórico.
+  - *Lucide React:* licença ISC; *tree-shaking* (só os ícones usados entram); só se o conjunto de ícones inline crescer.
+  - Registrar a justificativa final aqui **antes** de instalar.
+
+### 25. Polling pausado vs Realtime
+- **Decisão:** `useLatestReadings` consulta periodicamente (padrão `SEND_INTERVAL_MS`) e pausa com `document.hidden`; `useNow` também não atualiza com a aba oculta.
+- **Alternativa:** Realtime do Supabase.
+- **Trade-off:** latência de até um intervalo e mais requisições, mas sem configuração extra de publicação/RLS no Realtime e com comportamento simples de testar. Realtime fica como evolução.
+
+### 26. Conectividade provisória parametrizada
+- **Decisão:** `utils/connectivity.js` concentra `SEND_INTERVAL_MS` (60 s), `ONLINE_FACTOR` (2), `OFFLINE_FACTOR` (5) e `CLOCK_TOLERANCE_MS`; o instante atual é sempre parâmetro.
+- **Trade-off:** valores provisórios até o Thiago definir o intervalo de envio; trocá-los é mudar constantes. Conectividade é dimensão separada do estado ambiental, e "Sem dados" difere de "Não classificado". Sem limites aprovados, o front não calcula estado ambiental (por isso não existe `environmentalRules.js`).
+
+### 27. Limite de consulta vs função de agregação
+- **Decisão:** o histórico pede `HISTORY_LIMIT + 1` (501) registros; se vier o excedente, mostra 500 e avisa o truncamento.
+- **Alternativa:** função SQL de médias por hora.
+- **Trade-off:** sem migração e sem `GRANT` novo, porém períodos longos podem ser truncados. A agregação exige migração (aprovação e teste local) e fica pendente.
+
+### 28. `readingsApi` / `readingsService`
+- `readingsApi.js` recebe o cliente como parâmetro e contém as consultas; `readingsService.js` é uma fachada fina que injeta o cliente Supabase. Assim `readingsApi` é testável no Node com cliente falso, sem rede e sem `import.meta.env`.
+
+### 29. `node:test` nativo
+- **Decisão:** testes `*.test.js` ao lado do código, executados com `cd web && node --test`.
+- **Alternativa:** Vitest/Jest (dependência nova, não aprovada).
+- **Trade-off:** sem testes de componentes React nem jsdom; a interface depende de validação em navegador (pendente). Não há script no `package.json` (arquivo fora do escopo da etapa).
+
+### 30. Lacunas no gráfico
+- Intervalo entre leituras maior que `maxGapMs` (padrão: limiar de offline) quebra a linha, para não sugerir continuidade onde o sensor ficou sem enviar. Um trecho de um só ponto vira marcador.
+
+### 31. Avisos `set-state-in-effect`
+- `useLatestReadings` e `useReadingsHistory` marcam o início do carregamento dentro do efeito, e o `oxlint` emite 2 avisos (0 erros).
+- **Alternativas:** derivar o estado durante a renderização ou usar biblioteca de dados (TanStack Query).
+- **Trade-off:** mantidos por serem simples e corretos; refatorar aumentaria a complexidade sem ganho de comportamento.
+
+### Limitações conhecidas
+- O botão "Tentar novamente" do erro de pontos no Dashboard recarrega a página (`window.location.reload()`), porque `useStops` não expõe uma função de nova tentativa.
+- Sem testes de componentes e sem validação visual/Supabase nesta etapa (aceite humano pendente).

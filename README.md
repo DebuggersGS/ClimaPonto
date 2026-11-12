@@ -4,7 +4,7 @@ Protótipo de monitoramento inteligente de condições ambientais em pontos de �
 
 O objetivo é coletar leituras de temperatura e umidade com ESP32, processar estados ambientais (ex.: calor extremo) e apresentá-los em uma aplicação web, ajudando a identificar pontos de ônibus com condições desconfortáveis ou de risco para quem espera o transporte.
 
-> **Situação atual:** Etapa 2B. Banco Supabase com tabelas, permissões (RLS) e 3 pontos **demonstrativos**; área administrativa com login e CRUD de pontos. Ainda **não há leituras** de sensores.
+> **Situação atual:** Etapa 3B. Banco Supabase com tabelas, permissões (RLS) e 3 pontos **demonstrativos**; área administrativa com login e CRUD de pontos; Dashboard e Histórico de leituras implementados no front-end. Ainda **não há leituras reais** no Supabase remoto (0 leituras): as telas mostram "Sem dados" até a ingestão existir.
 
 Repositório (privado): https://github.com/EnricoVidal/climaponto-gs-2026
 
@@ -106,6 +106,7 @@ Contas administrativas são criadas manualmente:
 | `npm run build` | Versão de produção em `web/dist/` |
 | `npm run preview` | Serve localmente a versão de produção |
 | `npm run lint` | Analisa o código com Oxlint |
+| `node --test` | Executa os testes automatizados (executor nativo do Node, sem dependência nova; não há script no `package.json`) |
 | `npm run check:supabase` | Testa pela API real o que um visitante pode e não pode fazer (requer `.env.local`) |
 | `npm run check:supabase:roles` | Testa permissões de admin e de usuário comum com login real; **só roda contra Supabase local** (requer `.env.check.local`) |
 
@@ -135,12 +136,15 @@ GLOBAL-SOLUTION/
         ├── components/
         │   ├── admin/            # StopForm, AdminStopCard
         │   ├── auth/             # AuthProvider, RequireAdmin
+        │   ├── dashboard/        # DashboardSummary, StopStatusCard, RefreshControl, ...
+        │   ├── history/          # ReadingsChart (SVG), ReadingsTable, PeriodFilter, ...
         │   ├── layout/           # AppLayout, Header, MainNav
         │   └── ui/               # Button, Card, ConfirmDialog, TextField, ...
         ├── pages/                # Dashboard, Pontos, Histórico, 404, AdminLogin, AdminStops
-        ├── hooks/                # useAuth, useAdminStops, useStops, useDocumentTitle
-        ├── services/             # supabaseClient, authService, stopsService, errors
-        ├── utils/                # stopValidation, formatters
+        ├── hooks/                # useAuth, useAdminStops, useStops, useLatestReadings, useReadingsHistory, useNow, ...
+        ├── services/             # supabaseClient, authService, stopsService, readingsApi, readingsService, errors
+        ├── utils/                # stopValidation, formatters, connectivity, readings, historyPeriods, chartGeometry
+                          # (testes *.test.js ao lado dos arquivos testados)
         ├── data/                 # Dados demonstrativos locais
         └── styles/
 ```
@@ -149,7 +153,7 @@ GLOBAL-SOLUTION/
 - `components/` e `pages/` cuidam da apresentação.
 - `hooks/` cuida da lógica e do estado (`useState`, `useEffect`, contexto de sessão).
 - `services/` cuida do acesso a dados e da tradução de erros.
-- `utils/` reúne funções puras de validação e formatação.
+- `utils/` reúne funções puras de validação, formatação, conectividade, normalização de leituras e geometria do gráfico.
 
 ## Modelo de dados e segurança (resumo)
 
@@ -167,6 +171,9 @@ Detalhes em [docs/data-contract.md](docs/data-contract.md), [docs/architecture-d
 - Listagem pública de pontos ativos, lida do Supabase (ou de dados locais quando não há configuração), com indicação da fonte.
 - Login administrativo e CRUD completo de pontos, com validação, diálogos de confirmação e mensagens de retorno.
 - CRUD e permissões **validados no Supabase remoto** com contas reais de teste (31/31: API e interface) e no Supabase local (SQL 50/50, papéis 14/14, interface 24/24). Detalhes em `docs/security-review.md`.
+- **Dashboard:** resumo (pontos, contagens por conectividade e por estado ambiental), última medição, conectividade **provisória** (online/atrasado/offline, separada do estado ambiental), visão por ponto e evolução recente. Atualização automática (polling), pausada com a aba oculta. Mostra apenas o `environmental_status` gravado; sem leituras aparece "Sem dados", e estado ausente aparece "Não classificado".
+- **Histórico:** filtros de ponto e período (24 h, 7 dias, 30 dias) refletidos na URL, gráfico SVG próprio com alternativa textual, tabela de leituras e limite de 500 registros com aviso de truncamento. Leituras de simulação são sinalizadas.
+- **Testes automatizados** (utils e `readingsApi`, com `node:test`): `cd web && node --test`. Última execução registrada em `AI.md`.
 - Acessibilidade básica verificada com axe-core (0 violações) e deploy na Vercel preparado e validado localmente ([docs/deploy.md](docs/deploy.md)), **ainda não publicado**.
 
 ## Pendente
@@ -175,6 +182,10 @@ Detalhes em [docs/data-contract.md](docs/data-contract.md), [docs/architecture-d
 - Criar a(s) conta(s) administrativa(s) definitiva(s) da equipe pelo painel (passos na seção *Administradores*).
 - Executar o deploy na Vercel (aguarda aprovação).
 - Endpoint de ingestão para o ESP32 e leituras reais/simuladas.
-- Limites ambientais e de conectividade (aguardando aprovação).
-- Histórico e indicadores no Dashboard.
+- Limites ambientais (aguardando aprovação); o front-end não classifica, só exibe o estado gravado.
+- Intervalo de envio do ESP32 e regra de conectividade definitivos (hoje provisórios: 60 s, 2× e 5×).
+- Agregação SQL para períodos longos (hoje a consulta é limitada a 500 registros).
+- Validação visual em navegador (375/768/1366 px, teclado, axe-core) e conferência do Dashboard/Histórico com Supabase configurado: **aceite humano**.
 - Design definitivo e deploy.
+
+> **Integração futura:** os branches `harness/G-20261111-4f0f88` e `harness/G-20261112-096aab` (não mesclados) também alteram `AI.md`/`docs`; ao integrá-los, podem surgir conflitos simples de documentação.
