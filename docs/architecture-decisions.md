@@ -181,9 +181,9 @@ Autorizadas explicitamente pelo usuário no objetivo G-20261112-bf4e8c. Todas co
 - Radix/shadcn CLI: o CLI exige rede; controles nativos acessíveis bastam; componentes próprios no estilo shadcn, com `cva`.
 - Fontes web: pilha de fontes do sistema (sem requisições externas, sem layout shift).
 
-**Resultado da instalação (2026-11-12): NEGADA — fallback adotado, sem dependências novas.** Comando: `npm --prefix web install lucide-react motion recharts clsx tailwind-merge class-variance-authority`. Erro: `npm error code E403 ... 403 host is not on the allow list - GET https://registry.npmjs.org/class-variance-authority` (sandbox de rede sem `registry.npmjs.org` na lista permitida; `allowed_domains` também recusado). `web/package.json` e `web/package-lock.json` ficaram inalterados. Instalar depois, fora do sandbox, com aprovação humana.
+**Resultado da instalação (2026-11-12): CONCLUÍDA, sem fallback.** Instalação feita pelo Dependency Manager do harness (tarefa T2), com o npm isolado e sem scripts de instalação. Versões resolvidas: `lucide-react` 1.72.0, `motion` 14.13.0, `recharts` 3.10.1, `clsx` 2.1.1, `tailwind-merge` 3.7.0, `class-variance-authority` 0.7.1. O lockfile foi verificado: todos os pacotes vêm do registro npm (`registry.npmjs.org`) com integridade sha512. `npm run lint` e `npm run build` passam após a instalação.
 
-**Fallback adotado:** ícones SVG inline existentes; movimento por CSS com `@media (prefers-reduced-motion)`; gráfico SVG próprio via `chartGeometry`/`chartSeries`; variantes por objetos de classes sem `cva`; `cn()` simples sem `tailwind-merge`.
+O fallback sem dependências (ícones SVG inline, movimento só por CSS, gráfico SVG próprio, `cn()` simples) foi descartado e não é decisão vigente.
 
 ### Limitações conhecidas
 - O botão "Tentar novamente" do erro de pontos no Dashboard recarrega a página (`window.location.reload()`), porque `useStops` não expõe uma função de nova tentativa.
