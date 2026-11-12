@@ -7,7 +7,9 @@ import ConfirmDialog from '../components/ui/ConfirmDialog.jsx'
 import EmptyState from '../components/ui/EmptyState.jsx'
 import FeedbackMessage from '../components/ui/FeedbackMessage.jsx'
 import PageHeader from '../components/ui/PageHeader.jsx'
+import Skeleton from '../components/ui/Skeleton.jsx'
 import { useAdminStops } from '../hooks/useAdminStops.js'
+import { useDataMode } from '../hooks/useDataMode.js'
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js'
 import { stopToFormValues } from '../utils/stopValidation.js'
 
@@ -26,6 +28,9 @@ function matchesSearch(stop, term) {
 export default function AdminStopsPage() {
   useDocumentTitle('Gerenciar pontos')
   const { stops, isLoading, error, reload, create, update, setActive, remove, readingsCount } = useAdminStops()
+
+  const { mode } = useDataMode()
+  const isMock = mode === 'mock'
 
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
@@ -143,6 +148,13 @@ export default function AdminStopsPage() {
     <>
       <PageHeader title="Gerenciar pontos" description="Cadastre, edite, desative ou exclua os pontos monitorados." />
 
+      {isMock && (
+        <FeedbackMessage tone="info">
+          Modo demonstrativo: a edição está indisponível. Cadastro, alteração, desativação e exclusão exigem o Supabase
+          configurado.
+        </FeedbackMessage>
+      )}
+
       <FeedbackMessage tone={feedback?.tone} onDismiss={() => setFeedback(null)}>
         {feedback?.text}
       </FeedbackMessage>
@@ -195,18 +207,16 @@ export default function AdminStopsPage() {
       )}
 
       {isLoading && (
-        <p role="status" className="text-slate-600">
-          Carregando pontos…
-        </p>
+        <Skeleton shape="table" rows={4} label="Carregando pontos…" />
       )}
 
       {error && (
-        <FeedbackMessage tone="error">
-          {error}{' '}
-          <button type="button" onClick={reload} className="font-medium underline">
-            Tentar novamente
-          </button>
-        </FeedbackMessage>
+        <EmptyState
+          variant="error"
+          title="Não foi possível carregar os pontos"
+          message={error}
+          action={<Button onClick={reload}>Tentar novamente</Button>}
+        />
       )}
 
       {!isLoading && !error && (

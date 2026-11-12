@@ -1,4 +1,5 @@
 import { formatDateTime } from '../../utils/formatters.js'
+import Badge from '../ui/Badge.jsx'
 import Button from '../ui/Button.jsx'
 
 /** Cartão de um ponto na área administrativa, com as ações disponíveis. */
@@ -6,7 +7,7 @@ export default function AdminStopCard({ stop, busy, onEdit, onToggleActive, onDe
   return (
     <article
       aria-labelledby={`stop-${stop.id}-name`}
-      className={`flex h-full flex-col rounded-lg border bg-white p-4 shadow-sm ${stop.active ? 'border-slate-200' : 'border-dashed border-slate-300 bg-slate-50'}`}
+      className={`flex h-full flex-col rounded-card p-5 ring-1 ${stop.active ? 'bg-surface shadow-card ring-slate-900/5' : 'bg-slate-50 outline-1 -outline-offset-1 outline-dashed outline-slate-300 ring-slate-900/5'}`}
     >
       <div className="flex flex-col gap-2">
         <div className="min-w-0">
@@ -15,11 +16,15 @@ export default function AdminStopCard({ stop, busy, onEdit, onToggleActive, onDe
           </h3>
           <p className="font-mono text-xs text-slate-500">{stop.code}</p>
         </div>
-        <div className="flex flex-wrap gap-1 text-xs font-medium">
-          <span className={`rounded-full px-2 py-0.5 ${stop.active ? 'bg-emerald-100 text-emerald-900' : 'bg-slate-200 text-slate-800'}`}>
+        <div className="flex flex-wrap gap-1">
+          <Badge tone={stop.active ? 'success' : 'neutral'} size="sm">
             {stop.active ? 'Ativo' : 'Inativo'}
-          </span>
-          {stop.isDemo && <span className="rounded-full bg-amber-100 px-2 py-0.5 text-amber-900">Demonstrativo</span>}
+          </Badge>
+          {stop.isDemo && (
+            <Badge tone="warning" size="sm">
+              Demonstrativo
+            </Badge>
+          )}
         </div>
       </div>
 
