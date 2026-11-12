@@ -9,7 +9,7 @@ export class AppError extends Error {
   /**
    * @param {string} message  mensagem para o usuário
    * @param {object} [options]
-   * @param {string} [options.kind]   categoria: permission, session, conflict, validation, integrity, network, aborted, unknown
+   * @param {string} [options.kind]   categoria: permission, session, conflict, validation, integrity, network, aborted, unavailable, unknown
    * @param {string} [options.field]  campo do formulário relacionado, quando houver
    * @param {unknown} [options.cause] erro original
    */
