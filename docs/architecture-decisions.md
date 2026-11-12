@@ -181,7 +181,9 @@ Autorizadas explicitamente pelo usuário no objetivo G-20261112-bf4e8c. Todas co
 - Radix/shadcn CLI: o CLI exige rede; controles nativos acessíveis bastam; componentes próprios no estilo shadcn, com `cva`.
 - Fontes web: pilha de fontes do sistema (sem requisições externas, sem layout shift).
 
-**Fallback (se a instalação for negada):** ícones SVG inline existentes; movimento por CSS com `@media (prefers-reduced-motion)`; gráfico SVG próprio via `chartGeometry`/`chartSeries`; variantes por objetos de classes sem `cva`; `cn()` simples sem `tailwind-merge`.
+**Resultado da instalação (2026-11-12): NEGADA — fallback adotado, sem dependências novas.** Comando: `npm --prefix web install lucide-react motion recharts clsx tailwind-merge class-variance-authority`. Erro: `npm error code E403 ... 403 host is not on the allow list - GET https://registry.npmjs.org/class-variance-authority` (sandbox de rede sem `registry.npmjs.org` na lista permitida; `allowed_domains` também recusado). `web/package.json` e `web/package-lock.json` ficaram inalterados. Instalar depois, fora do sandbox, com aprovação humana.
+
+**Fallback adotado:** ícones SVG inline existentes; movimento por CSS com `@media (prefers-reduced-motion)`; gráfico SVG próprio via `chartGeometry`/`chartSeries`; variantes por objetos de classes sem `cva`; `cn()` simples sem `tailwind-merge`.
 
 ### Limitações conhecidas
 - O botão "Tentar novamente" do erro de pontos no Dashboard recarrega a página (`window.location.reload()`), porque `useStops` não expõe uma função de nova tentativa.
