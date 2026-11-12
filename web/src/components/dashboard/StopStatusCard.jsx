@@ -1,7 +1,9 @@
+import Badge from '../ui/Badge.jsx'
 import Card from '../ui/Card.jsx'
 import ConnectivityBadge from '../ui/ConnectivityBadge.jsx'
+import EmptyState from '../ui/EmptyState.jsx'
 import EnvironmentalStatusBadge from '../ui/EnvironmentalStatusBadge.jsx'
-import { IconDroplet, IconSignalOff, IconThermometer } from '../ui/icons.jsx'
+import { IconDroplet, IconThermometer } from '../ui/icons.jsx'
 import ReadingSourceBadge from '../ui/ReadingSourceBadge.jsx'
 import StopHistoryLink from '../ui/StopHistoryLink.jsx'
 import { formatDateTimeWithZone, formatHumidity, formatRelativeAge, formatTemperature } from '../../utils/formatters.js'
@@ -9,7 +11,7 @@ import { formatDateTimeWithZone, formatHumidity, formatRelativeAge, formatTemper
 function Measure({ Icon, label, text }) {
   const unavailable = text === '—'
   return (
-    <div>
+    <div className="min-w-0 rounded-xl bg-slate-50 p-3 ring-1 ring-inset ring-slate-900/5">
       <dt className="flex items-center gap-1.5 text-sm text-slate-600">
         <Icon />
         {label}
@@ -47,35 +49,41 @@ function ReadingDetails({ reading, connectivity, now }) {
 }
 
 /**
- * Cartão de um ponto no Dashboard. Ponto sem leitura mostra "Sem dados", que é
+ * Cartão de um ponto no Dashboard. Ponto sem leitura mostra "Sem leituras", que é
  * diferente de "Não classificado" (leitura existente sem estado gravado).
  * @param {{ item: { stop: object, reading: object|null, connectivity: { status: string } }, now: Date|number }} props
  */
 export default function StopStatusCard({ item, now }) {
   const { stop, reading, connectivity } = item
   return (
-    <Card title={stop.name} headingLevel={3} className="flex h-full flex-col break-words">
-      <p className="font-mono text-sm text-slate-700">{stop.code}</p>
-      {stop.neighborhood && <p className="mt-0.5 text-sm text-slate-600">{stop.neighborhood}</p>}
-      {stop.isDemo && (
-        <p className="mt-2">
-          <span className="inline-flex rounded-md border border-slate-300 bg-slate-100 px-2 py-1 text-xs font-medium text-slate-800">
-            Demonstrativo
-          </span>
-        </p>
-      )}
-      <div className="mt-3 flex-1">
-        {reading ? (
-          <ReadingDetails reading={reading} connectivity={connectivity} now={now} />
-        ) : (
-          <p className="inline-flex items-center gap-1.5 rounded-md border border-slate-300 bg-slate-50 px-2.5 py-1 text-sm font-medium text-slate-700">
-            <IconSignalOff />
-            Sem dados: nenhuma leitura recebida
-          </p>
-        )}
-      </div>
-      <div className="mt-3 border-t border-slate-100 pt-2">
-        <StopHistoryLink code={stop.code} />
+    <Card interactive className="flex h-full flex-col break-words [&>div]:flex-1">
+      <div className="flex h-full flex-col">
+        <header>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <p className="font-mono text-sm text-slate-700">{stop.code}</p>
+            {stop.isDemo && (
+              <Badge tone="demo" icon="Sparkles" size="sm">
+                Demonstrativo
+              </Badge>
+            )}
+          </div>
+          <h3 className="mt-1 text-lg font-semibold text-slate-900">{stop.name}</h3>
+          {stop.neighborhood && <p className="text-sm text-slate-600">{stop.neighborhood}</p>}
+        </header>
+        <div className="mt-4 flex-1">
+          {reading ? (
+            <ReadingDetails reading={reading} connectivity={connectivity} now={now} />
+          ) : (
+            <EmptyState
+              title="Sem leituras"
+              message="Sem dados: nenhuma leitura recebida deste ponto."
+              className="px-4 py-6"
+            />
+          )}
+        </div>
+        <div className="mt-4 border-t border-slate-100 pt-2">
+          <StopHistoryLink code={stop.code} />
+        </div>
       </div>
     </Card>
   )

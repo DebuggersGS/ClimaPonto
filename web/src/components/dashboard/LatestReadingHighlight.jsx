@@ -1,3 +1,4 @@
+import Card from '../ui/Card.jsx'
 import ConnectivityBadge from '../ui/ConnectivityBadge.jsx'
 import EmptyState from '../ui/EmptyState.jsx'
 import EnvironmentalStatusBadge from '../ui/EnvironmentalStatusBadge.jsx'
@@ -6,7 +7,7 @@ import ReadingSourceBadge from '../ui/ReadingSourceBadge.jsx'
 import { getConnectivity } from '../../utils/connectivity.js'
 import { formatDateTimeWithZone, formatHumidity, formatRelativeAge, formatTemperature } from '../../utils/formatters.js'
 
-function BigValue({ Icon, label, text }) {
+function BigValue({ Icon, label, text, large = false }) {
   const unavailable = text === '—'
   return (
     <div>
@@ -14,7 +15,9 @@ function BigValue({ Icon, label, text }) {
         <Icon className="h-5 w-5" />
         {label}
       </p>
-      <p className="mt-1 text-4xl font-semibold tabular-nums text-slate-900">
+      <p
+        className={`mt-1 font-semibold tracking-tight text-slate-900 tabular-nums ${large ? 'text-5xl sm:text-6xl' : 'text-3xl sm:text-4xl'}`}
+      >
         {text}
         {unavailable && <span className="sr-only"> indisponível</span>}
       </p>
@@ -23,7 +26,8 @@ function BigValue({ Icon, label, text }) {
 }
 
 /**
- * Destaque da leitura mais recente entre todos os pontos. Sem cor de estado no fundo.
+ * Painel em destaque da leitura mais recente entre todos os pontos.
+ * Estado ambiental e conectividade são selos separados; sem cor de estado no fundo.
  * @param {{ latest: { stop: object, reading: object }|null, now: Date|number }} props
  */
 export default function LatestReadingHighlight({ latest, now }) {
@@ -39,15 +43,15 @@ export default function LatestReadingHighlight({ latest, now }) {
   const age = formatRelativeAge(reading.measuredAt, now)
   const connectivity = getConnectivity(reading.measuredAt, now)
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-      <p className="break-words text-lg font-semibold text-slate-900">
+    <Card variant="elevated" className="p-6 sm:p-8">
+      <h3 className="break-words text-lg font-semibold text-slate-900">
         {stop.name} <span className="font-mono text-sm font-normal text-slate-600">({stop.code})</span>
-      </p>
-      <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <BigValue Icon={IconThermometer} label="Temperatura" text={formatTemperature(reading.temperatureC)} />
+      </h3>
+      <div className="mt-5 grid grid-cols-1 gap-6 sm:grid-cols-2">
+        <BigValue Icon={IconThermometer} label="Temperatura" text={formatTemperature(reading.temperatureC)} large />
         <BigValue Icon={IconDroplet} label="Umidade" text={formatHumidity(reading.humidityPct)} />
       </div>
-      <p className="mt-4 text-sm text-slate-600">
+      <p className="mt-5 text-sm text-slate-600">
         Medido em{' '}
         <time dateTime={reading.measuredAt} className="font-medium text-slate-800">
           {formatDateTimeWithZone(reading.measuredAt)}
@@ -56,9 +60,9 @@ export default function LatestReadingHighlight({ latest, now }) {
       </p>
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <EnvironmentalStatusBadge status={reading.environmentalStatus} />
-        <ConnectivityBadge status={connectivity.status} ageText={age} />
+        <ConnectivityBadge status={connectivity.status} />
         <ReadingSourceBadge source={reading.source} />
       </div>
-    </div>
+    </Card>
   )
 }

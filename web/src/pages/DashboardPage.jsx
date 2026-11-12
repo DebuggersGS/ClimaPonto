@@ -1,20 +1,65 @@
 import { useMemo } from 'react'
+import { AnimatePresence, motion } from 'motion/react'
 import ConnectivityRuleNote from '../components/dashboard/ConnectivityRuleNote.jsx'
+import { getDashboardPhase } from '../components/dashboard/dashboardPhase.js'
+import DashboardHero from '../components/dashboard/DashboardHero.jsx'
+import {
+  DashboardError,
+  DashboardSkeleton,
+  NoStopsState,
+  UnconfiguredState,
+} from '../components/dashboard/DashboardStates.jsx'
 import DashboardSummary from '../components/dashboard/DashboardSummary.jsx'
 import LatestReadingHighlight from '../components/dashboard/LatestReadingHighlight.jsx'
 import RecentEvolutionPanel from '../components/dashboard/RecentEvolutionPanel.jsx'
 import RefreshControl from '../components/dashboard/RefreshControl.jsx'
-import StopStatusCard from '../components/dashboard/StopStatusCard.jsx'
-import Button from '../components/ui/Button.jsx'
-import DataSourceBadge from '../components/ui/DataSourceBadge.jsx'
-import EmptyState from '../components/ui/EmptyState.jsx'
+import StopGrid from '../components/dashboard/StopGrid.jsx'
 import FeedbackMessage from '../components/ui/FeedbackMessage.jsx'
-import PageHeader from '../components/ui/PageHeader.jsx'
+import Section from '../components/ui/Section.jsx'
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js'
 import { useLatestReadings } from '../hooks/useLatestReadings.js'
 import { useNow } from '../hooks/useNow.js'
 import { useStops } from '../hooks/useStops.js'
 import { summarizeDashboard } from '../utils/readings.js'
+
+const PHASE_TRANSITION = {
+  initial: { opacity: 0, y: 8 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0 },
+  transition: { duration: 0.2 },
+}
+
+function discardedMessage(count) {
+  return count === 1
+    ? '1 leitura recebida foi descartada por estar inválida.'
+    : `${count} leituras recebidas foram descartadas por estarem inválidas.`
+}
+
+function ReadyContent({ stops, summary, now }) {
+  return (
+    <>
+      <Section title="Resumo" eyebrow="Visão geral">
+        <DashboardSummary summary={summary} />
+      </Section>
+
+      <Section title="Última medição" eyebrow="Em destaque">
+        <LatestReadingHighlight latest={summary.latest} now={now} />
+      </Section>
+
+      <div className="mb-section">
+        <ConnectivityRuleNote />
+      </div>
+
+      <Section title="Evolução recente" eyebrow="Últimas 24 horas">
+        <RecentEvolutionPanel stops={stops} items={summary.items} latest={summary.latest} />
+      </Section>
+
+      <Section title="Pontos monitorados" eyebrow="Por ponto">
+        <StopGrid items={summary.items} now={now} />
+      </Section>
+    </>
+  )
+}
 
 export default function DashboardPage() {
   useDocumentTitle('Dashboard')
@@ -33,21 +78,20 @@ export default function DashboardPage() {
 
   const summary = useMemo(() => summarizeDashboard(stops, readings, now), [stops, readings, now])
 
-  const hasStops = !isLoading && !error && stops.length > 0
   // Sem leituras confirmadas pelo banco o estado é desconhecido, não "sem dados".
   const readingsFailed = !readingsLoading && readingsError !== null && lastUpdatedAt === null
-  const readingsReady = !readingsLoading && !readingsFailed
+  const phase = getDashboardPhase({
+    source,
+    stopsLoading: isLoading,
+    stopsError: error,
+    stopCount: stops.length,
+    readingsLoading,
+    readingsFailed,
+  })
 
   return (
     <>
-      <PageHeader
-        title="Dashboard"
-        description="Visão geral das condições ambientais nos pontos de ônibus monitorados."
-      />
-
-      <DataSourceBadge source={source} />
-
-      <div className="mb-6">
+      <DashboardHero source={source}>
         <RefreshControl
           lastUpdatedAt={lastUpdatedAt}
           isRefreshing={readingsLoading || isRefreshing}
@@ -56,94 +100,34 @@ export default function DashboardPage() {
           onRefresh={refresh}
           source={source}
         />
-      </div>
-
-      {isLoading && (
-        <p className="text-slate-600" role="status">
-          Carregando pontos…
-        </p>
-      )}
-
-      {error && (
-        <div>
-          <FeedbackMessage tone="error">Não foi possível carregar os pontos. {error}</FeedbackMessage>
-          <Button variant="secondary" onClick={() => window.location.reload()}>
-            Tentar novamente
-          </Button>
-        </div>
-      )}
-
-      {!isLoading && !error && stops.length === 0 && (
-        <EmptyState
-          title="Nenhum ponto monitorado"
-          message="Não há pontos ativos visíveis. Cadastre ou ative um ponto na área administrativa para acompanhá-lo aqui."
-        />
-      )}
-
-      {hasStops && readingsLoading && (
-        <p className="text-slate-600" role="status">
-          Carregando leituras…
-        </p>
-      )}
-
-      {hasStops && readingsFailed && (
-        <div>
-          <FeedbackMessage tone="error">
-            Não foi possível consultar as leituras. {readingsError.message}
-          </FeedbackMessage>
-          <Button variant="secondary" onClick={refresh}>
-            Tentar novamente
-          </Button>
-        </div>
-      )}
+      </DashboardHero>
 
       {discardedCount > 0 && (
-        <FeedbackMessage tone="info">
-          {discardedCount === 1
-            ? '1 leitura recebida foi descartada por estar inválida.'
-            : `${discardedCount} leituras recebidas foram descartadas por estarem inválidas.`}
-        </FeedbackMessage>
+        <FeedbackMessage tone="info">{discardedMessage(discardedCount)}</FeedbackMessage>
       )}
 
-      {hasStops && readingsReady && (
-        <div className="space-y-8">
-          <section aria-labelledby="summary-heading">
-            <h2 id="summary-heading" className="mb-3 text-xl font-semibold text-slate-900">
-              Resumo
-            </h2>
-            <DashboardSummary summary={summary} />
-          </section>
-
-          <section aria-labelledby="latest-heading">
-            <h2 id="latest-heading" className="mb-3 text-xl font-semibold text-slate-900">
-              Última medição
-            </h2>
-            <LatestReadingHighlight latest={summary.latest} now={now} />
-          </section>
-
-          <ConnectivityRuleNote />
-
-          <section aria-labelledby="evolution-heading">
-            <h2 id="evolution-heading" className="mb-3 text-xl font-semibold text-slate-900">
-              Evolução recente
-            </h2>
-            <RecentEvolutionPanel stops={stops} items={summary.items} latest={summary.latest} />
-          </section>
-
-          <section aria-labelledby="stops-heading">
-            <h2 id="stops-heading" className="mb-3 text-xl font-semibold text-slate-900">
-              Pontos monitorados
-            </h2>
-            <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {summary.items.map((item) => (
-                <li key={item.stop.id}>
-                  <StopStatusCard item={item} now={now} />
-                </li>
-              ))}
-            </ul>
-          </section>
-        </div>
-      )}
+      <AnimatePresence mode="wait" initial={false}>
+        <motion.div key={phase} {...PHASE_TRANSITION}>
+          {phase === 'loading' && <DashboardSkeleton />}
+          {phase === 'unconfigured' && <UnconfiguredState />}
+          {phase === 'empty' && <NoStopsState />}
+          {phase === 'stops-error' && (
+            <DashboardError
+              title="Não foi possível carregar os pontos"
+              message={error}
+              onRetry={() => window.location.reload()}
+            />
+          )}
+          {phase === 'readings-error' && (
+            <DashboardError
+              title="Não foi possível consultar as leituras"
+              message={readingsError?.message}
+              onRetry={refresh}
+            />
+          )}
+          {phase === 'ready' && <ReadyContent stops={stops} summary={summary} now={now} />}
+        </motion.div>
+      </AnimatePresence>
     </>
   )
 }

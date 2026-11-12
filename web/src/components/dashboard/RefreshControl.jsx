@@ -5,7 +5,7 @@ import { IconRefresh } from '../ui/icons.jsx'
 import { formatTimeWithZone } from '../../utils/formatters.js'
 
 /**
- * Controle de atualização do Dashboard.
+ * Controle de atualização do Dashboard (pensado para o hero escuro).
  * O horário "Atualizado às ..." fica visível, mas NÃO está em região aria-live:
  * mudaria a cada ciclo de atualização automática e o leitor de tela anunciaria
  * isso o tempo todo. A região aria-live (oculta) anuncia só o resultado de uma
@@ -44,12 +44,11 @@ export default function RefreshControl({ lastUpdatedAt, isRefreshing, isStale, e
   }
 
   const errorMessage = error ? (typeof error === 'string' ? error : error.message) : null
-  const isLocal = source === 'local'
 
   return (
     <div className="space-y-3">
-      <div className="flex flex-wrap items-center gap-3">
-        <p className="text-sm text-slate-600">{updatedText}</p>
+      <div className="flex flex-wrap items-center gap-3 lg:justify-end">
+        <p className="text-sm font-medium text-slate-200">{updatedText}</p>
         <Button variant="secondary" onClick={handleRefresh} disabled={isRefreshing}>
           <IconRefresh className={`h-4 w-4 ${isRefreshing ? 'motion-safe:animate-spin' : ''}`} />
           {isRefreshing ? 'Atualizando…' : 'Atualizar agora'}
@@ -58,13 +57,13 @@ export default function RefreshControl({ lastUpdatedAt, isRefreshing, isStale, e
           {announcement}
         </span>
       </div>
-      {isLocal && (
-        <p className="text-sm text-slate-600">
+      {source === 'mock' && (
+        <p className="text-sm text-slate-300 lg:text-right">
           Não há atualização automática: os pontos demonstrativos locais não têm leituras.
         </p>
       )}
       {(error || isStale) && (
-        <FeedbackMessage tone={error ? 'error' : 'info'}>
+        <FeedbackMessage tone={error ? 'error' : 'info'} className="mb-0 text-left">
           Os dados exibidos podem estar desatualizados.
           {errorMessage ? ` ${errorMessage}` : ''}
         </FeedbackMessage>

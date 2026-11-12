@@ -1,82 +1,53 @@
+import { AnimatedItem, AnimatedList } from '../ui/Reveal.jsx'
 import MetricCard from '../ui/MetricCard.jsx'
-import {
-  IconAlertOctagon,
-  IconAlertTriangle,
-  IconCheckCircle,
-  IconHelpCircle,
-  IconSignal,
-  IconSignalOff,
-} from '../ui/icons.jsx'
-import { CONNECTIVITY_LABELS } from '../../utils/connectivity.js'
-import { ENVIRONMENTAL_STATUS_LABELS } from '../../utils/readings.js'
+import { IconChart, IconFlask, IconHelpCircle, IconSignal } from '../ui/icons.jsx'
+import DistributionCard from './DistributionCard.jsx'
+import { getConnectivityTone, getEnvironmentalTone } from '../../utils/statusTones.js'
 
-const ENVIRONMENTAL_ITEMS = [
-  { key: 'normal', Icon: IconCheckCircle },
-  { key: 'attention', Icon: IconAlertTriangle },
-  { key: 'critical', Icon: IconAlertOctagon },
-  { key: 'unclassified', Icon: IconHelpCircle },
-]
+const ENVIRONMENTAL_KEYS = ['normal', 'attention', 'critical', 'unclassified']
+const CONNECTIVITY_KEYS = ['online', 'delayed', 'offline', 'no_data', 'unknown']
 
-const CONNECTIVITY_ITEMS = [
-  { key: 'online', Icon: IconSignal },
-  { key: 'delayed', Icon: IconSignal },
-  { key: 'offline', Icon: IconSignalOff },
-  { key: 'no_data', Icon: IconSignalOff },
-  { key: 'unknown', Icon: IconSignalOff },
-]
-
-function CountList({ title, note, reference, items, labels, counts }) {
-  return (
-    <section className="rounded-lg border border-slate-200 bg-white p-5 shadow-sm">
-      <h3 className="text-base font-semibold text-slate-900">{title}</h3>
-      <p className="mt-1 text-sm text-slate-600">{note}</p>
-      <ul className="mt-3 divide-y divide-slate-100">
-        {items.map(({ key, Icon }) => (
-          <li key={key} className="flex items-center justify-between gap-3 py-2">
-            <span className="flex items-center gap-2 text-sm text-slate-800">
-              <Icon />
-              {labels[key]}
-            </span>
-            <span className="text-lg font-semibold tabular-nums text-slate-900">{counts[key]}</span>
-          </li>
-        ))}
-      </ul>
-      <p className="mt-2 text-sm text-slate-600">{reference}</p>
-    </section>
-  )
-}
+const plural = (count, one, many) => (count === 1 ? one : many)
 
 /**
- * Resumo do Dashboard: métricas gerais e contagens por estado ambiental e por conectividade.
+ * Resumo do Dashboard: faixa de métricas (com entrada em sequência) e
+ * distribuições por estado ambiental e por conectividade.
  * @param {{ summary: ReturnType<import('../../utils/readings.js').summarizeDashboard> }} props
  */
 export default function DashboardSummary({ summary }) {
   const { monitoredCount, withReadingsCount, noDataCount, demoCount, environmentalCounts, connectivityCounts } =
     summary
+  const metrics = [
+    { label: 'Pontos monitorados', value: monitoredCount, icon: IconChart },
+    { label: 'Com leituras', value: withReadingsCount, icon: IconSignal, description: 'Têm ao menos uma leitura visível' },
+    { label: 'Sem dados', value: noDataCount, icon: IconHelpCircle, description: 'Nenhuma leitura recebida' },
+    { label: 'Demonstrativos', value: demoCount, icon: IconFlask, description: 'Pontos fictícios, sem sensor' },
+  ]
   return (
     <div className="space-y-4">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <MetricCard label="Pontos monitorados" value={String(monitoredCount)} />
-        <MetricCard label="Com leituras" value={String(withReadingsCount)} description="Têm ao menos uma leitura visível" />
-        <MetricCard label="Sem dados" value={String(noDataCount)} description="Nenhuma leitura recebida" />
-        <MetricCard label="Demonstrativos" value={String(demoCount)} description="Pontos fictícios, sem sensor" />
-      </div>
+      <AnimatedList className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {metrics.map(({ value, ...metric }) => (
+          <AnimatedItem key={metric.label}>
+            <MetricCard {...metric} value={String(value)} className="h-full" />
+          </AnimatedItem>
+        ))}
+      </AnimatedList>
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <CountList
+        <DistributionCard
           title="Estado ambiental registrado"
           note="Último estado gravado em cada leitura. É independente da conectividade."
-          reference={`de ${withReadingsCount} ${withReadingsCount === 1 ? 'ponto com leitura' : 'pontos com leitura'}`}
-          items={ENVIRONMENTAL_ITEMS}
-          labels={ENVIRONMENTAL_STATUS_LABELS}
+          reference={`de ${withReadingsCount} ${plural(withReadingsCount, 'ponto com leitura', 'pontos com leitura')}`}
+          keys={ENVIRONMENTAL_KEYS}
           counts={environmentalCounts}
+          getPresentation={getEnvironmentalTone}
         />
-        <CountList
+        <DistributionCard
           title="Conectividade"
           note="Idade da última leitura. É independente do estado ambiental."
-          reference={`de ${monitoredCount} ${monitoredCount === 1 ? 'ponto monitorado' : 'pontos monitorados'}`}
-          items={CONNECTIVITY_ITEMS}
-          labels={CONNECTIVITY_LABELS}
+          reference={`de ${monitoredCount} ${plural(monitoredCount, 'ponto monitorado', 'pontos monitorados')}`}
+          keys={CONNECTIVITY_KEYS}
           counts={connectivityCounts}
+          getPresentation={getConnectivityTone}
         />
       </div>
     </div>
