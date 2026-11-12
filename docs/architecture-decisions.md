@@ -164,6 +164,25 @@ O firmware é configurado com o código legível do ponto (ex.: `DEMO-01`), não
 - **Alternativas:** derivar o estado durante a renderização ou usar biblioteca de dados (TanStack Query).
 - **Trade-off:** mantidos por serem simples e corretos; refatorar aumentaria a complexidade sem ganho de comportamento.
 
+## 32. Etapa 3C — dependências de interface
+Autorizadas explicitamente pelo usuário no objetivo G-20261112-bf4e8c. Todas com licença MIT, mantidas ativamente e com tree-shaking (só o importado entra no bundle). Tamanhos são aproximados (gzip, apenas o usado).
+
+| Pacote | Necessidade concreta | Tamanho aprox. | Alternativa descartada |
+|---|---|---|---|
+| `lucide-react` (MIT) | Ícones consistentes com tree-shaking; substitui `icons.jsx` | ~0,5 KB por ícone | Manter SVGs inline escritos à mão (inconsistentes e custosos de ampliar) |
+| `motion` (MIT) | Animações declarativas de entrada/transição, com `MotionConfig reducedMotion="user"` e `useReducedMotion` | ~5–20 KB (uso por `m`/`LazyMotion` reduz) | Só CSS: sem orquestração de entrada/saída |
+| `recharts` (MIT) | Gráficos com eixos, tooltip, gradiente e camada de acessibilidade por teclado | ~90–110 KB (o maior; carregar só na página de histórico) | SVG próprio (`chartGeometry`/`chartSeries`): mais código a manter, sem tooltip/teclado prontos |
+| `clsx` + `tailwind-merge` (MIT) | Helper único `cn()` de composição de classes sem conflitos Tailwind | ~0,3 KB + ~7 KB | Concatenação manual de strings |
+| `class-variance-authority` (Apache-2.0/MIT conforme versão; verificar no lock) | Variantes tipadas de Card/Badge/Button | ~1 KB | Objetos de classes ad hoc por componente |
+
+**Não entram:**
+- `date-fns`: `Intl.DateTimeFormat` já resolve fuso e pt-BR.
+- `sonner`: não há ações com toast no escopo.
+- Radix/shadcn CLI: o CLI exige rede; controles nativos acessíveis bastam; componentes próprios no estilo shadcn, com `cva`.
+- Fontes web: pilha de fontes do sistema (sem requisições externas, sem layout shift).
+
+**Fallback (se a instalação for negada):** ícones SVG inline existentes; movimento por CSS com `@media (prefers-reduced-motion)`; gráfico SVG próprio via `chartGeometry`/`chartSeries`; variantes por objetos de classes sem `cva`; `cn()` simples sem `tailwind-merge`.
+
 ### Limitações conhecidas
 - O botão "Tentar novamente" do erro de pontos no Dashboard recarrega a página (`window.location.reload()`), porque `useStops` não expõe uma função de nova tentativa.
 - Sem testes de componentes e sem validação visual/Supabase nesta etapa (aceite humano pendente).
