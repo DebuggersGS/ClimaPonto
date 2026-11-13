@@ -18,12 +18,15 @@ const ICONS = { neutral: Inbox, info: Info, warning: TriangleAlert, error: Circl
 
 /**
  * Estado vazio/indisponível: medalhão com ícone, título, texto e ação opcional.
- * @param {{ title: string, message?: string, variant?: 'neutral'|'info'|'warning'|'error', action?: import('react').ReactNode, className?: string }} props
+ * Com variant="error" vira região `role="alert"` (anunciada por leitores de tela);
+ * `role` explícito sobrepõe esse padrão.
+ * @param {{ title: string, message?: string, variant?: 'neutral'|'info'|'warning'|'error', action?: import('react').ReactNode, role?: string, className?: string }} props
  */
-export default function EmptyState({ title, message, variant = 'neutral', action, className }) {
+export default function EmptyState({ title, message, variant = 'neutral', action, role, className }) {
   const Icon = ICONS[variant] ?? Inbox
   return (
     <div
+      role={role ?? (variant === 'error' ? 'alert' : undefined)}
       className={cn(
         'flex flex-col items-center rounded-card border border-dashed border-slate-300 bg-white/70 px-6 py-10 text-center',
         className,

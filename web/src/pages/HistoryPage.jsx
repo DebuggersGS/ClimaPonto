@@ -67,7 +67,7 @@ export default function HistoryPage() {
   useDocumentTitle('Histórico')
   const selectId = useId()
   const [searchParams, setSearchParams] = useSearchParams()
-  const { stops, isLoading: stopsLoading, error: stopsError, source } = useStops()
+  const { stops, isLoading: stopsLoading, error: stopsError, reload: reloadStops, source } = useStops()
 
   const code = searchParams.get('ponto') ?? ''
   const periodId = parsePeriodId(searchParams.get('periodo'))
@@ -110,7 +110,14 @@ export default function HistoryPage() {
     )
   } else if (stopsError) {
     contentKey = 'stops-error'
-    content = <EmptyState variant="error" title="Não foi possível carregar os pontos" message={stopsError} />
+    content = (
+      <EmptyState
+        variant="error"
+        title="Não foi possível carregar os pontos"
+        message={stopsError}
+        action={<Button variant="secondary" onClick={reloadStops}>Tentar novamente</Button>}
+      />
+    )
   } else if (!code) {
     contentKey = 'no-stop'
     content = <EmptyState variant="info" title="Selecione um ponto" message="Escolha um ponto monitorado para ver o histórico de leituras." />

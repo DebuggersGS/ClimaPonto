@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { dataMode } from '../services/dataSource.js'
 import { listStops } from '../services/stopsService.js'
 
@@ -11,9 +11,12 @@ export function useStops() {
   const [stops, setStops] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
+  const [reloadKey, setReloadKey] = useState(0)
 
   useEffect(() => {
     let isActive = true
+    setIsLoading(true)
+    setError(null)
 
     listStops()
       .then((data) => {
@@ -29,7 +32,9 @@ export function useStops() {
     return () => {
       isActive = false
     }
-  }, [])
+  }, [reloadKey])
 
-  return { stops, isLoading, error, source: dataMode }
+  const reload = useCallback(() => setReloadKey((n) => n + 1), [])
+
+  return { stops, isLoading, error, reload, source: dataMode }
 }

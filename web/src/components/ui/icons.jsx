@@ -1,15 +1,11 @@
 import {
   ChartLine,
-  CircleCheck,
   CircleHelp,
   Droplet,
   FlaskConical,
-  OctagonAlert,
   RefreshCw,
   SignalHigh,
-  SignalZero,
   Thermometer,
-  TriangleAlert,
 } from 'lucide-react'
 
 /**
@@ -26,10 +22,6 @@ function decorative(Icon) {
 export const IconThermometer = decorative(Thermometer)
 export const IconDroplet = decorative(Droplet)
 export const IconSignal = decorative(SignalHigh)
-export const IconSignalOff = decorative(SignalZero)
-export const IconCheckCircle = decorative(CircleCheck)
-export const IconAlertTriangle = decorative(TriangleAlert)
-export const IconAlertOctagon = decorative(OctagonAlert)
 export const IconHelpCircle = decorative(CircleHelp)
 export const IconFlask = decorative(FlaskConical)
 export const IconRefresh = decorative(RefreshCw)

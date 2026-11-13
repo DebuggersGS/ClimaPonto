@@ -34,7 +34,7 @@ function StopCard({ stop }) {
       {(stop.isDemo || stop.active === false) && (
         <div className="mt-3 flex flex-wrap gap-2">
           {stop.isDemo && (
-            <Badge tone="warning" size="sm">
+            <Badge tone="demo" icon="Sparkles" size="sm">
               Demonstrativo
             </Badge>
           )}

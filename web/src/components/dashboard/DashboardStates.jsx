@@ -33,18 +33,16 @@ export function DashboardSkeleton() {
 /** Erro com role="alert" e ação de nova tentativa. */
 export function DashboardError({ title, message, onRetry }) {
   return (
-    <div role="alert">
-      <EmptyState
-        variant="error"
-        title={title}
-        message={message}
-        action={
-          <Button variant="secondary" onClick={onRetry}>
-            Tentar novamente
-          </Button>
-        }
-      />
-    </div>
+    <EmptyState
+      variant="error"
+      title={title}
+      message={message}
+      action={
+        <Button variant="secondary" onClick={onRetry}>
+          Tentar novamente
+        </Button>
+      }
+    />
   )
 }
 
