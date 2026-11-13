@@ -12,7 +12,9 @@ function DesktopTable({ readings, caption }) {
   return (
     <div
       tabIndex={0}
-      className="hidden max-h-[32rem] overflow-auto rounded-card bg-surface shadow-card ring-1 ring-slate-900/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 md:block"
+      role="region"
+      aria-label="Tabela de leituras (com rolagem)"
+      className="relative hidden max-h-[32rem] overflow-auto rounded-card bg-surface shadow-card ring-1 ring-slate-900/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 md:block"
     >
       <table className="min-w-full text-sm">
         <caption className="px-4 py-3 text-left text-sm font-medium text-slate-800">{caption}</caption>
