@@ -4,12 +4,13 @@ import { Navigate, Route, Routes } from 'react-router'
 import RequireAdmin from './components/auth/RequireAdmin.jsx'
 import AppLayout from './components/layout/AppLayout.jsx'
 import Skeleton from './components/ui/Skeleton.jsx'
-import DashboardPage from './pages/DashboardPage.jsx'
-import HistoryPage from './pages/HistoryPage.jsx'
 import NotFoundPage from './pages/NotFoundPage.jsx'
 import StopsPage from './pages/StopsPage.jsx'
 
-// A área administrativa é carregada sob demanda: visitantes não baixam esse código.
+// Sob demanda: a área administrativa (visitantes não baixam esse código) e as páginas
+// com gráficos (Dashboard e Histórico), que concentram o Recharts fora do bundle inicial.
+const DashboardPage = lazy(() => import('./pages/DashboardPage.jsx'))
+const HistoryPage = lazy(() => import('./pages/HistoryPage.jsx'))
 const AdminLoginPage = lazy(() => import('./pages/AdminLoginPage.jsx'))
 const AdminStopsPage = lazy(() => import('./pages/AdminStopsPage.jsx'))
 

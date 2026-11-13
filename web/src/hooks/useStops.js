@@ -15,8 +15,6 @@ export function useStops() {
 
   useEffect(() => {
     let isActive = true
-    setIsLoading(true)
-    setError(null)
 
     listStops()
       .then((data) => {
@@ -34,7 +32,12 @@ export function useStops() {
     }
   }, [reloadKey])
 
-  const reload = useCallback(() => setReloadKey((n) => n + 1), [])
+  // Zera o estado no evento (não no efeito) para a nova tentativa mostrar o carregamento.
+  const reload = useCallback(() => {
+    setIsLoading(true)
+    setError(null)
+    setReloadKey((n) => n + 1)
+  }, [])
 
   return { stops, isLoading, error, reload, source: dataMode }
 }
