@@ -1,4 +1,5 @@
 import { CONNECTIVITY_LABELS } from './connectivity.js'
+import { DATA_MODE_INFO } from './dataMode.js'
 import { ENVIRONMENTAL_STATUS_LABELS, getReadingSourceInfo, normalizeEnvironmentalStatus } from './readings.js'
 
 /**
@@ -35,11 +36,11 @@ export const SOURCE_PRESENTATION = {
   unknown: { label: getReadingSourceInfo(null).label, tone: 'neutral', icon: 'CircleHelp' },
 }
 
-/** Modo de dados do front (provisório: a T10 alinha com dataMode quando existir). */
+/** Modo de dados do front; os rótulos vêm de dataMode.js para não divergir. */
 export const DATA_MODE_PRESENTATION = {
-  mock: { label: 'Dados de demonstração', tone: 'demo', icon: 'Sparkles' },
-  supabase: { label: 'Dados do Supabase', tone: 'success', icon: 'Database' },
-  unconfigured: { label: 'Supabase não configurado', tone: 'warning', icon: 'AlertTriangle' },
+  mock: { label: DATA_MODE_INFO.mock.label, tone: 'demo', icon: 'Sparkles' },
+  supabase: { label: DATA_MODE_INFO.supabase.label, tone: 'success', icon: 'Database' },
+  unconfigured: { label: DATA_MODE_INFO.unconfigured.label, tone: 'warning', icon: 'AlertTriangle' },
 }
 
 const UNKNOWN_DATA_MODE = { label: 'Modo de dados desconhecido', tone: 'neutral', icon: 'CircleHelp' }
