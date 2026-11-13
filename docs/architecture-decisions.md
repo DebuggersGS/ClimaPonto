@@ -112,6 +112,8 @@ As permissões de tabela são revogadas e depois concedidas explicitamente: visi
 
 ## 14. Fallback local apenas sem configuração
 
+> **Substituída pela decisão 35** (modos de dados). O texto abaixo é o histórico.
+
 Sem as variáveis `VITE_SUPABASE_*`, a aplicação usa dados demonstrativos locais, útil para quem só quer rodar a interface. Com o Supabase configurado, falhas aparecem como erro, sem troca silenciosa para dados locais.
 
 ## 15. Classificação ambiental no ESP32
@@ -125,6 +127,8 @@ O firmware é configurado com o código legível do ponto (ex.: `DEMO-01`), não
 ## 24–31. Dashboard e Histórico (Etapa 3B)
 
 ### 24. Gráfico SVG próprio e ícones SVG inline
+> **Superada na 3C pelas decisões 32 e 34:** Recharts e lucide-react foram adotados e `chartGeometry.js` deixou de existir. Texto mantido como histórico.
+
 - **Decisão:** `ReadingsChart` desenha o SVG a partir de `utils/chartGeometry.js` (puro e testado); os ícones ficam em `components/ui/icons.jsx`. Nenhuma dependência foi instalada.
 - **Alternativas:** Recharts e Lucide React (propostos em `etapa-3-proposta.md`).
 - **Trade-off:** menos recursos (sem tooltip rico nem zoom), mas bundle menor, controle da alternativa textual e nenhuma dependência nova sem decisão.
@@ -157,6 +161,8 @@ O firmware é configurado com o código legível do ponto (ex.: `DEMO-01`), não
 - **Trade-off:** sem testes de componentes React nem jsdom; a interface depende de validação em navegador (pendente). Não há script no `package.json` (arquivo fora do escopo da etapa).
 
 ### 30. Lacunas no gráfico
+> **Substituída na 3C pela decisão 34:** o agrupamento por intervalos (`chartSeries`) substitui o `maxGapMs`.
+
 - Intervalo entre leituras maior que `maxGapMs` (padrão: limiar de offline) quebra a linha, para não sugerir continuidade onde o sensor ficou sem enviar. Um trecho de um só ponto vira marcador.
 
 ### 31. Avisos `set-state-in-effect`
@@ -185,6 +191,31 @@ Autorizadas explicitamente pelo usuário no objetivo G-20261112-bf4e8c. Todas co
 
 O fallback sem dependências (ícones SVG inline, movimento só por CSS, gráfico SVG próprio, `cn()` simples) foi descartado e não é decisão vigente.
 
+## 33. Design system: tokens, `cva` e `cn()`
+- **Decisão:** tokens de design (cores, estados, sombras, raios) no `@theme` de `styles/index.css`; `utils/cn.js` combina `clsx` + `tailwind-merge`; variantes de Button, Badge e Card com `class-variance-authority`; apresentação de estados (tons) centralizada em `utils/statusTones.js` e `components/ui/tones.js`. Ícones via `lucide-react`.
+- **Alternativas:** classes ad hoc por componente; copiar componentes shadcn/Radix (descartado, ver decisão 32).
+- **Trade-off:** mais três pacotes pequenos em troca de consistência e menos conflito de classes Tailwind. O estado nunca depende só de cor: os selos combinam ícone, texto e cor.
+- **Movimento:** `<MotionConfig reducedMotion="user">` em `App.jsx` faz as animações do `motion` respeitarem `prefers-reduced-motion` do sistema; variantes ficam em `components/ui/motion.js`. Não verificado em navegador.
+- **Pendência:** `components/ui/icons.jsx` segue como camada sobre lucide-react; os consumidores devem migrar para importar direto.
+
+## 34. Gráficos: Recharts e agrupamento por intervalos
+- **Decisão:** `components/charts/SeriesChart.jsx` usa Recharts; `utils/chartSeries.js` (puro, testado) agrega as leituras em intervalos fixos por período (`CHART_BUCKET_MS`: 24 h = 30 min, 7 dias = 3 h, 30 dias = 12 h) e calcula o domínio do eixo Y com folga. Intervalos sem leitura ficam vazios e quebram a linha. Isso **substitui** o `maxGapMs` e o `chartGeometry.js` da decisão 30.
+- **Alternativa:** manter o SVG próprio (mais código a manter, sem tooltip/teclado prontos).
+- **Trade-off:** o bundle cresceu (ver abaixo). Recharts **não** está carregado sob demanda: hoje só as páginas administrativas são `lazy`, então a biblioteca entra no bundle principal. Code splitting por rota é melhoria futura.
+
+## 35. Abstração de fonte de dados e dataset mock determinístico
+- **Decisão:** `services/dataSource.js` é o único ponto que lê `import.meta.env` (`VITE_DATA_MODE`) e instancia a fonte via `dataSourceFactory.js`; hooks e serviços consomem `readingsApi` e `stopsApi` sem saber a origem. A resolução do modo é função pura em `utils/dataMode.js` (`mock`, `supabase`, `auto`; padrão `auto`).
+- **Sem fallback para mock:** `supabase` sem configuração vira o modo efetivo `unconfigured`, em que toda operação rejeita com erro explícito; erro do Supabase nunca cai para o mock; só `auto` escolhe o mock, e por falta de configuração. O modo efetivo é sinalizado de forma persistente na interface. Esta decisão **substitui a 14**.
+- **Mock determinístico:** `data/mock/mockDataset.js` gera 8 cenários por funções puras (semente `20261112`, PRNG mulberry32, instante "agora" como parâmetro), com as mesmas colunas das tabelas reais para passar pelos mesmos normalizadores. O `environmental_status` é valor fixo da fixture, porque o front não classifica. `?mock=erro` e `?mock=lento` simulam falha e latência, e só valem no modo mock.
+- **Trade-off:** sem aleatoriedade global os mesmos dados reaparecem a cada execução, o que facilita testar, mas não substitui medições reais. Os dados são sempre sinalizados como fictícios.
+
+## Resultado da 3C (fatos medidos em 2026-11-12)
+- `npm run build` conclui; o chunk principal tem 893,94 kB (276,54 kB gzip) e o Vite avisa chunk acima de 500 kB. Chunks `lazy`: `AdminStopsPage` 14,33 kB, `AdminLoginPage` 1,70 kB, `TextField` 0,99 kB. CSS: 42,96 kB (8,29 kB gzip). O tamanho anterior da 3B era 321,08 kB (101,14 kB gzip), então a 3C custou cerca de 573 kB (175 kB gzip) no bundle principal; a estimativa da decisão 32 (~90–110 kB gzip só para Recharts) é plausível dentro desse aumento, mas não foi medida por pacote.
+- `npm run lint`: 0 erros e 2 avisos `set-state-in-effect` (decisão 31).
+- Testes: 204 aprovados, 0 falhas (executados listando os arquivos `*.test.js`).
+
 ### Limitações conhecidas
-- O botão "Tentar novamente" do erro de pontos no Dashboard recarrega a página (`window.location.reload()`), porque `useStops` não expõe uma função de nova tentativa.
-- Sem testes de componentes e sem validação visual/Supabase nesta etapa (aceite humano pendente).
+- O botão "Tentar novamente" do erro de pontos no Dashboard recarrega a página (`window.location.reload()`) e o da página Pontos remonta o componente por `key`, porque `useStops` não expõe uma função de nova tentativa.
+- O selo "Sem sensor vinculado" foi removido do card de Pontos.
+- Sem testes de componentes. Nada da interface 3C foi renderizado em navegador: largura de 375 px, contraste AA, axe-core, hierarquia h1/h2/h3 e o offset `sm:top-20` (estimado) da barra de filtros fixa do Histórico estão por conferir (aceite humano).
+- `node --test` com uma pasta como argumento falha ao carregar; sem argumento ou listando arquivos funciona.

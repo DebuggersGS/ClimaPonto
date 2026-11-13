@@ -1,4 +1,21 @@
-# Status atualizado — Etapa 3B (12/11/2026)
+# Status atualizado — Etapa 3C (12/11/2026)
+
+**Feito na 3C (objetivo G-20261112-bf4e8c):**
+- Dependências de interface autorizadas e instaladas pelo harness, sem fallback: `lucide-react`, `motion`, `recharts`, `clsx`, `tailwind-merge`, `class-variance-authority` (decisão 32). **Recharts e Lucide, que a 3B havia deixado de lado, foram adotados.**
+- Design system: tokens, `cn()`, variantes com `cva`, componentes base (Button, Card, Section, Skeleton, MetricCard, SegmentedControl, EmptyState), shell com navegação animada e `MotionConfig reducedMotion="user"` (decisão 33).
+- Gráficos Recharts por grandeza, com agrupamento por intervalos em `utils/chartSeries.js` (substitui `chartGeometry.js` e `maxGapMs`) e resumo estatístico (decisão 34).
+- Fonte de dados única guiada por `VITE_DATA_MODE` (`mock`, `supabase`, `auto`), sem fallback para mock em erro, dataset mock determinístico com 8 cenários e sinalização persistente do modo (decisão 35).
+- Dashboard, Histórico, Pontos, área administrativa (tokens e aviso de modo demonstrativo) e página 404 redesenhados.
+- Testes `node:test` ampliados para modo de dados, dataset, adaptador mock, fábrica da fonte, `statusTones` e `chartSeries` (204 aprovados na última execução).
+
+**Continua pendente na 3C:**
+- Nenhuma tela foi renderizada em navegador: 375/768/1366 px, contraste, teclado, reduced motion e axe-core dependem de aceite humano.
+- Carregamento sob demanda do Recharts (hoje no bundle principal, ~894 kB / 277 kB gzip, com aviso de chunk >500 kB).
+- Os itens da 3B abaixo (limites ambientais, ingestão, agregação SQL) seguem inalterados.
+
+---
+
+# Status anterior — Etapa 3B (12/11/2026)
 
 **Implementado:**
 - Dashboard: resumo, última medição, conectividade provisória, visão por ponto e evolução recente, com atualização automática pausada com a aba oculta.
@@ -7,7 +24,7 @@
 - Testes `node:test` (`cd web && node --test`).
 
 **Divergiu da proposta:**
-- Sem Recharts e sem Lucide: gráfico SVG próprio e ícones inline (decisão 24 em `architecture-decisions.md`).
+- Sem Recharts e sem Lucide: gráfico SVG próprio e ícones inline (decisão 24 em `architecture-decisions.md`; revertido na 3C).
 - Sem função SQL de agregação: consulta limitada com aviso de truncamento (decisão 27).
 - Sem `environmentalRules.js`: os limites ambientais não foram aprovados, então o front só exibe o `environmental_status` gravado.
 - Componentes em `components/history` e `components/dashboard` (a proposta citava só `components/dashboard`); `useConnectivity` virou o utilitário `utils/connectivity.js`.

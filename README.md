@@ -4,7 +4,7 @@ Protótipo de monitoramento inteligente de condições ambientais em pontos de �
 
 O objetivo é coletar leituras de temperatura e umidade com ESP32, processar estados ambientais (ex.: calor extremo) e apresentá-los em uma aplicação web, ajudando a identificar pontos de ônibus com condições desconfortáveis ou de risco para quem espera o transporte.
 
-> **Situação atual:** Etapa 3B. Banco Supabase com tabelas, permissões (RLS) e 3 pontos **demonstrativos**; área administrativa com login e CRUD de pontos; Dashboard e Histórico de leituras implementados no front-end. Ainda **não há leituras reais** no Supabase remoto (0 leituras): as telas mostram "Sem dados" até a ingestão existir.
+> **Situação atual:** Etapa 3C. Banco Supabase com tabelas, permissões (RLS) e 3 pontos **demonstrativos**; área administrativa com login e CRUD de pontos; Dashboard e Histórico com novo design system (tokens, movimento e gráficos Recharts) e **modo demonstração** com dados fictícios determinísticos. Ainda **não há leituras reais** no Supabase remoto (0 leituras): com o Supabase, as telas mostram "Sem dados" até a ingestão existir. A validação visual em navegador **ainda não foi feita** (aceite humano).
 
 Repositório (privado): https://github.com/EnricoVidal/climaponto-gs-2026
 
@@ -23,6 +23,7 @@ Repositório (privado): https://github.com/EnricoVidal/climaponto-gs-2026
 - [Tailwind CSS](https://tailwindcss.com/) 4 (plugin `@tailwindcss/vite`)
 - [React Router](https://reactrouter.com/) 8
 - [Supabase](https://supabase.com/) (PostgreSQL, API REST, Auth) via `@supabase/supabase-js` 2
+- [Recharts](https://recharts.org/) 3 (gráficos), [motion](https://motion.dev/) 14 (animações), [lucide-react](https://lucide.dev/) (ícones), `clsx` + `tailwind-merge` + `class-variance-authority` (composição de classes e variantes). Justificativa em `docs/architecture-decisions.md` (decisão 32)
 - [Oxlint](https://oxc.rs/docs/guide/usage/linter) (lint)
 
 ## Pré-requisitos
@@ -40,7 +41,42 @@ npm run dev
 
 Acesse o endereço exibido no terminal (por padrão `http://localhost:5173`).
 
-Sem configurar o Supabase, a aplicação funciona com **dados demonstrativos locais**. Para usar o banco, siga a próxima seção.
+Sem configurar o Supabase, a aplicação funciona com **dados demonstrativos locais** (modo `auto`, veja *Modos de dados*). Para usar o banco, siga a seção de configuração do Supabase.
+
+### Modos de dados
+
+A fonte de dados é escolhida por `VITE_DATA_MODE` em `web/.env.local` (não versionado). Valores: `mock`, `supabase` ou `auto` (padrão, também usado se o valor estiver ausente ou inválido).
+
+| Valor | Comportamento |
+| --- | --- |
+| `mock` | Usa só o dataset fictício local; o Supabase **não** é consultado. |
+| `supabase` | Usa só o Supabase. Sem `VITE_SUPABASE_*`, o modo efetivo é "não configurado": toda consulta falha com erro explícito e **os dados mock não são usados**. |
+| `auto` | Supabase se estiver configurado; caso contrário, mock. |
+
+Regras: nunca há mistura de fontes, e um erro do Supabase **nunca** cai para o mock (sem fallback em erro). O modo efetivo é sinalizado de forma persistente no cabeçalho ("Modo demonstração", "Dados do Supabase" ou "Supabase não configurado").
+
+No modo mock, dois parâmetros de URL permitem conferir estados: `?mock=erro` (toda consulta falha), `?mock=lento` (latência de 3 s, em vez de 250 ms) e `?mock=lento,erro` (ambos). Em outros modos, eles são ignorados.
+
+**Cenários do dataset mock** (todos fictícios, determinísticos pela semente `20261112`; as leituras são de origem `simulation`, exceto onde indicado):
+
+| Ponto | Cenário | O que demonstra |
+| --- | --- | --- |
+| MOCK-01 | Normal | Ponto online, estado ambiental normal e histórico completo. |
+| MOCK-02 | Atenção | Online, estado ambiental registrado como atenção (calor elevado). |
+| MOCK-03 | Crítico | Online, estado ambiental registrado como crítico (temperatura muito alta). |
+| MOCK-04 | Sem dados | Ponto cadastrado que ainda não enviou nenhuma leitura. |
+| MOCK-05 | Conectividade atrasada | Última leitura há poucos minutos: atrasado, ainda não offline. |
+| MOCK-06 | Offline | Última leitura há horas, com o estado ambiental registrado preservado. |
+| MOCK-07 | Histórico longo | 30 dias de histórico, para conferir 24 h, 7 dias e 30 dias. |
+| MOCK-08 | Demonstrativo | Ponto `is_demo` com leituras de origem Teste. |
+
+### Como validar no navegador
+
+```bash
+npm --prefix web run dev
+```
+
+Com `VITE_DATA_MODE=mock`, percorra Dashboard, Pontos e Histórico e confira em **375, 768 e 1366 px** (sem rolagem horizontal em 375 px). Use também `?mock=erro` e `?mock=lento`, teclado (foco visível), emulação de `prefers-reduced-motion: reduce` (as animações devem ser suprimidas) e rode o axe-core. As ferramentas de navegador ficam fora do repositório. **Esta validação ainda não foi executada** (ver *Pendente*).
 
 ### Configuração do Supabase
 
@@ -106,7 +142,7 @@ Contas administrativas são criadas manualmente:
 | `npm run build` | Versão de produção em `web/dist/` |
 | `npm run preview` | Serve localmente a versão de produção |
 | `npm run lint` | Analisa o código com Oxlint |
-| `node --test` | Executa os testes automatizados (executor nativo do Node, sem dependência nova; não há script no `package.json`) |
+| `node --test` | Executa os testes automatizados (executor nativo do Node, sem dependência nova; não há script no `package.json`). Passar a **pasta** como argumento (`node --test src/utils/`) falhou ao carregar; use `node --test` sem argumentos ou liste os arquivos `*.test.js` |
 | `npm run check:supabase` | Testa pela API real o que um visitante pode e não pode fazer (requer `.env.local`) |
 | `npm run check:supabase:roles` | Testa permissões de admin e de usuário comum com login real; **só roda contra Supabase local** (requer `.env.check.local`) |
 
@@ -136,16 +172,17 @@ GLOBAL-SOLUTION/
         ├── components/
         │   ├── admin/            # StopForm, AdminStopCard
         │   ├── auth/             # AuthProvider, RequireAdmin
-        │   ├── dashboard/        # DashboardSummary, StopStatusCard, RefreshControl, ...
-        │   ├── history/          # ReadingsChart (SVG), ReadingsTable, PeriodFilter, ...
+        │   ├── charts/           # SeriesChart (Recharts), ChartTooltip
+        │   ├── dashboard/        # DashboardHero, DashboardSummary, StopGrid, StopStatusCard, ...
+        │   ├── history/          # ReadingsEvolution, ReadingsSummary, ReadingsTable, PeriodFilter, ...
         │   ├── layout/           # AppLayout, Header, MainNav
-        │   └── ui/               # Button, Card, ConfirmDialog, TextField, ...
+        │   └── ui/               # Button, Card, Badge, Section, MetricCard, EmptyState, Skeleton, ...
         ├── pages/                # Dashboard, Pontos, Histórico, 404, AdminLogin, AdminStops
-        ├── hooks/                # useAuth, useAdminStops, useStops, useLatestReadings, useReadingsHistory, useNow, ...
-        ├── services/             # supabaseClient, authService, stopsService, readingsApi, readingsService, errors
-        ├── utils/                # stopValidation, formatters, connectivity, readings, historyPeriods, chartGeometry
+        ├── hooks/                # useAuth, useAdminStops, useStops, useLatestReadings, useReadingsHistory, useNow, useDataMode, ...
+        ├── services/             # dataSource (fonte única), dataSourceFactory, mockReadingsApi, readingsApi, stopsApi, supabaseClient, authService, errors
+        ├── utils/                # dataMode, chartSeries, statusTones, cn, stopValidation, formatters, connectivity, readings, historyPeriods
                           # (testes *.test.js ao lado dos arquivos testados)
-        ├── data/                 # Dados demonstrativos locais
+        ├── data/mock/            # Dataset mock determinístico (8 cenários)
         └── styles/
 ```
 
@@ -168,13 +205,15 @@ Detalhes em [docs/data-contract.md](docs/data-contract.md), [docs/architecture-d
 
 - Interface responsiva com Dashboard, Pontos, Histórico e página 404.
 - Banco Supabase com tabelas, restrições, índices, RLS e 3 pontos demonstrativos.
-- Listagem pública de pontos ativos, lida do Supabase (ou de dados locais quando não há configuração), com indicação da fonte.
+- Listagem pública de pontos ativos, lida do Supabase ou do dataset mock conforme `VITE_DATA_MODE`, com o modo efetivo sempre sinalizado.
+- **Design system (3C):** tokens em `styles/index.css`, `cn()` (clsx + tailwind-merge), variantes com `cva`, ícones lucide-react e animações com `motion` (`MotionConfig reducedMotion="user"`).
+- **Modo demonstração:** dataset mock determinístico com 8 cenários, adaptador com a mesma interface da fonte real, `?mock=erro` e `?mock=lento`.
 - Login administrativo e CRUD completo de pontos, com validação, diálogos de confirmação e mensagens de retorno.
 - CRUD e permissões **validados no Supabase remoto** com contas reais de teste (31/31: API e interface) e no Supabase local (SQL 50/50, papéis 14/14, interface 24/24). Detalhes em `docs/security-review.md`.
 - **Dashboard:** resumo (pontos, contagens por conectividade e por estado ambiental), última medição, conectividade **provisória** (online/atrasado/offline, separada do estado ambiental), visão por ponto e evolução recente. Atualização automática (polling), pausada com a aba oculta. Mostra apenas o `environmental_status` gravado; sem leituras aparece "Sem dados", e estado ausente aparece "Não classificado".
-- **Histórico:** filtros de ponto e período (24 h, 7 dias, 30 dias) refletidos na URL, gráfico SVG próprio com alternativa textual, tabela de leituras e limite de 500 registros com aviso de truncamento. Leituras de simulação são sinalizadas.
-- **Testes automatizados** (utils e `readingsApi`, com `node:test`): `cd web && node --test`. Última execução registrada em `AI.md`.
-- Acessibilidade básica verificada com axe-core (0 violações) e deploy na Vercel preparado e validado localmente ([docs/deploy.md](docs/deploy.md)), **ainda não publicado**.
+- **Histórico:** filtros de ponto e período (24 h, 7 dias, 30 dias) refletidos na URL, gráficos Recharts por grandeza (agrupados em intervalos), resumo estatístico, tabela responsiva e limite de 500 registros com aviso de truncamento. Leituras de simulação e teste são sinalizadas.
+- **Testes automatizados** (utils, serviços e dataset mock, com `node:test`): `cd web && node --test`. Última execução registrada em `AI.md`. Não há testes de componentes React.
+- Deploy na Vercel preparado e validado localmente ([docs/deploy.md](docs/deploy.md)), **ainda não publicado**. A verificação com axe-core (0 violações) é de etapas anteriores; **a interface redesenhada na 3C não foi verificada**.
 
 ## Pendente
 
@@ -185,7 +224,12 @@ Detalhes em [docs/data-contract.md](docs/data-contract.md), [docs/architecture-d
 - Limites ambientais (aguardando aprovação); o front-end não classifica, só exibe o estado gravado.
 - Intervalo de envio do ESP32 e regra de conectividade definitivos (hoje provisórios: 60 s, 2× e 5×).
 - Agregação SQL para períodos longos (hoje a consulta é limitada a 500 registros).
-- Validação visual em navegador (375/768/1366 px, teclado, axe-core) e conferência do Dashboard/Histórico com Supabase configurado: **aceite humano**.
-- Design definitivo e deploy.
+- Validação visual em navegador (375/768/1366 px, contraste, teclado, reduced motion, axe-core) da interface 3C e conferência com Supabase configurado: **aceite humano**. Nada disso foi renderizado até agora; o offset `sm:top-20` da barra de filtros fixa do Histórico é estimado e a hierarquia h1/h2/h3 está por conferir.
+- Bundle principal de ~894 kB (277 kB gzip) com aviso de chunk acima de 500 kB; code splitting por rota (hoje só as páginas administrativas são `lazy`) é melhoria futura.
+- `components/ui/icons.jsx` segue como camada sobre lucide-react, com consumidores a migrar para importar direto.
+- 2 avisos de lint `set-state-in-effect` (`useReadingsHistory.js`, `useLatestReadings.js`), preexistentes.
+- `useStops` não tem recarga: o "Tentar novamente" de Pontos remonta o componente por `key`, e o do Dashboard recarrega a página.
+- `node --test src/utils/` (pasta como argumento) falha ao carregar; causa não investigada, por isso os testes são executados sem argumento ou por arquivo.
+- Design definitivo (aprovação do Vini) e deploy.
 
 > **Integração futura:** os branches `harness/G-20261111-4f0f88` e `harness/G-20261112-096aab` (não mesclados) também alteram `AI.md`/`docs`; ao integrá-los, podem surgir conflitos simples de documentação.
