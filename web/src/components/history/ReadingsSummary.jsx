@@ -48,14 +48,18 @@ export default function ReadingsSummary({ readings, field, label, formatValue, i
   const summary = summarizeSeries(readings, field)
   const Icon = FIELD_ICONS[field]
   return (
-    <dl id={id} aria-label={`Resumo de ${label}`} className="grid grid-cols-3 gap-2 text-sm">
-      <Stat term="Mínima" value={summary.min} formatValue={formatValue} />
-      <Stat term="Máxima" value={summary.max} formatValue={formatValue} />
-      <Stat term="Média" value={summary.average} formatValue={formatValue} />
-      <div className="col-span-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600">
+    <div id={id} role="group" aria-label={`Resumo de ${label}`} className="space-y-2 text-sm">
+      <dl className="grid grid-cols-3 gap-2">
+        <Stat term="Mínima" value={summary.min} formatValue={formatValue} />
+        <Stat term="Máxima" value={summary.max} formatValue={formatValue} />
+        <Stat term="Média" value={summary.average} formatValue={formatValue} />
+      </dl>
+      <dl className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-600">
         <div className="inline-flex items-center gap-1.5">
-          {Icon && <Icon aria-hidden="true" className="h-4 w-4" />}
-          <dt>Amostras válidas:</dt>
+          <dt className="inline-flex items-center gap-1.5">
+            {Icon && <Icon aria-hidden="true" className="h-4 w-4" />}
+            Amostras válidas:
+          </dt>
           <dd className="font-semibold tabular-nums text-slate-900">{summary.count}</dd>
         </div>
         <div className="inline-flex items-center gap-1.5">
@@ -64,7 +68,7 @@ export default function ReadingsSummary({ readings, field, label, formatValue, i
             <Trend trend={summary.trend} formatValue={formatValue} />
           </dd>
         </div>
-      </div>
-    </dl>
+      </dl>
+    </div>
   )
 }

@@ -10,7 +10,10 @@ const NUMERIC_HEADER = `${HEADER} text-right`
 
 function DesktopTable({ readings, caption }) {
   return (
-    <div className="hidden max-h-[32rem] overflow-auto rounded-card bg-surface shadow-card ring-1 ring-slate-900/5 md:block">
+    <div
+      tabIndex={0}
+      className="hidden max-h-[32rem] overflow-auto rounded-card bg-surface shadow-card ring-1 ring-slate-900/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 md:block"
+    >
       <table className="min-w-full text-sm">
         <caption className="px-4 py-3 text-left text-sm font-medium text-slate-800">{caption}</caption>
         <thead>
