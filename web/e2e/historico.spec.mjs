@@ -62,7 +62,24 @@ test('?mock=erro: alerta com nova tentativa', async ({ page }) => {
   await expect(page.getByRole('alert').getByRole('button', { name: 'Tentar novamente' })).toBeVisible()
 })
 
-test('?mock=lento: carregamento e depois a tabela', async ({ page }) => {
+test('?mock=lento: estado de carregamento anunciado e depois a tabela', async ({ page }) => {
   await page.goto('/historico?ponto=MOCK-01&periodo=24h&mock=lento')
+  await expect(page.getByRole('status').filter({ hasText: 'Carregando leituras…' })).toBeVisible()
+  await expect(page.getByRole('status').filter({ hasText: 'Carregando tabela de leituras…' })).toBeVisible()
   await expect(page.getByRole('table')).toBeVisible({ timeout: 20_000 })
+  await expect(page.getByRole('status').filter({ hasText: 'Carregando leituras…' })).toHaveCount(0)
+})
+
+test('desktop: a página termina no rodapé (sem rolagem vazia causada pela tabela)', async ({ page }) => {
+  await page.setViewportSize({ width: 1366, height: 900 })
+  await page.goto('/historico?ponto=MOCK-01&periodo=24h')
+  await expect(page.getByRole('table')).toBeVisible()
+  // regressão: textos sr-only (absolute) dentro do contêiner rolável esticavam a página até a altura da tabela
+  const vazio = await page.evaluate(() => {
+    window.scrollTo(0, document.documentElement.scrollHeight)
+    return Math.round(innerHeight - document.querySelector('footer').getBoundingClientRect().bottom)
+  })
+  expect(vazio).toBeLessThanOrEqual(2)
+  const regiao = page.getByRole('region', { name: 'Tabela de leituras (com rolagem)' })
+  await expect(regiao).toHaveAttribute('tabindex', '0')
 })

@@ -18,12 +18,12 @@ test('indicadores do resumo refletem o dataset mock', async ({ page }) => {
     // o cartão do indicador contém o título e o valor (seguido de texto não numérico ou fim)
     await expect(r.getByRole('heading', { level: 3, name: titulo, exact: true }).locator('xpath=../..')).toHaveText(new RegExp(`${titulo}\\s*${valor}(\\D|$)`))
   }
-  await expect(r.getByRole('listitem').filter({ hasText: /^Normal/ })).toContainText('5')
-  await expect(r.getByRole('listitem').filter({ hasText: /^Atenção/ })).toContainText('1')
-  await expect(r.getByRole('listitem').filter({ hasText: /^Crítico/ })).toContainText('1')
-  await expect(r.getByRole('listitem').filter({ hasText: /^Online/ })).toContainText('5')
-  await expect(r.getByRole('listitem').filter({ hasText: /^Atrasado/ })).toContainText('1')
-  await expect(r.getByRole('listitem').filter({ hasText: /^Offline/ })).toContainText('1')
+  await expect(r.getByRole('listitem').filter({ hasText: /^Normal/ })).toHaveText(/^Normal\s*5$/)
+  await expect(r.getByRole('listitem').filter({ hasText: /^Atenção/ })).toHaveText(/^Atenção\s*1$/)
+  await expect(r.getByRole('listitem').filter({ hasText: /^Crítico/ })).toHaveText(/^Crítico\s*1$/)
+  await expect(r.getByRole('listitem').filter({ hasText: /^Online/ })).toHaveText(/^Online\s*5$/)
+  await expect(r.getByRole('listitem').filter({ hasText: /^Atrasado/ })).toHaveText(/^Atrasado\s*1$/)
+  await expect(r.getByRole('listitem').filter({ hasText: /^Offline/ })).toHaveText(/^Offline\s*1$/)
 })
 
 test('cards por ponto: estados normal, atenção, crítico e sem dados', async ({ page }) => {
