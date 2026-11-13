@@ -225,7 +225,7 @@ Detalhes em [docs/data-contract.md](docs/data-contract.md), [docs/architecture-d
 - Intervalo de envio do ESP32 e regra de conectividade definitivos (hoje provisórios: 60 s, 2× e 5×).
 - Agregação SQL para períodos longos (hoje a consulta é limitada a 500 registros).
 - Validação visual em navegador (375/768/1366 px, contraste, teclado, reduced motion, axe-core) da interface 3C e conferência com Supabase configurado: **aceite humano**. Nada disso foi renderizado até agora; o offset `sm:top-20` da barra de filtros fixa do Histórico é estimado e a hierarquia h1/h2/h3 está por conferir.
-- Bundle principal de ~894 kB (277 kB gzip) com aviso de chunk acima de 500 kB; code splitting por rota (hoje só as páginas administrativas são `lazy`) é melhoria futura.
+- Dashboard, Histórico e área administrativa são `lazy`; o chunk com o Recharts tem ~381 kB (111 kB gzip) e o build não emite mais aviso de chunk acima de 500 kB.
 - `components/ui/icons.jsx` segue como camada sobre lucide-react, com consumidores a migrar para importar direto.
 - 2 avisos de lint `set-state-in-effect` (`useReadingsHistory.js`, `useLatestReadings.js`), preexistentes.
 - `useStops` não tem recarga: o "Tentar novamente" de Pontos remonta o componente por `key`, e o do Dashboard recarrega a página.

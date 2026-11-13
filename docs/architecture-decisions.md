@@ -171,15 +171,15 @@ O firmware é configurado com o código legível do ponto (ex.: `DEMO-01`), não
 - **Trade-off:** mantidos por serem simples e corretos; refatorar aumentaria a complexidade sem ganho de comportamento.
 
 ## 32. Etapa 3C — dependências de interface
-Autorizadas explicitamente pelo usuário no objetivo G-20261112-bf4e8c. Todas com licença MIT, mantidas ativamente e com tree-shaking (só o importado entra no bundle). Tamanhos são aproximados (gzip, apenas o usado).
+Autorizadas explicitamente pelo usuário no objetivo G-20261112-bf4e8c. Licenças conferidas nos `package.json` instalados: `class-variance-authority` Apache-2.0, `lucide-react` ISC e as demais MIT (todas permissivas). Mantidas ativamente e com tree-shaking (só o importado entra no bundle). Tamanhos são aproximados (gzip, apenas o usado).
 
 | Pacote | Necessidade concreta | Tamanho aprox. | Alternativa descartada |
 |---|---|---|---|
-| `lucide-react` (MIT) | Ícones consistentes com tree-shaking; substitui `icons.jsx` | ~0,5 KB por ícone | Manter SVGs inline escritos à mão (inconsistentes e custosos de ampliar) |
+| `lucide-react` (ISC) | Ícones consistentes com tree-shaking; substitui `icons.jsx` | ~0,5 KB por ícone | Manter SVGs inline escritos à mão (inconsistentes e custosos de ampliar) |
 | `motion` (MIT) | Animações declarativas de entrada/transição, com `MotionConfig reducedMotion="user"` e `useReducedMotion` | ~5–20 KB (uso por `m`/`LazyMotion` reduz) | Só CSS: sem orquestração de entrada/saída |
-| `recharts` (MIT) | Gráficos com eixos, tooltip, gradiente e camada de acessibilidade por teclado | ~90–110 KB (o maior; carregar só na página de histórico) | SVG próprio (`chartGeometry`/`chartSeries`): mais código a manter, sem tooltip/teclado prontos |
+| `recharts` (MIT) | Gráficos com eixos, tooltip, gradiente e camada de acessibilidade por teclado | ~90–110 KB (o maior; carregado só nas rotas com gráfico, Dashboard e Histórico, via `React.lazy`; ver decisão 34) | SVG próprio (`chartGeometry`/`chartSeries`): mais código a manter, sem tooltip/teclado prontos |
 | `clsx` + `tailwind-merge` (MIT) | Helper único `cn()` de composição de classes sem conflitos Tailwind | ~0,3 KB + ~7 KB | Concatenação manual de strings |
-| `class-variance-authority` (Apache-2.0/MIT conforme versão; verificar no lock) | Variantes tipadas de Card/Badge/Button | ~1 KB | Objetos de classes ad hoc por componente |
+| `class-variance-authority` (Apache-2.0) | Variantes tipadas de Card/Badge/Button | ~1 KB | Objetos de classes ad hoc por componente |
 
 **Não entram:**
 - `date-fns`: `Intl.DateTimeFormat` já resolve fuso e pt-BR.
@@ -201,16 +201,17 @@ O fallback sem dependências (ícones SVG inline, movimento só por CSS, gráfic
 ## 34. Gráficos: Recharts e agrupamento por intervalos
 - **Decisão:** `components/charts/SeriesChart.jsx` usa Recharts; `utils/chartSeries.js` (puro, testado) agrega as leituras em intervalos fixos por período (`CHART_BUCKET_MS`: 24 h = 30 min, 7 dias = 3 h, 30 dias = 12 h) e calcula o domínio do eixo Y com folga. Intervalos sem leitura ficam vazios e quebram a linha. Isso **substitui** o `maxGapMs` e o `chartGeometry.js` da decisão 30.
 - **Alternativa:** manter o SVG próprio (mais código a manter, sem tooltip/teclado prontos).
-- **Trade-off:** o bundle cresceu (ver abaixo). Recharts **não** está carregado sob demanda: hoje só as páginas administrativas são `lazy`, então a biblioteca entra no bundle principal. Code splitting por rota é melhoria futura.
+- **Carregamento sob demanda:** `App.jsx` carrega `DashboardPage` e `HistoryPage` (além das páginas administrativas) com `React.lazy` dentro de um único `Suspense` com `Skeleton` acessível. O Recharts sai do bundle inicial e vai para um chunk compartilhado pelas duas rotas; `/pontos` e a página 404 não o baixam. Como a rota inicial `/` é o Dashboard, que também tem gráfico, a primeira visita ao Dashboard continua baixando o Recharts (em um segundo passo); o ganho real é em `/pontos`, `/admin` e na divisão do cache.
+- **Trade-off:** o bundle total cresceu (ver abaixo), e há um pequeno atraso (esqueleto) na primeira navegação a cada rota com gráfico.
 
 ## 35. Abstração de fonte de dados e dataset mock determinístico
-- **Decisão:** `services/dataSource.js` é o único ponto que lê `import.meta.env` (`VITE_DATA_MODE`) e instancia a fonte via `dataSourceFactory.js`; hooks e serviços consomem `readingsApi` e `stopsApi` sem saber a origem. A resolução do modo é função pura em `utils/dataMode.js` (`mock`, `supabase`, `auto`; padrão `auto`).
+- **Decisão:** `services/dataSource.js` é o único ponto que lê `import.meta.env` (`VITE_DATA_MODE`) e instancia a fonte via `dataSourceFactory.js`; hooks e serviços consomem `readingsApi` e `stopsApi` sem saber a origem. **Em produção, defina `VITE_DATA_MODE=supabase`** (ver `docs/deploy.md`): sem isso o padrão `auto` escolheria o mock se as chaves faltarem; com `supabase`, a falta de configuração vira erro claro (`unconfigured`). A resolução do modo é função pura em `utils/dataMode.js` (`mock`, `supabase`, `auto`; padrão `auto`).
 - **Sem fallback para mock:** `supabase` sem configuração vira o modo efetivo `unconfigured`, em que toda operação rejeita com erro explícito; erro do Supabase nunca cai para o mock; só `auto` escolhe o mock, e por falta de configuração. O modo efetivo é sinalizado de forma persistente na interface. Esta decisão **substitui a 14**.
 - **Mock determinístico:** `data/mock/mockDataset.js` gera 8 cenários por funções puras (semente `20261112`, PRNG mulberry32, instante "agora" como parâmetro), com as mesmas colunas das tabelas reais para passar pelos mesmos normalizadores. O `environmental_status` é valor fixo da fixture, porque o front não classifica. `?mock=erro` e `?mock=lento` simulam falha e latência, e só valem no modo mock.
 - **Trade-off:** sem aleatoriedade global os mesmos dados reaparecem a cada execução, o que facilita testar, mas não substitui medições reais. Os dados são sempre sinalizados como fictícios.
 
 ## Resultado da 3C (fatos medidos em 2026-11-12)
-- `npm run build` conclui; o chunk principal tem 893,94 kB (276,54 kB gzip) e o Vite avisa chunk acima de 500 kB. Chunks `lazy`: `AdminStopsPage` 14,33 kB, `AdminLoginPage` 1,70 kB, `TextField` 0,99 kB. CSS: 42,96 kB (8,29 kB gzip). O tamanho anterior da 3B era 321,08 kB (101,14 kB gzip), então a 3C custou cerca de 573 kB (175 kB gzip) no bundle principal; a estimativa da decisão 32 (~90–110 kB gzip só para Recharts) é plausível dentro desse aumento, mas não foi medida por pacote.
+- `npm run build` conclui sem aviso de chunk acima de 500 kB (após o `React.lazy` de Dashboard e Histórico). Medido: `index` 224,53 kB (71,31 kB gzip); chunk compartilhado com o Recharts (`StopSelect-*`) 380,62 kB (111,40 kB gzip); `useStops` 152,91 kB (51,96 kB gzip); `useDocumentTitle` 47,01 kB; `stopsService` 30,27 kB; `components` 29,81 kB; `DashboardPage` 18,29 kB; `AdminStopsPage` 14,50 kB; `HistoryPage` 10,60 kB; `AdminLoginPage` 1,83 kB. Antes do `lazy`, o chunk único era 893,94 kB (276,54 kB gzip). CSS: 42,96 kB (8,29 kB gzip). O tamanho da 3B era 321,08 kB (101,14 kB gzip). CSS: 42,96 kB (8,29 kB gzip). O tamanho anterior da 3B era 321,08 kB (101,14 kB gzip), então a 3C custou cerca de 573 kB (175 kB gzip) no bundle principal; a estimativa da decisão 32 (~90–110 kB gzip só para Recharts) é plausível dentro desse aumento, mas não foi medida por pacote.
 - `npm run lint`: 0 erros e 2 avisos `set-state-in-effect` (decisão 31).
 - Testes: 204 aprovados, 0 falhas (executados listando os arquivos `*.test.js`).
 

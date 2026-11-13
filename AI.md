@@ -201,7 +201,7 @@ Não foram testados leitores de tela, navegadores além do Chrome, nem dispositi
 
 **Comandos executados nesta tarefa (T11) na worktree e resultados reais:**
 
-- `npm --prefix web run build`: concluído. Chunk principal `index-*.js` 893,94 kB (276,54 kB gzip); `AdminStopsPage` 14,33 kB; `AdminLoginPage` 1,70 kB; `TextField` 0,99 kB; CSS 42,96 kB (8,29 kB gzip). O Vite emitiu o aviso de chunk maior que 500 kB. (A 3B tinha 321,08 kB / 101,14 kB gzip.)
+- `npm --prefix web run build`: concluído. Chunk principal `index-*.js` 893,94 kB (276,54 kB gzip); `AdminStopsPage` 14,33 kB; `AdminLoginPage` 1,70 kB; `TextField` 0,99 kB; CSS 42,96 kB (8,29 kB gzip). O Vite emitiu o aviso de chunk maior que 500 kB. (A 3B tinha 321,08 kB / 101,14 kB gzip.) Na rodada de correção da revisão (T101), Dashboard e Histórico passaram a `React.lazy`: `index` 224,53 kB (71,31 kB gzip), chunk do Recharts 380,62 kB (111,40 kB gzip), sem aviso de chunk.
 - `npm --prefix web run lint`: 0 erros, 2 avisos `react(set-state-in-effect)` em `useReadingsHistory.js` e `useLatestReadings.js` (preexistentes).
 - `node --test` listando os arquivos `*.test.js` de `utils/`, `services/` e `data/mock/`: 204 testes, 50 suítes, 204 aprovados, 0 falhas.
 - `node --test <pasta>/web/src/utils/` (pasta como argumento): falhou ao carregar (a pasta aparece como teste com falha). A causa não foi investigada.

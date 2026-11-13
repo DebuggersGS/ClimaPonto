@@ -28,7 +28,9 @@
    - `VITE_SUPABASE_URL` = URL do projeto Supabase.
    - `VITE_SUPABASE_PUBLISHABLE_KEY` = chave **publishable** (`sb_publishable_...`).
 
-   Essas são as **únicas** variáveis. Elas são públicas por natureza: vão para o código do navegador, e as permissões são garantidas pelo RLS. **Nunca** cadastre a *secret key* ou a *service role key* como variável `VITE_*`.
+   - `VITE_DATA_MODE` = `supabase`. Obrigatório em produção: o padrão `auto` usa o dataset de demonstração quando as chaves faltam, e `supabase` faz a falta de configuração aparecer como erro claro, nunca como dados fictícios.
+
+   Essas três são as **únicas** variáveis. Elas são públicas por natureza: vão para o código do navegador, e as permissões são garantidas pelo RLS. **Nunca** cadastre a *secret key* ou a *service role key* como variável `VITE_*`.
 4. Deploy.
 
 ## 3. Supabase Auth em produção
