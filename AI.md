@@ -218,6 +218,27 @@ Não foram testados leitores de tela, navegadores além do Chrome, nem dispositi
 
 **Integração futura:** os branches `harness/G-20261111-4f0f88` e `harness/G-20261112-096aab` (não mesclados) também alteram `AI.md`/`docs`; pode haver conflitos simples de documentação.
 
+### Etapa 3D — testes E2E automatizados em navegador (13/11/2026)
+
+**Processo:** Claude Code (sessão de manutenção do Engineering Harness 0.5.0) e o próprio harness. Objetivos `G-20261113-e21494` (testes E2E e três correções), derivado do branch do redesign `harness/G-20261112-bf4e8c` sem alterá-lo, e `G-20261113-ec01eb` (continuação). A revisão de `G-20261113-e21494` foi feita pelo agente independente `code-reviewer` do harness (veredito: aprovado, com sugestões aplicadas na continuação).
+
+**Executado de verdade (gate de navegador do harness: Playwright 1.65.0, Chromium 158 e Firefox 159, modo mock, isolado e sem rede):**
+
+- `G-20261113-e21494`, HEAD `76899ac`: 76 testes aprovados, 4 pulados, 0 falhas, 0 instáveis; lint e build aprovados.
+- `G-20261113-ec01eb`, HEAD `d2be3a8` (antes desta documentação): 78 aprovados, 4 pulados, 0 falhas, 0 instáveis.
+- 12 screenshots reais por execução: Dashboard, Histórico e Pontos, em 1366 px e 375 px, nos dois navegadores.
+
+**Defeitos encontrados pelos testes e corrigidos:**
+
+1. axe-core `definition-list`/`dlitem` (sério) no resumo estatístico dos gráficos: `<dt>`/`<dd>` aninhados em `<div>`s dentro do `<dl>` (`ReadingsSummary.jsx`).
+2. axe-core `scrollable-region-focusable`: tabela de leituras rolável inalcançável pelo teclado (`ReadingsTable.jsx`).
+3. Rolagem horizontal em 375 e 768 px no Dashboard: selo de conectividade com texto longo e `whitespace-nowrap` (`ConnectivityBadge.jsx`).
+4. Cerca de 1,8 mil px de rolagem vazia abaixo do rodapé no Histórico (desktop, Chromium e Firefox): textos `sr-only` (`position: absolute`) dos selos escapavam do contêiner rolável não posicionado (`ReadingsTable.jsx`).
+
+**Não foi feito:** conferência com o Supabase configurado; aprovação estética do design; referências visuais aprovadas (não há comparação de imagens); axe-core no Firefox nas páginas com gráficos (pulado com motivo; coberto no Chromium).
+
+**Autoavaliação:** a interface 3C deixou de estar "nunca renderizada": a parte objetiva de acessibilidade, layout e estados é verificada a cada objetivo. Continua dependendo da equipe o julgamento visual (incluindo a quebra dos valores em 375 px) e a validação com dados reais.
+
 ## Princípios adotados
 
 - O código gerado por IA é revisado pela equipe antes de ser aprovado.

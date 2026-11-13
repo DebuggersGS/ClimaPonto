@@ -213,7 +213,8 @@ Detalhes em [docs/data-contract.md](docs/data-contract.md), [docs/architecture-d
 - **Dashboard:** resumo (pontos, contagens por conectividade e por estado ambiental), última medição, conectividade **provisória** (online/atrasado/offline, separada do estado ambiental), visão por ponto e evolução recente. Atualização automática (polling), pausada com a aba oculta. Mostra apenas o `environmental_status` gravado; sem leituras aparece "Sem dados", e estado ausente aparece "Não classificado".
 - **Histórico:** filtros de ponto e período (24 h, 7 dias, 30 dias) refletidos na URL, gráficos Recharts por grandeza (agrupados em intervalos), resumo estatístico, tabela responsiva e limite de 500 registros com aviso de truncamento. Leituras de simulação e teste são sinalizadas.
 - **Testes automatizados** (utils, serviços e dataset mock, com `node:test`): `cd web && node --test`. Última execução registrada em `AI.md`. Não há testes de componentes React.
-- Deploy na Vercel preparado e validado localmente ([docs/deploy.md](docs/deploy.md)), **ainda não publicado**. A verificação com axe-core (0 violações) é de etapas anteriores; **a interface redesenhada na 3C não foi verificada**.
+- **Testes E2E em navegador real** (`web/e2e/*.spec.mjs`, modo mock): Dashboard, Histórico, Pontos, navegação, filtros, indicadores e cards por estado (normal, atenção, crítico, sem dados, atrasado, offline, demonstrativo), gráficos, `?mock=erro`, `?mock=lento`, larguras 375/768/1366 px, teclado, axe-core (temas claro e escuro), movimento reduzido, erros de console e screenshots desktop/mobile. Rodam pelo gate de navegador do Engineering Harness (Playwright, Chromium e Firefox, isolado e sem rede), que fornece o módulo `harness-e2e`: o projeto não ganhou dependência nova e os testes não rodam com `npm test`. Resultados em `AI.md`.
+- Deploy na Vercel preparado e validado localmente ([docs/deploy.md](docs/deploy.md)), **ainda não publicado**. A interface redesenhada na 3C passou a ser verificada automaticamente pelos testes E2E acima (layout, teclado, axe-core e movimento reduzido); a aprovação estética continua com a equipe.
 
 ## Pendente
 
@@ -224,7 +225,10 @@ Detalhes em [docs/data-contract.md](docs/data-contract.md), [docs/architecture-d
 - Limites ambientais (aguardando aprovação); o front-end não classifica, só exibe o estado gravado.
 - Intervalo de envio do ESP32 e regra de conectividade definitivos (hoje provisórios: 60 s, 2× e 5×).
 - Agregação SQL para períodos longos (hoje a consulta é limitada a 500 registros).
-- Validação visual em navegador (375/768/1366 px, contraste, teclado, reduced motion, axe-core) da interface 3C e conferência com Supabase configurado: **aceite humano**. Nada disso foi renderizado até agora; o offset `sm:top-20` da barra de filtros fixa do Histórico é estimado e a hierarquia h1/h2/h3 está por conferir.
+- **Aceite humano da interface 3C:** aprovação estética do design pela equipe e conferência com o Supabase configurado. A parte objetiva (375/768/1366 px, teclado, axe-core, reduced motion, console, hierarquia de títulos) já roda nos testes E2E; o offset `sm:top-20` da barra de filtros fixa do Histórico não tem teste específico.
+- Referências visuais aprovadas (`toHaveScreenshot`) ainda não existem: hoje os testes geram screenshots para revisão, mas não comparam imagens entre versões.
+- axe-core no Firefox está pulado (com motivo registrado no teste) nas páginas com gráficos: o Firefox derruba a página durante a análise no runner de testes; essas páginas são verificadas no Chromium.
+- Em 375 px, os valores das estatísticas dos gráficos quebram em duas linhas (ex.: "21,0" e "°C"); ajuste visual a decidir pela equipe.
 - Dashboard, Histórico e área administrativa são `lazy`; o chunk com o Recharts tem ~381 kB (111 kB gzip) e o build não emite mais aviso de chunk acima de 500 kB.
 - `components/ui/icons.jsx` segue como camada sobre lucide-react, com consumidores a migrar para importar direto.
 - 2 avisos de lint `set-state-in-effect` (`useReadingsHistory.js`, `useLatestReadings.js`), preexistentes.
