@@ -5,7 +5,7 @@ import { stopsApi } from './dataSource.js'
  *
  * Fachada fina: a fonte é escolhida em dataSource.js (VITE_DATA_MODE).
  * - supabase: consulta e altera a tabela `stops` (stopsApi.js);
- * - mock: pontos fictícios locais; escritas ficam indisponíveis;
+ * - mock: pontos fictícios locais; escritas valem só na memória da instância;
  * - unconfigured: toda operação rejeita com erro claro.
  *
  * Se o Supabase estiver configurado e falhar, o erro é propagado — a

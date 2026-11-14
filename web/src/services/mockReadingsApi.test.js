@@ -244,25 +244,14 @@ describe('createMockReadingsApi: cancelamento', () => {
 })
 
 describe('createMockReadingsApi: escritas e falha simulada', () => {
-  it('escritas de pontos rejeitam com AppError de indisponibilidade e não alteram os dados', async () => {
+  it('escritas de pontos funcionam em memória e não alteram o dataset', async () => {
     const api = criar()
     const antes = await api.listStops({ includeInactive: true })
-    const entrada = { code: 'X', name: 'X', neighborhood: 'X' }
-    const operacoes = [
-      () => api.createStop(entrada),
-      () => api.updateStop(antes[0].id, entrada),
-      () => api.setStopActive(antes[0].id, false),
-      () => api.deleteStop(antes[0].id),
-    ]
-    for (const operacao of operacoes) {
-      await assert.rejects(operacao(), (err) => {
-        assert.ok(err instanceof AppError)
-        assert.equal(err.kind, 'unavailable')
-        assert.match(err.message, /modo demonstração/)
-        return true
-      })
-    }
-    assert.deepEqual(await api.listStops({ includeInactive: true }), antes)
+    const criado = await api.createStop(ENTRADA)
+    assert.equal(criado.id, 'mock-novo-1')
+    assert.equal(criado.createdAt, AGORA.toISOString())
+    assert.equal((await api.listStops({ includeInactive: true })).length, antes.length + 1)
+    assert.deepEqual(await criar().listStops({ includeInactive: true }), antes)
   })
 
   it('a falha simulada rejeita as consultas com erro de rede traduzido', async () => {
@@ -286,5 +275,105 @@ describe('createMockReadingsApi: escritas e falha simulada', () => {
     const controller = new AbortController()
     controller.abort()
     await assert.rejects(criar({ failure: true }).fetchLatestReadings({ signal: controller.signal }), isAbortedError)
+  })
+})
+
+const ENTRADA = {
+  code: 'NOVO-01',
+  name: 'Ponto novo',
+  neighborhood: 'Centro',
+  description: null,
+  latitude: null,
+  longitude: null,
+  isDemo: true,
+  active: true,
+}
+
+describe('createMockReadingsApi: escritas de pontos em memória', () => {
+  it('edita e desativa/reativa, mantendo a lista coerente', async () => {
+    const api = criar()
+    const criado = await api.createStop(ENTRADA)
+    const editado = await api.updateStop(criado.id, { ...ENTRADA, name: 'Ponto editado' })
+    assert.equal(editado.name, 'Ponto editado')
+    const inativo = await api.setStopActive(criado.id, false)
+    assert.equal(inativo.active, false)
+    assert.ok(!(await api.listStops()).some((stop) => stop.id === criado.id))
+    assert.ok((await api.listStops({ includeInactive: true })).some((stop) => stop.id === criado.id))
+    assert.equal((await api.setStopActive(criado.id, true)).active, true)
+  })
+
+  it('exclui ponto sem leituras e recusa ponto com leituras', async () => {
+    const api = criar()
+    const criado = await api.createStop(ENTRADA)
+    await api.deleteStop(criado.id)
+    assert.ok(!(await api.listStops({ includeInactive: true })).some((stop) => stop.id === criado.id))
+
+    await assert.rejects(api.deleteStop(stopId('normal')), (err) => {
+      assert.equal(err.kind, 'integrity')
+      return true
+    })
+    assert.ok((await api.listStops()).some((stop) => stop.id === stopId('normal')))
+  })
+
+  it('recusa código duplicado (conflict, campo code)', async () => {
+    const api = criar()
+    const existente = (await api.listStops())[0]
+    await assert.rejects(api.createStop({ ...ENTRADA, code: existente.code }), (err) => {
+      assert.ok(err instanceof AppError)
+      assert.equal(err.kind, 'conflict')
+      assert.equal(err.field, 'code')
+      assert.equal(err.message, 'Já existe um ponto com este código.')
+      return true
+    })
+    // Atualizar o próprio ponto sem mudar o código é permitido.
+    await api.updateStop(existente.id, { ...ENTRADA, code: existente.code })
+  })
+
+  it('id inexistente vira erro de permissão', async () => {
+    const api = criar()
+    for (const operacao of [
+      () => api.updateStop('nada', ENTRADA),
+      () => api.setStopActive('nada', false),
+      () => api.deleteStop('nada'),
+    ]) {
+      await assert.rejects(operacao(), { kind: 'permission', message: 'Ponto não encontrado ou sem permissão para alterá-lo.' })
+    }
+  })
+
+  it('entrada inválida é recusada como validação', async () => {
+    const api = criar()
+    await assert.rejects(api.createStop({ ...ENTRADA, code: 'minúsculo' }), { kind: 'validation' })
+    const antes = await api.listStops({ includeInactive: true })
+    assert.deepEqual(await api.listStops({ includeInactive: true }), antes)
+  })
+
+  it('instâncias são isoladas', async () => {
+    const a = criar()
+    const b = criar()
+    await a.createStop(ENTRADA)
+    assert.equal((await b.listStops({ includeInactive: true })).length, 8)
+    assert.equal((await b.createStop(ENTRADA)).id, 'mock-novo-1')
+  })
+
+  it('ponto criado tem 0 leituras e histórico vazio', async () => {
+    const api = criar()
+    const criado = await api.createStop(ENTRADA)
+    assert.equal(await api.countStopReadings(criado.id), 0)
+    const historico = await api.fetchReadingHistory({ stopId: criado.id, periodId: '24h' })
+    assert.deepEqual(historico.readings, [])
+  })
+
+  it('ponto desativado ou excluído sai das últimas leituras', async () => {
+    const api = criar()
+    const id = stopId('normal')
+    assert.ok((await api.fetchLatestReadings()).readings.some((reading) => reading.stopId === id))
+    await api.setStopActive(id, false)
+    assert.ok(!(await api.fetchLatestReadings()).readings.some((reading) => reading.stopId === id))
+    await api.setStopActive(id, true)
+    assert.ok((await api.fetchLatestReadings()).readings.some((reading) => reading.stopId === id))
+  })
+
+  it('as escritas respeitam a falha simulada', async () => {
+    await assert.rejects(criar({ failure: true }).createStop(ENTRADA), { kind: 'network' })
   })
 })

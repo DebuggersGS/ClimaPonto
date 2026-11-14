@@ -64,7 +64,8 @@ function toWritableRow(input) {
   }
 }
 
-function noRowsAffected() {
+/** Erro de ponto inexistente ou sem permissão (também usado pelo mock). */
+export function noRowsAffected() {
   return new AppError('Ponto não encontrado ou sem permissão para alterá-lo.', { kind: 'permission' })
 }
 
