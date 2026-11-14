@@ -150,8 +150,8 @@ export default function AdminStopsPage() {
 
       {isMock && (
         <FeedbackMessage tone="info">
-          Modo demonstrativo: a edição está indisponível. Cadastro, alteração, desativação e exclusão exigem o Supabase
-          configurado.
+          Modo demonstração: cadastro, edição, desativação e exclusão valem só na memória desta aba. As alterações
+          são descartadas ao recarregar a página e não chegam ao Supabase.
         </FeedbackMessage>
       )}
 

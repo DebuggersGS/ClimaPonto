@@ -18,8 +18,8 @@ const byCode = (a, b) => a.code.localeCompare(b.code)
  *
  * Após cada operação, a lista local é atualizada com a linha devolvida pelo
  * banco (sem recarregar tudo). Erros de sessão expirada encerram a sessão e
- * levam o usuário de volta ao login. `source` é o modo efetivo de dados: no
- * modo mock as escritas rejeitam com erro de indisponibilidade.
+ * levam o usuário de volta ao login. No modo mock as escritas acontecem só
+ * na memória da aba e somem ao recarregar; nada chega ao Supabase.
  */
 export function useAdminStops() {
   const { handleSessionExpired } = useAuth()
