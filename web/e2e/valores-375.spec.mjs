@@ -28,7 +28,13 @@ async function medir(locator, cartaoSel = null) {
           range.selectNodeContents(no)
           retangulos.push(...range.getClientRects())
         }
-        const topos = new Set(retangulos.filter((r) => r.width > 0).map((r) => Math.round(r.top)))
+        // Agrupa topos próximos (< metade da altura da linha): subpixel ou glifo de outra fonte (NBSP) não é nova linha.
+        const estiloEl = getComputedStyle(el)
+        const tolerancia = (parseFloat(estiloEl.fontSize) || 16) / 2
+        const topos = []
+        for (const t of retangulos.filter((r) => r.width > 0).map((r) => r.top).sort((a, b) => a - b)) {
+          if (!topos.length || t - topos[topos.length - 1] > tolerancia) topos.push(t)
+        }
         const cartao = (sel ? el.closest(sel) : el.parentElement).getBoundingClientRect()
         const caixa = el.getBoundingClientRect()
         const estilo = getComputedStyle(el)
@@ -36,7 +42,7 @@ async function medir(locator, cartaoSel = null) {
         return {
           texto,
           nosVisiveis,
-          linhas: topos.size,
+          linhas: topos.length,
           altura: Math.round(caixa.height * 10) / 10,
           alturaMaxima: Math.round(lh * 1.5 * 10) / 10,
           scrollWidth: el.scrollWidth,
