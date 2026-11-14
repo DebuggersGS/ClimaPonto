@@ -10,7 +10,8 @@ test.use({ viewport: { width: 375, height: 812 } })
 async function medir(locator, cartaoSel = null) {
   // Elemento a elemento: no Firefox, medir todos os <dd> do Dashboard numa só avaliação derrubou a página
   // (Range sobre o <dd> inteiro, que inclui o <span class="sr-only"> posicionado de forma absoluta).
-  // O texto visível do valor está nos nós de texto diretos, então o Range é criado só sobre eles.
+  // O Range é criado por nó de texto descendente visível (TreeWalker), pulando o que está em .sr-only:
+  // o texto pode estar num filho (ex.: tendência) e nunca se cria Range que abranja o span oculto.
   const total = await locator.count()
   const medidas = []
   for (let i = 0; i < total; i++) {
@@ -18,8 +19,11 @@ async function medir(locator, cartaoSel = null) {
       await locator.nth(i).evaluate((el, sel) => {
         const texto = el.textContent.replace(/\s+/g, ' ').trim()
         const retangulos = []
-        for (const no of el.childNodes) {
-          if (no.nodeType !== Node.TEXT_NODE || !no.textContent.trim()) continue
+        let nosVisiveis = 0
+        const caminhante = document.createTreeWalker(el, NodeFilter.SHOW_TEXT)
+        for (let no = caminhante.nextNode(); no; no = caminhante.nextNode()) {
+          if (!no.textContent.trim() || no.parentElement.closest('.sr-only')) continue
+          nosVisiveis++
           const range = document.createRange()
           range.selectNodeContents(no)
           retangulos.push(...range.getClientRects())
@@ -31,6 +35,7 @@ async function medir(locator, cartaoSel = null) {
         const lh = parseFloat(estilo.lineHeight) || parseFloat(estilo.fontSize) * 1.5
         return {
           texto,
+          nosVisiveis,
           linhas: topos.size,
           altura: Math.round(caixa.height * 10) / 10,
           alturaMaxima: Math.round(lh * 1.5 * 10) / 10,
@@ -49,6 +54,7 @@ function verificar(medidas, origem) {
   expect(medidas.length, `${origem}: nenhum valor encontrado`).toBeGreaterThan(0)
   for (const m of medidas) {
     const id = `${origem} "${m.texto}" ${JSON.stringify(m)}`
+    expect(m.nosVisiveis, `${id}: sem texto visível medido`).toBeGreaterThan(0)
     expect(m.linhas, `${id}: valor quebrado em mais de uma linha`).toBe(1)
     expect(m.altura, `${id}: altura maior que 1,5 x line-height`).toBeLessThanOrEqual(m.alturaMaxima)
     expect(m.scrollWidth, `${id}: conteúdo mais largo que o próprio valor`).toBeLessThanOrEqual(m.clientWidth)
