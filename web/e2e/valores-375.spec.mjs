@@ -8,28 +8,41 @@ test.use({ viewport: { width: 375, height: 812 } })
 // Mede, no navegador, cada <dd> localizado pelo seletor: linhas visuais e limites em relação ao cartão.
 // `cartaoSel` (opcional): seletor do ancestral que representa o cartão; padrão = pai direto do valor.
 async function medir(locator, cartaoSel = null) {
-  return locator.evaluateAll((els, sel) =>
-    els.map((el) => {
-      const texto = el.textContent.replace(/\s+/g, ' ').trim()
-      const range = document.createRange()
-      range.selectNodeContents(el)
-      const topos = new Set([...range.getClientRects()].filter((r) => r.width > 0).map((r) => Math.round(r.top)))
-      const cartao = (sel ? el.closest(sel) : el.parentElement).getBoundingClientRect()
-      const caixa = el.getBoundingClientRect()
-      const lh = parseFloat(getComputedStyle(el).lineHeight) || parseFloat(getComputedStyle(el).fontSize) * 1.5
-      return {
-        texto,
-        linhas: topos.size,
-        altura: Math.round(caixa.height * 10) / 10,
-        alturaMaxima: Math.round(lh * 1.5 * 10) / 10,
-        scrollWidth: el.scrollWidth,
-        clientWidth: el.clientWidth,
-        direitaValor: Math.round(Math.max(caixa.right, ...[...range.getClientRects()].map((r) => r.right)) * 10) / 10,
-        direitaCartao: Math.round(cartao.right * 10) / 10,
-      }
-    }),
-    cartaoSel,
-  )
+  // Elemento a elemento: no Firefox, medir todos os <dd> do Dashboard numa só avaliação derrubou a página
+  // (Range sobre o <dd> inteiro, que inclui o <span class="sr-only"> posicionado de forma absoluta).
+  // O texto visível do valor está nos nós de texto diretos, então o Range é criado só sobre eles.
+  const total = await locator.count()
+  const medidas = []
+  for (let i = 0; i < total; i++) {
+    medidas.push(
+      await locator.nth(i).evaluate((el, sel) => {
+        const texto = el.textContent.replace(/\s+/g, ' ').trim()
+        const retangulos = []
+        for (const no of el.childNodes) {
+          if (no.nodeType !== Node.TEXT_NODE || !no.textContent.trim()) continue
+          const range = document.createRange()
+          range.selectNodeContents(no)
+          retangulos.push(...range.getClientRects())
+        }
+        const topos = new Set(retangulos.filter((r) => r.width > 0).map((r) => Math.round(r.top)))
+        const cartao = (sel ? el.closest(sel) : el.parentElement).getBoundingClientRect()
+        const caixa = el.getBoundingClientRect()
+        const estilo = getComputedStyle(el)
+        const lh = parseFloat(estilo.lineHeight) || parseFloat(estilo.fontSize) * 1.5
+        return {
+          texto,
+          linhas: topos.size,
+          altura: Math.round(caixa.height * 10) / 10,
+          alturaMaxima: Math.round(lh * 1.5 * 10) / 10,
+          scrollWidth: el.scrollWidth,
+          clientWidth: el.clientWidth,
+          direitaValor: Math.round(Math.max(caixa.right, ...retangulos.map((r) => r.right)) * 10) / 10,
+          direitaCartao: Math.round(cartao.right * 10) / 10,
+        }
+      }, cartaoSel),
+    )
+  }
+  return medidas
 }
 
 function verificar(medidas, origem) {
