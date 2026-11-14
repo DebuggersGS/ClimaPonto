@@ -1,11 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AuthContext } from '../../hooks/authContext.js'
 import * as authService from '../../services/authService.js'
-import { AppError } from '../../services/errors.js'
-import { isSupabaseConfigured } from '../../services/supabaseClient.js'
 
 /**
- * Mantém a sessão do Supabase Auth em um estado React compartilhado.
+ * Mantém a sessão administrativa (Supabase Auth ou autenticação demonstrativa do modo mock) em um estado React compartilhado.
  *
  * Sessão expirada: o supabase-js renova o token automaticamente; se a
  * renovação falhar, ele emite SIGNED_OUT. Quando isso acontece sem que o
@@ -13,7 +11,7 @@ import { isSupabaseConfigured } from '../../services/supabaseClient.js'
  */
 export default function AuthProvider({ children }) {
   const [session, setSession] = useState(null)
-  const [status, setStatus] = useState(isSupabaseConfigured ? 'loading' : 'unavailable')
+  const [status, setStatus] = useState(authService.isAuthAvailable ? 'loading' : 'unavailable')
   const [sessionExpired, setSessionExpired] = useState(false)
   const manualSignOut = useRef(false)
   const hadSession = useRef(false)
@@ -45,14 +43,8 @@ export default function AuthProvider({ children }) {
     }
   }, [])
 
-  const signIn = useCallback(async (email, password) => {
-    const user = await authService.signIn(email, password)
-    if (!authService.isAdminUser(user)) {
-      await signOut()
-      throw new AppError('Esta conta não tem acesso administrativo.', { kind: 'permission' })
-    }
-    return user
-  }, [signOut])
+  // authService.signIn já recusa (e desconecta) contas sem papel de administrador.
+  const signIn = useCallback((email, password) => authService.signIn(email, password), [])
 
   /** Chamado quando uma operação no banco indica sessão expirada. */
   const handleSessionExpired = useCallback(async () => {
@@ -72,6 +64,8 @@ export default function AuthProvider({ children }) {
       user,
       isAdmin: authService.isAdminUser(user),
       sessionExpired,
+      isDemo: authService.isDemoAuth,
+      demoAccounts: authService.getDemoAccounts(),
       signIn,
       signOut,
       handleSessionExpired,

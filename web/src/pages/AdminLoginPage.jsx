@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { Info } from 'lucide-react'
 import { Navigate, useLocation, useNavigate } from 'react-router'
 import Button from '../components/ui/Button.jsx'
 import Card from '../components/ui/Card.jsx'
@@ -7,12 +8,42 @@ import PageHeader from '../components/ui/PageHeader.jsx'
 import TextField from '../components/ui/TextField.jsx'
 import { useAuth } from '../hooks/useAuth.js'
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js'
+import { getToneClasses } from '../components/ui/tones.js'
+import { cn } from '../utils/cn.js'
 
 const DEFAULT_REDIRECT = '/admin/pontos'
 
+/** Aviso do modo mock: contas fictícias exibidas em texto, sem relação com o Supabase. */
+function DemoNotice({ accounts }) {
+  return (
+    <section aria-labelledby="demo-title" className={cn('mb-4 rounded-2xl p-4 text-sm ring-1 ring-inset', getToneClasses('info').soft)}>
+      <h2 id="demo-title" className="flex items-center gap-2 font-semibold">
+        <Info aria-hidden="true" focusable="false" className="h-4 w-4 shrink-0" />
+        Acesso demonstrativo
+      </h2>
+      <p className="mt-1">
+        As contas abaixo são fictícias. Nada é enviado ao Supabase e as alterações ficam só na memória desta aba.
+      </p>
+      <dl className="mt-2 space-y-2">
+        {accounts.map((account) => (
+          <div key={account.email}>
+            <dt className="font-medium">{account.label}</dt>
+            <dd className="break-all">
+              E-mail: <code className="font-mono">{account.email}</code>
+            </dd>
+            <dd className="break-all">
+              Senha: <code className="font-mono">{account.password}</code>
+            </dd>
+          </div>
+        ))}
+      </dl>
+    </section>
+  )
+}
+
 export default function AdminLoginPage() {
   useDocumentTitle('Entrar')
-  const { status, isAdmin, sessionExpired, signIn } = useAuth()
+  const { status, isAdmin, sessionExpired, signIn, isDemo, demoAccounts } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const redirectTo = location.state?.from ?? DEFAULT_REDIRECT
@@ -51,6 +82,7 @@ export default function AdminLoginPage() {
         </FeedbackMessage>
       ) : (
         <Card>
+          {isDemo && demoAccounts && <DemoNotice accounts={demoAccounts} />}
           {sessionExpired && !error && (
             <FeedbackMessage tone="info">Sua sessão expirou. Entre novamente para continuar.</FeedbackMessage>
           )}
