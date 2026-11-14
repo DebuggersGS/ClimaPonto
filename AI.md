@@ -239,6 +239,30 @@ Não foram testados leitores de tela, navegadores além do Chrome, nem dispositi
 
 **Autoavaliação:** a interface 3C deixou de estar "nunca renderizada": a parte objetiva de acessibilidade, layout e estados é verificada a cada objetivo. Continua dependendo da equipe o julgamento visual (incluindo a quebra dos valores em 375 px) e a validação com dados reais.
 
+### Finalização de Front-end Design e Web Development (14/11/2026)
+
+**Processo:** Claude Code (Claude Sonnet 5.5) conduzido pelo Engineering Harness, objetivo `G-20261114-4ef93c` (base `harness/G-20261114-3bcf79`, HEAD `94f7f5b`), com os agentes `frontend-dev` e `test-engineer`. Tarefas T1 a T7, cada uma com commits e o trailer `Harness-Task`.
+
+**O que foi feito (código e documentos):**
+
+- T1 (`de32ce0`): número e unidade unidos por espaço não separável e `whitespace-nowrap` nos valores de temperatura e umidade (correção da quebra em 375 px); testes dos formatadores ajustados.
+- T2 (`e15b6f3`, `e9d2e9e`, `ea3db28`): autenticação demonstrativa e escritas de pontos em memória no modo mock; decisão 36.
+- T3 (`5d5a930`, `74d1eae`): `AuthProvider` sobre `authService`; login com aviso e contas fictícias; aviso de demonstração na gestão de pontos.
+- T4 (`6f95a11`, `e60273d`, `9469be3`): movimento reduzido (entrada sem animação), seletor de ponto sem corte, eixo do gráfico sem colisão, e-mail do menu truncado no mobile; `docs/revisao-visual-frontend.md` (seção "Antes").
+- T5 (`249635c`, `525b491`, `ab7eae2`, `fae04c6`) e T6 (`07ecc1e`, `a65a392`): testes E2E escritos (valores em 375 px, estados lento/erro/vazio, 404, movimento reduzido, área administrativa e sua qualidade).
+- T7: `docs/requisitos-fiap-frontend.md`, README, este registro e nota em `docs/security-review.md`.
+
+**Executado de verdade (execuções locais do agente na T7, HEAD `292dd34`, sem rede):**
+
+- `npm --prefix web run lint`: 0 erros, 2 avisos `react(set-state-in-effect)` preexistentes (`useReadingsHistory.js`, `useLatestReadings.js`).
+- `npm --prefix web run build`: concluído (`built in 770ms`).
+- `npm --prefix web test`: o script `test` não existe em `web/package.json`; no lugar, `node --test` sobre todos os `*.test.js` de `web/src`: 228 testes, 53 suítes, 228 aprovados, 0 falhas.
+- O sandbox negou tentativas de rede a `registry.npmjs.org` nos comandos `npm`; sem efeito nos resultados.
+
+**Não executado nesta etapa:** E2E Playwright (Chromium e Firefox), axe-core e as screenshots "Antes/Depois" do gate. Tudo isso está **pendente da verificação final do gate**; nenhum resultado desses itens é afirmado aqui. As correções visuais constam como "corrigidas no código, confirmação visual pendente do gate".
+
+**Pendências reais:** execução final dos gates e confirmação visual; aceite estético humano; axe-core pulado no Firefox nas páginas com gráficos (com motivo no teste); enunciado oficial da FIAP ausente do repositório; definição de "CitizenTech" e eventual API pública de terceiros (decisões de produto).
+
 ## Princípios adotados
 
 - O código gerado por IA é revisado pela equipe antes de ser aprovado.

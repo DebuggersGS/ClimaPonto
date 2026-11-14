@@ -4,7 +4,7 @@ Protótipo de monitoramento inteligente de condições ambientais em pontos de �
 
 O objetivo é coletar leituras de temperatura e umidade com ESP32, processar estados ambientais (ex.: calor extremo) e apresentá-los em uma aplicação web, ajudando a identificar pontos de ônibus com condições desconfortáveis ou de risco para quem espera o transporte.
 
-> **Situação atual:** Etapa 3C. Banco Supabase com tabelas, permissões (RLS) e 3 pontos **demonstrativos**; área administrativa com login e CRUD de pontos; Dashboard e Histórico com novo design system (tokens, movimento e gráficos Recharts) e **modo demonstração** com dados fictícios determinísticos. Ainda **não há leituras reais** no Supabase remoto (0 leituras): com o Supabase, as telas mostram "Sem dados" até a ingestão existir. A validação visual em navegador **ainda não foi feita** (aceite humano).
+> **Situação atual:** Etapa 3C. Banco Supabase com tabelas, permissões (RLS) e 3 pontos **demonstrativos**; área administrativa com login e CRUD de pontos; Dashboard e Histórico com novo design system (tokens, movimento e gráficos Recharts) e **modo demonstração** com dados fictícios determinísticos. Ainda **não há leituras reais** no Supabase remoto (0 leituras): com o Supabase, as telas mostram "Sem dados" até a ingestão existir. O aceite estético humano e a execução final dos gates E2E desta finalização ainda estão **pendentes** (ver *Pendente*). Checklist dos requisitos de front-end: [docs/requisitos-fiap-frontend.md](docs/requisitos-fiap-frontend.md); revisão visual: [docs/revisao-visual-frontend.md](docs/revisao-visual-frontend.md).
 
 Repositório (privado): https://github.com/EnricoVidal/climaponto-gs-2026
 
@@ -55,6 +55,15 @@ A fonte de dados é escolhida por `VITE_DATA_MODE` em `web/.env.local` (não ver
 
 Regras: nunca há mistura de fontes, e um erro do Supabase **nunca** cai para o mock (sem fallback em erro). O modo efetivo é sinalizado de forma persistente no cabeçalho ("Modo demonstração", "Dados do Supabase" ou "Supabase não configurado").
 
+**Autenticação e escritas demonstrativas (só no modo efetivo `mock`):** a tela de login mostra o aviso "Acesso demonstrativo" e duas contas **fictícias**:
+
+| Conta | E-mail | Senha |
+| --- | --- | --- |
+| Administrador (demonstração) | `admin.demo@climaponto.example` | `demo-admin-2026` |
+| Leitor sem acesso administrativo (demonstração) | `leitor.demo@climaponto.example` | `demo-leitor-2026` |
+
+Essas credenciais **só valem no modo mock** (o Supabase as recusa) e **nada persiste**: a sessão e as alterações de pontos (criar, editar, desativar/reativar, excluir) ficam só na memória e somem ao recarregar a página. Em produção use `VITE_DATA_MODE=supabase` (decisão 36 e [docs/security-review.md](docs/security-review.md)).
+
 No modo mock, dois parâmetros de URL permitem conferir estados: `?mock=erro` (toda consulta falha), `?mock=lento` (latência de 3 s, em vez de 250 ms) e `?mock=lento,erro` (ambos). Em outros modos, eles são ignorados.
 
 **Cenários do dataset mock** (todos fictícios, determinísticos pela semente `20261112`; as leituras são de origem `simulation`, exceto onde indicado):
@@ -76,7 +85,7 @@ No modo mock, dois parâmetros de URL permitem conferir estados: `?mock=erro` (t
 npm --prefix web run dev
 ```
 
-Com `VITE_DATA_MODE=mock`, percorra Dashboard, Pontos e Histórico e confira em **375, 768 e 1366 px** (sem rolagem horizontal em 375 px). Use também `?mock=erro` e `?mock=lento`, teclado (foco visível), emulação de `prefers-reduced-motion: reduce` (as animações devem ser suprimidas) e rode o axe-core. As ferramentas de navegador ficam fora do repositório. **Esta validação ainda não foi executada** (ver *Pendente*).
+Com `VITE_DATA_MODE=mock`, percorra Dashboard, Pontos e Histórico e confira em **375, 768 e 1366 px** (sem rolagem horizontal em 375 px). Use também `?mock=erro` e `?mock=lento`, teclado (foco visível), emulação de `prefers-reduced-motion: reduce` (as animações devem ser suprimidas) e rode o axe-core. As ferramentas de navegador ficam fora do repositório. Os testes E2E correspondentes (Chromium e Firefox, 375/768/1366 px, axe-core, movimento reduzido) **já foram escritos**, mas a **execução** é feita pela verificação final do harness, depois desta etapa; até lá, não há resultado registrado (ver *Pendente*). O aceite estético humano também segue pendente.
 
 ### Configuração do Supabase
 
@@ -129,6 +138,7 @@ Contas administrativas são criadas manualmente:
 ### Área administrativa
 
 - Acesso pelo link **Área administrativa**, no rodapé, ou pelo endereço `/admin/login`. Não existe cadastro público.
+- **Modo mock:** o login aceita as contas fictícias de *Modos de dados* e todas as escritas funcionam **em memória** (nada é salvo; a interface sinaliza o modo demonstração). Com o Supabase, valem as contas reais e o RLS.
 - Depois do login, `/admin/pontos` permite **listar** (ativos e inativos), **pesquisar**, **filtrar**, **cadastrar**, **editar**, **desativar/reativar** e **excluir** pontos.
 - **Exclusão:** só é permitida para pontos **sem leituras**. Para pontos com histórico, a interface oferece desativar.
 - **Contas sem papel admin:** são recusadas no login. Quando a sessão expira, a interface volta ao login com um aviso.
@@ -157,6 +167,8 @@ GLOBAL-SOLUTION/
 │   ├── architecture-decisions.md # Decisões técnicas
 │   ├── security-review.md        # Revisão de segurança e testes
 │   ├── deploy.md                 # Deploy na Vercel (preparado)
+│   ├── requisitos-fiap-frontend.md  # Checklist dos requisitos de front-end com evidência
+│   ├── revisao-visual-frontend.md   # Revisão visual (antes; depois pendente)
 │   └── etapa-3-proposta.md       # Proposta do dashboard (em revisão)
 ├── supabase/
 │   ├── config.toml               # Supabase LOCAL (climaponto-local)
@@ -209,6 +221,10 @@ Detalhes em [docs/data-contract.md](docs/data-contract.md), [docs/architecture-d
 - **Design system (3C):** tokens em `styles/index.css`, `cn()` (clsx + tailwind-merge), variantes com `cva`, ícones lucide-react e animações com `motion` (`MotionConfig reducedMotion="user"`).
 - **Modo demonstração:** dataset mock determinístico com 8 cenários, adaptador com a mesma interface da fonte real, `?mock=erro` e `?mock=lento`.
 - Login administrativo e CRUD completo de pontos, com validação, diálogos de confirmação e mensagens de retorno.
+- **Modo mock:** autenticação demonstrativa (contas fictícias) e CRUD de pontos em memória, para percorrer a área administrativa sem Supabase.
+- **375 px:** valores de temperatura e umidade sem quebra entre número e unidade (espaço não separável e `whitespace-nowrap`; commit `de32ce0`). Confirmação em navegador pendente da verificação final.
+- **Novos testes E2E escritos** (`valores-375`, `movimento-reduzido`, `admin`, `admin-qualidade`, estados lento/erro/vazio e 404), **ainda não executados**: dependem da verificação final do harness.
+- Checklist dos requisitos: [docs/requisitos-fiap-frontend.md](docs/requisitos-fiap-frontend.md) e revisão visual: [docs/revisao-visual-frontend.md](docs/revisao-visual-frontend.md).
 - CRUD e permissões **validados no Supabase remoto** com contas reais de teste (31/31: API e interface) e no Supabase local (SQL 50/50, papéis 14/14, interface 24/24). Detalhes em `docs/security-review.md`.
 - **Dashboard:** resumo (pontos, contagens por conectividade e por estado ambiental), última medição, conectividade **provisória** (online/atrasado/offline, separada do estado ambiental), visão por ponto e evolução recente. Atualização automática (polling), pausada com a aba oculta. Mostra apenas o `environmental_status` gravado; sem leituras aparece "Sem dados", e estado ausente aparece "Não classificado".
 - **Histórico:** filtros de ponto e período (24 h, 7 dias, 30 dias) refletidos na URL, gráficos Recharts por grandeza (agrupados em intervalos), resumo estatístico, tabela responsiva e limite de 500 registros com aviso de truncamento. Leituras de simulação e teste são sinalizadas.
@@ -228,7 +244,8 @@ Detalhes em [docs/data-contract.md](docs/data-contract.md), [docs/architecture-d
 - **Aceite humano da interface 3C:** aprovação estética do design pela equipe e conferência com o Supabase configurado. A parte objetiva (375/768/1366 px, teclado, axe-core, reduced motion, console, hierarquia de títulos) já roda nos testes E2E; o offset `sm:top-20` da barra de filtros fixa do Histórico não tem teste específico.
 - Referências visuais aprovadas (`toHaveScreenshot`) ainda não existem: hoje os testes geram screenshots para revisão, mas não comparam imagens entre versões.
 - axe-core no Firefox está pulado (com motivo registrado no teste) nas páginas com gráficos: o Firefox derruba a página durante a análise no runner de testes; essas páginas são verificadas no Chromium.
-- Em 375 px, os valores das estatísticas dos gráficos quebram em duas linhas (ex.: "21,0" e "°C"); ajuste visual a decidir pela equipe.
+- **Execução final dos gates** (lint, build, unitários e E2E em Chromium e Firefox) no HEAD com todas as tarefas: pendente da verificação final do harness; screenshots "Depois" também.
+- **Enunciado oficial da FIAP** não está no repositório: o checklist segue a lista do objetivo. **"CitizenTech"** não está definido em nenhum documento do repositório, e uma **API pública de terceiros** (se o enunciado exigir) não foi implementada: decisões de produto da equipe. Ver `docs/requisitos-fiap-frontend.md`.
 - Dashboard, Histórico e área administrativa são `lazy`; o chunk com o Recharts tem ~381 kB (111 kB gzip) e o build não emite mais aviso de chunk acima de 500 kB.
 - `components/ui/icons.jsx` segue como camada sobre lucide-react, com consumidores a migrar para importar direto.
 - 2 avisos de lint `set-state-in-effect` (`useReadingsHistory.js`, `useLatestReadings.js`), preexistentes.
