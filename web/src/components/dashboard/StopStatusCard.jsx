@@ -16,7 +16,7 @@ function Measure({ Icon, label, text }) {
         <Icon />
         {label}
       </dt>
-      <dd className="mt-0.5 text-2xl font-semibold tabular-nums text-slate-900">
+      <dd className="mt-0.5 whitespace-nowrap text-xl font-semibold sm:text-2xl tabular-nums text-slate-900">
         {text}
         {unavailable && <span className="sr-only"> indisponível</span>}
       </dd>

@@ -79,20 +79,24 @@ export function formatRelativeAge(measuredAt, now) {
   return days === 1 ? 'há 1 dia' : `há ${days} dias`
 }
 
+// Espaço não separável (U+00A0) entre número e unidade: impede que '21,0' e '°C'
+// fiquem em linhas diferentes em telas estreitas (375 px).
+export const UNIT_SEPARATOR = '\u00A0'
+
 function formatOneDecimal(value, unit) {
   if (value === null || value === undefined || !Number.isFinite(Number(value))) return '—'
   const text = normalizeSpaces(oneDecimalFormatter.format(Number(value)))
   // Evita '-0,0' quando o valor negativo arredonda para zero.
   const safe = text === '-0,0' ? '0,0' : text
-  return `${safe} ${unit}`
+  return `${safe}${UNIT_SEPARATOR}${unit}`
 }
 
-/** Temperatura com 1 casa, ex.: '23,5 °C'. */
+/** Temperatura com 1 casa e espaço não separável antes da unidade, ex.: '23,5\u00A0°C'. */
 export function formatTemperature(value) {
   return formatOneDecimal(value, '°C')
 }
 
-/** Umidade com 1 casa, ex.: '61,0 %'. */
+/** Umidade com 1 casa e espaço não separável antes da unidade, ex.: '61,0\u00A0%'. */
 export function formatHumidity(value) {
   return formatOneDecimal(value, '%')
 }

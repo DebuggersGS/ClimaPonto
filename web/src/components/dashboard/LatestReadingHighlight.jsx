@@ -16,7 +16,7 @@ function BigValue({ Icon, label, text, large = false }) {
         {label}
       </p>
       <p
-        className={`mt-1 font-semibold tracking-tight text-slate-900 tabular-nums ${large ? 'text-5xl sm:text-6xl' : 'text-3xl sm:text-4xl'}`}
+        className={`mt-1 whitespace-nowrap font-semibold tracking-tight text-slate-900 tabular-nums ${large ? 'text-5xl sm:text-6xl' : 'text-3xl sm:text-4xl'}`}
       >
         {text}
         {unavailable && <span className="sr-only"> indisponível</span>}

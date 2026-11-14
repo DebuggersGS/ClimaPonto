@@ -63,11 +63,11 @@ function MobileList({ readings, caption }) {
             <dl className="mt-2 grid grid-cols-2 gap-2 text-sm">
               <div>
                 <dt className="text-xs text-slate-600">Temperatura</dt>
-                <dd className="text-lg font-semibold tabular-nums text-slate-900">{formatTemperature(reading.temperatureC)}</dd>
+                <dd className="whitespace-nowrap text-lg font-semibold tabular-nums text-slate-900">{formatTemperature(reading.temperatureC)}</dd>
               </div>
               <div>
                 <dt className="text-xs text-slate-600">Umidade</dt>
-                <dd className="text-lg font-semibold tabular-nums text-slate-900">{formatHumidity(reading.humidityPct)}</dd>
+                <dd className="whitespace-nowrap text-lg font-semibold tabular-nums text-slate-900">{formatHumidity(reading.humidityPct)}</dd>
               </div>
             </dl>
             <div className="mt-2 flex flex-wrap gap-1.5">

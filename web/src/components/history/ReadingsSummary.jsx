@@ -6,9 +6,9 @@ const FIELD_ICONS = { temperatureC: Thermometer, humidityPct: Droplets }
 function Stat({ term, value, formatValue }) {
   const unavailable = value === null || value === undefined
   return (
-    <div className="rounded-lg bg-slate-50 px-3 py-2 ring-1 ring-inset ring-slate-900/5">
+    <div className="min-w-0 rounded-lg bg-slate-50 px-2 py-2 sm:px-3 ring-1 ring-inset ring-slate-900/5">
       <dt className="text-xs text-slate-600">{term}</dt>
-      <dd className="text-lg font-semibold tabular-nums text-slate-900">
+      <dd className="whitespace-nowrap text-base font-semibold tabular-nums text-slate-900 sm:text-lg">
         {unavailable ? (
           <>
             <span aria-hidden="true">—</span>
@@ -31,7 +31,7 @@ function Trend({ trend, formatValue }) {
   const sign = variation > 0 ? '+' : variation < 0 ? '−' : ''
   const word = variation > 0 ? 'Subiu' : variation < 0 ? 'Caiu' : 'Estável'
   return (
-    <span className="inline-flex items-center gap-1.5 font-semibold text-slate-900">
+    <span className="inline-flex items-center gap-1.5 whitespace-nowrap font-semibold text-slate-900">
       <Icon aria-hidden="true" className="h-4 w-4" />
       {word} ({sign}{formatValue(Math.abs(variation))})
     </span>

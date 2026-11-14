@@ -7,6 +7,7 @@ import {
   formatRelativeAge,
   formatTemperature,
   formatTimeWithZone,
+  UNIT_SEPARATOR,
 } from './formatters.js'
 
 const ISO = '2026-11-12T15:30:00Z'
@@ -56,9 +57,21 @@ describe('formatRelativeAge', () => {
 
 describe('formatTemperature e formatHumidity', () => {
   it('formatam com uma casa decimal', () => {
-    assert.equal(formatTemperature(23.5), '23,5 °C')
-    assert.equal(formatTemperature(-0.04), '0,0 °C')
-    assert.equal(formatHumidity(61), '61,0 %')
+    assert.equal(formatTemperature(23.5), '23,5\u00A0°C')
+    assert.equal(formatTemperature(-0.04), '0,0\u00A0°C')
+    assert.equal(formatHumidity(61), '61,0\u00A0%')
+  })
+  it('une número e unidade com espaço não separável, sem U+0020', () => {
+    assert.equal(UNIT_SEPARATOR, '\u00A0')
+    for (const text of [formatTemperature(23.5), formatHumidity(61), formatTemperature(-3.2)]) {
+      assert.ok(!text.includes(' '))
+      assert.ok(text.includes('\u00A0'))
+    }
+  })
+  it('trata valores negativos e de três dígitos', () => {
+    assert.match(formatTemperature(-3.5), /^[-\u2212]3,5\u00A0°C$/)
+    assert.equal(formatHumidity(100), '100,0\u00A0%')
+    assert.equal(formatTemperature(41), '41,0\u00A0°C')
   })
   it('devolvem traço para ausentes', () => {
     for (const v of [null, undefined, NaN]) {
