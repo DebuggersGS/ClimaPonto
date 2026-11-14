@@ -14,13 +14,19 @@ import LatestReadingHighlight from '../components/dashboard/LatestReadingHighlig
 import RecentEvolutionPanel from '../components/dashboard/RecentEvolutionPanel.jsx'
 import RefreshControl from '../components/dashboard/RefreshControl.jsx'
 import StopGrid from '../components/dashboard/StopGrid.jsx'
+import InsightsPanel from '../components/dashboard/InsightsPanel.jsx'
+import DataSourceBadge from '../components/ui/DataSourceBadge.jsx'
+import NoResultsState from '../components/ui/NoResultsState.jsx'
+import StopFilterBar from '../components/ui/StopFilterBar.jsx'
 import FeedbackMessage from '../components/ui/FeedbackMessage.jsx'
 import Section from '../components/ui/Section.jsx'
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js'
 import { useLatestReadings } from '../hooks/useLatestReadings.js'
+import { useStopFilters } from '../hooks/useStopFilters.js'
 import { useNow } from '../hooks/useNow.js'
 import { useStops } from '../hooks/useStops.js'
 import { summarizeDashboard } from '../utils/readings.js'
+import { buildDashboardInsights } from '../utils/dashboardInsights.js'
 
 const PHASE_TRANSITION = {
   initial: { opacity: 0, y: 8 },
@@ -35,7 +41,11 @@ function discardedMessage(count) {
     : `${count} leituras recebidas foram descartadas por estarem inválidas.`
 }
 
-function ReadyContent({ stops, summary, now }) {
+function ReadyContent({ stops, summary, now, source }) {
+  // Os filtros só afetam a lista "Pontos monitorados"; Resumo, Última medição,
+  // Insights e Evolução continuam calculados sobre todos os pontos.
+  const filter = useStopFilters(summary.items, { now })
+  const insights = useMemo(() => buildDashboardInsights(summary, now), [summary, now])
   return (
     <>
       <Section title="Resumo" eyebrow="Visão geral">
@@ -54,8 +64,18 @@ function ReadyContent({ stops, summary, now }) {
         <RecentEvolutionPanel stops={stops} items={summary.items} latest={summary.latest} />
       </Section>
 
+      <Section title="Insights" eyebrow="Leitura rápida" description="Comparações calculadas a partir das últimas leituras exibidas.">
+        <DataSourceBadge source={source} />
+        <InsightsPanel insights={insights} />
+      </Section>
+
       <Section title="Pontos monitorados" eyebrow="Por ponto">
-        <StopGrid items={summary.items} now={now} />
+        <StopFilterBar filter={filter} dimensions={['environmental', 'connectivity']} />
+        {filter.results.length === 0 ? (
+          <NoResultsState onClear={filter.clear} />
+        ) : (
+          <StopGrid items={filter.results} now={now} />
+        )}
       </Section>
     </>
   )
@@ -126,7 +146,7 @@ export default function DashboardPage() {
               onRetry={refresh}
             />
           )}
-          {phase === 'ready' && <ReadyContent stops={stops} summary={summary} now={now} />}
+          {phase === 'ready' && <ReadyContent stops={stops} summary={summary} now={now} source={source} />}
         </motion.div>
       </AnimatePresence>
     </>

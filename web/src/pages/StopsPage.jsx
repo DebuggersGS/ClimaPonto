@@ -5,11 +5,14 @@ import Button from '../components/ui/Button.jsx'
 import Card from '../components/ui/Card.jsx'
 import DataSourceBadge from '../components/ui/DataSourceBadge.jsx'
 import EmptyState from '../components/ui/EmptyState.jsx'
+import NoResultsState from '../components/ui/NoResultsState.jsx'
 import PageHeader from '../components/ui/PageHeader.jsx'
 import { AnimatedItem, AnimatedList } from '../components/ui/Reveal.jsx'
 import Skeleton from '../components/ui/Skeleton.jsx'
+import StopFilterBar from '../components/ui/StopFilterBar.jsx'
 import StopHistoryLink from '../components/ui/StopHistoryLink.jsx'
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js'
+import { useStopFilters } from '../hooks/useStopFilters.js'
 import { useStops } from '../hooks/useStops.js'
 
 function StopCard({ stop }) {
@@ -52,6 +55,26 @@ function StopCard({ stop }) {
   )
 }
 
+function StopList({ stops }) {
+  const filter = useStopFilters(stops)
+  return (
+    <>
+      <StopFilterBar filter={filter} dimensions={['neighborhood']} />
+      {filter.results.length === 0 ? (
+        <NoResultsState onClear={filter.clear} />
+      ) : (
+        <AnimatedList as="ul" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {filter.results.map((stop) => (
+            <AnimatedItem as="li" key={stop.id}>
+              <StopCard stop={stop} />
+            </AnimatedItem>
+          ))}
+        </AnimatedList>
+      )}
+    </>
+  )
+}
+
 function StopsContent({ onRetry }) {
   const { stops, isLoading, error, source } = useStops()
 
@@ -74,15 +97,7 @@ function StopsContent({ onRetry }) {
         <EmptyState title="Nenhum ponto cadastrado" message="Quando houver pontos ativos, eles aparecerão aqui." />
       )}
 
-      {!isLoading && !error && stops.length > 0 && (
-        <AnimatedList as="ul" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {stops.map((stop) => (
-            <AnimatedItem as="li" key={stop.id}>
-              <StopCard stop={stop} />
-            </AnimatedItem>
-          ))}
-        </AnimatedList>
-      )}
+      {!isLoading && !error && stops.length > 0 && <StopList stops={stops} />}
     </>
   )
 }
