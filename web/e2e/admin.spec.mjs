@@ -89,6 +89,9 @@ test.describe('lista: pesquisa e filtro', () => {
     await expect(contagem(page, '1 de 8 pontos')).toBeVisible()
     await expect(cartao(page, 'MOCK-03')).toBeVisible()
 
+    // A pesquisa por código deixou só o MOCK-03 na lista: limpa para o cartão do MOCK-05 voltar a existir.
+    await page.getByLabel('Pesquisar').fill('')
+    await expect(contagem(page, '8 de 8 pontos')).toBeVisible()
     const bairro = (await cartao(page, 'MOCK-05').locator('p.text-slate-700').textContent()).trim()
     await page.getByLabel('Pesquisar').fill(bairro)
     await expect(cartao(page, 'MOCK-05')).toBeVisible()
