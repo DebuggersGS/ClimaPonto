@@ -268,3 +268,11 @@ Método autorizado pelo integrante:
 - **axe-core 4.14** (WCAG 2.1 A/AA + boas práticas): 0 violações nas páginas públicas e no login (desktop e mobile, build de produção) e na lista, no formulário com erros e no diálogo administrativos (local).
   - **Problema encontrado e corrigido:** `heading-order` na lista administrativa (cartões `h3` sem `h2`). Foi adicionado um `h2` de seção visível só para leitores de tela.
 - **`web/vercel.json`:** validado localmente (25/25). Detalhes em [deploy.md](deploy.md).
+
+## 7. Credenciais demonstrativas do modo mock (14/11/2026)
+
+- O modo mock tem duas contas **fictícias** (`mockAuthApi.js`, domínio `climaponto.example`): uma de administrador e uma de leitor sem papel admin. As senhas aparecem de propósito na tela de login demonstrativa.
+- Só existem quando o modo efetivo é `mock`. Nos modos `supabase` e `unconfigured` a autenticação é sempre o Supabase (ou indisponível) e as credenciais demonstrativas são recusadas por ele; não dão acesso a nada real.
+- Sessão e escritas de pontos ficam **apenas em memória** (sem `localStorage`/`sessionStorage`); recarregar a página encerra a sessão e restaura o dataset.
+- Um build com `VITE_DATA_MODE=mock` expõe essas credenciais no bundle. A produção deve usar `VITE_DATA_MODE=supabase`. O modo `auto` sem Supabase configurado também cai no mock (decisão 36).
+- Nenhum segredo foi adicionado; o remoto não foi acessado neste objetivo.

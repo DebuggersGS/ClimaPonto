@@ -38,4 +38,24 @@ Objetivo G-20261114-4ef93c, tarefa T4. Este documento registra só o que foi obs
 
 ## Depois
 
-_A preencher pela T7 com as capturas e resultados do gate após as correções._
+**Status: pendente da verificação final do harness** (a verificação final roda depois da T7). Até a data desta tarefa, nenhum gate E2E foi executado sobre o código final: não há screenshots "Depois", contagens de testes E2E nem aprovações a registrar. Nada abaixo foi observado em navegador.
+
+### O que foi corrigido no código (confirmação visual pendente)
+
+| Problema | Correção | Commit | Situação |
+|---|---|---|---|
+| Valores de temperatura e umidade quebravam entre número e unidade em 375 px | Separador não separável (U+00A0) em `formatters.js` e `whitespace-nowrap` com tamanhos responsivos nos valores | `de32ce0` | corrigido no código; confirmação visual pendente da verificação final (`valores-375.spec.mjs`) |
+| Seletor de ponto do Histórico truncado | `sm:w-md` com `max-w-full` | `e60273d` | corrigido no código; confirmação visual pendente da verificação final |
+| Rótulos do eixo X encostados no eixo Y | `tickMargin` e `padding` no eixo X | `e60273d` | corrigido no código; confirmação visual pendente da verificação final |
+| E-mail do usuário no cabeçalho de 375 px | `max-w-32` no mobile | `e60273d` | corrigido no código; risco deduzido do código, confirmação pendente (`admin-qualidade.spec.mjs`) |
+| Entradas animadas com movimento reduzido | `useReducedMotion` nos componentes de entrada | `9469be3`, `6f95a11` | corrigido no código; confirmação pendente (`movimento-reduzido.spec.mjs`) |
+
+### Capturas que os specs T5/T6 geram (nomes de `snap`)
+
+Para a execução final produzir, em Chromium e Firefox:
+
+- Páginas (`qualidade.spec.mjs`, mobile 375 px e desktop 1366 px): `<pagina>-mobile` e `<pagina>-desktop`, com `<pagina>` conforme a lista `PAGES` do spec (Dashboard, Histórico, Pontos e 404).
+- Área administrativa (`admin-qualidade.spec.mjs`): `login-mobile`, `login-desktop`, `admin-pontos-mobile`, `admin-pontos-desktop`.
+- Estados (`<vp>` = `mobile`, `tablet` ou `desktop`, conforme `VIEWPORTS`): `estado-carregando-dashboard-<vp>`, `estado-erro-dashboard-<vp>`, `estado-carregando-historico-<vp>`, `estado-erro-historico-<vp>`, `estado-vazio-historico-<vp>`, `estado-carregando-pontos-<vp>`, `estado-erro-pontos-<vp>`, `estado-404-<vp>`.
+
+As imagens não são copiadas para o repositório; ficam como artefatos do gate. A comparação "antes x depois" e a confirmação de cada linha acima só podem ser feitas depois dessa execução.
