@@ -1,6 +1,6 @@
 # Requisitos de Front-end — checklist com evidência
 
-Objetivo G-20261114-4ef93c, tarefa T7. Evidências conferidas com `git show HEAD:<arquivo>` no HEAD `a65a392` (último commit de código/testes antes desta documentação). Número de linha refere-se a esse HEAD.
+Objetivo G-20261114-4ef93c, tarefa T7. Evidências reconferidas com `git show HEAD:<arquivo>` no HEAD `b57d477` (T104, depois da verificação final em `cbbd4a8`). Entre `a65a392` e este HEAD só mudou `AdminStopsPage.jsx` (o uso do `ConfirmDialog` foi de `:251` para `:253`); as demais linhas citadas foram conferidas e permanecem iguais. Os gates rodaram em `cbbd4a8`; os commits posteriores mudam só `AuthProvider.jsx`, `MainNav.jsx` e documentos, e uma nova verificação será feita.
 
 ## Fonte do checklist
 
@@ -21,7 +21,7 @@ Legenda: **atendido** (evidência no código), **parcial** (atendido com lacuna)
 | 7 | API externa | parcial (Supabase sim; API pública de terceiros não) |
 | 8 | CRUD completo | atendido (Supabase e modo demonstração em memória) |
 | 9 | Funcionalidade CitizenTech | pendente (termo não definido no repositório) |
-| 10 | Responsividade | parcial (testes escritos; execução final pendente) |
+| 10 | Responsividade | atendido (E2E em 375/768/1366 px aprovado no gate 0030) |
 | 11 | `README.md` e `AI.md` | atendido |
 | 12 | Histórico de desenvolvimento rastreável | atendido |
 
@@ -48,7 +48,7 @@ Observação: o objetivo fala em 11 requisitos, mas a lista enumerada nele tem 1
 
 1. `Badge`, 2. `Button`, 3. `Card`, 4. `ConfirmDialog`, 5. `ConnectivityBadge`, 6. `DataSourceBadge`, 7. `DemoNotice`, 8. `EmptyState`, 9. `EnvironmentalStatusBadge`, 10. `FeedbackMessage`, 11. `MetricCard`, 12. `PageHeader`, 13. `ReadingSourceBadge`, 14. `Reveal`, 15. `Section`, 16. `SegmentedControl`, 17. `Skeleton`, 18. `StatusIcon`, 19. `StopHistoryLink`, 20. `TextField`.
 
-Reuso real, por exemplo: `ConfirmDialog` importado em `web/src/pages/AdminStopsPage.jsx:6` (`import ConfirmDialog from '../components/ui/ConfirmDialog.jsx'`) e usado em `AdminStopsPage.jsx:251`. Há ainda componentes de domínio em `components/dashboard`, `history`, `charts`, `admin`, `auth` e `layout`.
+Reuso real, por exemplo: `ConfirmDialog` importado em `web/src/pages/AdminStopsPage.jsx:6` (`import ConfirmDialog from '../components/ui/ConfirmDialog.jsx'`) e usado em `AdminStopsPage.jsx:253`. Há ainda componentes de domínio em `components/dashboard`, `history`, `charts`, `admin`, `auth` e `layout`.
 
 ## 4. `useState` e `useEffect` — atendido
 
@@ -84,18 +84,18 @@ Exemplos: `web/src/hooks/useStops.js:10` — `export function useStops() {`; `we
 - **Supabase** (`web/src/services/stopsApi.js`): criar `:95` — `client.from('stops').insert(toWritableRow(input))`; ler `:85`; editar `:103` — `.update(toWritableRow(input)).eq('id', id)`; ativar/desativar `:111` — `.update({ active })`; excluir `:122` — `.delete().eq('id', id)`.
 - **Modo demonstração, em memória** (`web/src/services/mockReadingsApi.js`): `:130` `async createStop(input) {`, `:152` `async updateStop(id, input) {`, `:170` `async setStopActive(id, active) {`, `:178` `async deleteStop(id) {`. Nada persiste: recarregar a página restaura o dataset (decisão 36).
 - Hook: `web/src/hooks/useAdminStops.js:73` (`create`), `:82` (`update`), `:91` (`setActive`), `:100` (`remove`).
-- Interface: `web/src/pages/AdminStopsPage.jsx` (formulário, diálogo de confirmação em `:251`).
-- Testes unitários cobrem as escritas do mock (`mockReadingsApi.test.js`, `228` testes no total nesta tarefa). O E2E do CRUD (`web/e2e/admin.spec.mjs`) foi **escrito, mas ainda não executado**: depende da verificação final.
+- Interface: `web/src/pages/AdminStopsPage.jsx` (formulário, diálogo de confirmação em `:253`).
+- Testes unitários cobrem as escritas do mock (`mockReadingsApi.test.js`, 228 testes no total, aprovados no gate 0031). O E2E do CRUD (`web/e2e/admin.spec.mjs`) foi executado no gate 0030 (HEAD `cbbd4a8`) e aprovado em Chromium e Firefox.
 
 ## 9. Funcionalidade CitizenTech — pendente
 
 O termo "CitizenTech" **não aparece** em `README.md`, `AI.md`, `docs/` nem em `web/src` (busca por `citizen`, sem diferenciar maiúsculas). O que existe é o tema do projeto: monitoramento de calor urbano em pontos de ônibus para quem espera o transporte (`README.md:5`). A equipe precisa dizer se isso cumpre o requisito ou se há uma funcionalidade específica esperada. Nada foi implementado para este item.
 
-## 10. Responsividade — parcial
+## 10. Responsividade — atendido
 
 - Classes responsivas do Tailwind nos componentes, por exemplo `web/src/pages/StopsPage.jsx:78` — `grid gap-4 sm:grid-cols-2 lg:grid-cols-3` e `web/src/components/layout/AppLayout.jsx:17` — `px-4 py-6 sm:px-6 sm:py-10 lg:px-8`.
 - Testes E2E em **375, 768 e 1366 px** (sem rolagem horizontal, sem elementos obscurecidos, auditoria de design): `web/e2e/qualidade.spec.mjs:22` — `for (const [nome, rota, region] of PAGES) {` (laço sobre `VIEWPORTS` em `:23`); `web/e2e/admin-qualidade.spec.mjs` para login e lista administrativa; `web/e2e/valores-375.spec.mjs` para temperatura e umidade em uma linha.
-- **Status parcial:** os testes foram escritos nas tarefas T5 e T6, mas **ainda não foram executados**. O resultado depende da verificação final do harness (`goalctl verify`), executada após esta tarefa. Execuções anteriores de outro objetivo (`G-20261113-ec01eb`, HEAD `99eba02`: 78 aprovados, 4 pulados, 0 falhas) cobriam 375/768/1366 px nas páginas já existentes, conforme `AI.md`, mas não valem para o código atual.
+- **Execução real:** gate E2E 0030 no HEAD `cbbd4a8`, Chromium e Firefox: 190 aprovados, 0 falhas, 0 flaky, 4 pulados (axe no Firefox nas páginas com gráficos); sem rolagem horizontal nem obscurecimento em 375/768/1366 px; 56 screenshots. Ressalva: o item ativo "Gerenciar" da navegação aparecia cortado a 375 px na captura do 0030; corrigido depois em `MainNav.jsx` (T104), com nova verificação pendente.
 
 ## 11. `README.md` e `AI.md` — atendido
 
@@ -105,31 +105,31 @@ O termo "CitizenTech" **não aparece** em `README.md`, `AI.md`, `docs/` nem em `
 
 ## 12. Histórico de desenvolvimento rastreável — atendido
 
-- `git rev-list --count HEAD` no HEAD `a65a392`: **74 commits**, de 09/11/2026 a 14/11/2026 (`git log --reverse --format=%ad --date=short`), em português e no formato `tipo(escopo): descrição`.
+- `git rev-list --count HEAD` no HEAD `b57d477`: **84 commits**, de 09/11/2026 a 14/11/2026 (`git log --reverse --format=%ad --date=short`), em português e no formato `tipo(escopo): descrição`.
 - Commits recentes deste objetivo (exemplos reais): `de32ce0 fix(web): valores de temperatura e umidade sem quebra entre número e unidade`; `ea3db28 feat(servicos): autenticação demonstrativa no modo mock`; `a65a392 test(e2e): qualidade do login e da gestão de pontos`.
 - Tarefas do harness têm o trailer `Harness-Task`. O histórico não foi reescrito.
 
-## Verificações executadas nesta tarefa (HEAD `a65a392`)
+## Verificações executadas
 
-Comandos reais, rodados na worktree sem rede e sem `npm install`:
+Gates do harness no HEAD `cbbd4a8` (evidências em `state/.../evidence`):
 
-- `npm --prefix web run lint` → saída 0; 2 avisos `react(set-state-in-effect)` (`useReadingsHistory.js:37`, `useLatestReadings.js:76`), preexistentes; nenhum erro.
-- `npm --prefix web run build` → concluído (`built in 972ms`); maior chunk `StopSelect-*` 380,73 kB (111,46 kB gzip); `index-*` 224,30 kB (71,23 kB gzip).
-- `node --test` sobre todos os `*.test.js` de `web/src` → 228 testes, 53 suítes, 228 aprovados, 0 falhas.
-- O sandbox registrou tentativa de rede a `registry.npmjs.org` negada nos comandos `npm run`; sem efeito no resultado.
+- lint (0027): aprovado; build (0028): aprovado.
+- E2E (0030), Chromium e Firefox: 190 aprovados, 0 falhas, 0 flaky, 4 pulados, 56 screenshots.
+- Testes unitários (0031): 228/228.
+- Ciclos até a aprovação: 3 verificações reprovadas (11 falhas + 1 flaky; 1 falha; 6 falhas + 1 flaky) e corrigidas por `a4968a3`, `51c6855`, `4a0c395`, `b37bf2d`, `bb51488` e `cbbd4a8`; detalhes em `docs/revisao-visual-frontend.md`.
+- Observação: "Page crashed" intermitente do Firefox (axe do login escuro e `medir()` no Dashboard) sem causa raiz identificada.
 
-## Pendente da verificação final do harness
+Execuções locais da T104 no HEAD `b57d477` (worktree, sem rede): `node --test` 228/228; `npm run lint` sem erros (2 avisos preexistentes); `npm run build` concluído. O sandbox negou rede a `registry.npmjs.org`, sem efeito.
 
-Estes itens **não** têm resultado registrado aqui e não devem ser considerados aprovados até a execução de `goalctl verify`:
+## Pendente
 
-- gates de lint, build, testes unitários e E2E (Chromium e Firefox) no HEAD final com T1–T6;
-- E2E dos specs novos (`valores-375`, `movimento-reduzido`, `admin`, `admin-qualidade` e as extensões de `dashboard`, `historico`, `pontos`, `navegacao`, `qualidade`);
-- screenshots "Depois" (ver `docs/revisao-visual-frontend.md`).
+- Nova verificação do harness sobre os commits posteriores a `cbbd4a8` (`AuthProvider.jsx`, `MainNav.jsx`).
+- Screenshots "Depois" a 375 px confirmando o item "Gerenciar" visível.
 
 ## Lacunas reais (também no README)
 
 1. Enunciado oficial ausente do repositório: checklist não conferido contra o texto da FIAP.
 2. "CitizenTech" sem definição no repositório (item 9).
 3. API pública de terceiros: decisão de produto pendente (item 7).
-4. Execução final dos gates e E2E (item 10).
+4. Nova verificação após T104 (ver *Pendente*).
 5. Aceite estético humano e validação com Supabase configurado e dados reais.

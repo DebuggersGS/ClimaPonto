@@ -241,7 +241,7 @@ Não foram testados leitores de tela, navegadores além do Chrome, nem dispositi
 
 ### Finalização de Front-end Design e Web Development (14/11/2026)
 
-**Processo:** Claude Code (Claude Sonnet 5.5) conduzido pelo Engineering Harness, objetivo `G-20261114-4ef93c` (base `harness/G-20261114-3bcf79`, HEAD `94f7f5b`), com os agentes `frontend-dev` e `test-engineer`. Tarefas T1 a T7, cada uma com commits e o trailer `Harness-Task`.
+**Processo:** Claude Code conduzido pelo Engineering Harness (orquestrador e agentes desta sessão em Claude Opus 5.5, conforme informado pelo orquestrador; o modelo de sessões anteriores não é afirmado aqui), objetivo `G-20261114-4ef93c` (base `harness/G-20261114-3bcf79`, HEAD `94f7f5b`), com os agentes `frontend-dev` e `test-engineer`. Tarefas T1 a T7, cada uma com commits e o trailer `Harness-Task`.
 
 **O que foi feito (código e documentos):**
 
@@ -259,9 +259,20 @@ Não foram testados leitores de tela, navegadores além do Chrome, nem dispositi
 - `npm --prefix web test`: o script `test` não existe em `web/package.json`; no lugar, `node --test` sobre todos os `*.test.js` de `web/src`: 228 testes, 53 suítes, 228 aprovados, 0 falhas.
 - O sandbox negou tentativas de rede a `registry.npmjs.org` nos comandos `npm`; sem efeito nos resultados.
 
-**Não executado nesta etapa:** E2E Playwright (Chromium e Firefox), axe-core e as screenshots "Antes/Depois" do gate. Tudo isso está **pendente da verificação final do gate**; nenhum resultado desses itens é afirmado aqui. As correções visuais constam como "corrigidas no código, confirmação visual pendente do gate".
+**Verificação final do harness (HEAD `cbbd4a8`):** lint (0027) ok; build (0028) ok; E2E (0030), Chromium e Firefox: 190 aprovados, 0 falhas, 0 flaky, 4 pulados, 56 screenshots; testes unitários (0031) 228/228. A galeria foi consultada (por exemplo `historico-desktop` no Firefox e `admin-pontos-mobile` no Chromium).
 
-**Pendências reais:** execução final dos gates e confirmação visual; aceite estético humano; axe-core pulado no Firefox nas páginas com gráficos (com motivo no teste); enunciado oficial da FIAP ausente do repositório; definição de "CitizenTech" e eventual API pública de terceiros (decisões de produto).
+**Ciclos de correção (verificações reprovadas antes da aprovada):**
+
+1. HEAD `122c82f`: 11 falhas e 1 flaky. T101: `a4968a3` (tendência do resumo em uma linha), `51c6855` (h2 "Pontos cadastrados" visível, sem sobreposição), `4a0c395` (teste limpa a pesquisa antes de ler o bairro do MOCK-05).
+2. HEAD `4a0c395`: 1 falha (Firefox "Page crashed" em `medir()` no Dashboard). T102: `b37bf2d` (medição elemento a elemento, sem `Range` sobre `.sr-only`).
+3. HEAD `b37bf2d`: 6 falhas (`medir()` contava 0 linhas na tendência) e 1 flaky (axe no login escuro, Firefox, "Page crashed"). T103: `bb51488` (TreeWalker) e `cbbd4a8` (tolerância de meia linha no agrupamento de topos).
+4. HEAD `cbbd4a8`: aprovado. A revisão de segurança aprovou (2 achados baixos); a revisão de código pediu mudanças (documentação desatualizada, aviso falso de sessão expirada e item "Gerenciar" cortado a 375 px).
+
+**T104 (revisão de código, rodada 1):** documentos atualizados com os números acima; `AuthProvider.signIn` passou a tratar a desconexão da recusa de conta sem papel admin como manual (sem aviso falso de sessão expirada); `MainNav` rola a navegação até o item ativo. Esses dois ajustes de código vêm **depois** de `cbbd4a8`: os números de gate valem para `cbbd4a8` e nova verificação será feita. Na T104 rodaram `node --test` (228/228), `npm run lint` (0 erros) e `npm run build` (ok).
+
+**Observação real:** "Page crashed" intermitente do Firefox (medição no Dashboard e axe do login escuro), sem causa raiz identificada; passou na execução final.
+
+**Pendências reais:** nova verificação após a T104 e confirmação visual do item "Gerenciar" a 375 px; teste automatizado da regressão do aviso de sessão; aceite estético humano; axe-core pulado no Firefox nas páginas com gráficos (com motivo no teste); enunciado oficial da FIAP ausente do repositório; definição de "CitizenTech" e eventual API pública de terceiros (decisões de produto).
 
 ## Princípios adotados
 

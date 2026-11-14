@@ -168,7 +168,7 @@ GLOBAL-SOLUTION/
 │   ├── security-review.md        # Revisão de segurança e testes
 │   ├── deploy.md                 # Deploy na Vercel (preparado)
 │   ├── requisitos-fiap-frontend.md  # Checklist dos requisitos de front-end com evidência
-│   ├── revisao-visual-frontend.md   # Revisão visual (antes; depois pendente)
+│   ├── revisao-visual-frontend.md   # Revisão visual (antes e depois)
 │   └── etapa-3-proposta.md       # Proposta do dashboard (em revisão)
 ├── supabase/
 │   ├── config.toml               # Supabase LOCAL (climaponto-local)
@@ -222,8 +222,8 @@ Detalhes em [docs/data-contract.md](docs/data-contract.md), [docs/architecture-d
 - **Modo demonstração:** dataset mock determinístico com 8 cenários, adaptador com a mesma interface da fonte real, `?mock=erro` e `?mock=lento`.
 - Login administrativo e CRUD completo de pontos, com validação, diálogos de confirmação e mensagens de retorno.
 - **Modo mock:** autenticação demonstrativa (contas fictícias) e CRUD de pontos em memória, para percorrer a área administrativa sem Supabase.
-- **375 px:** valores de temperatura e umidade sem quebra entre número e unidade (espaço não separável e `whitespace-nowrap`; commit `de32ce0`). Confirmação em navegador pendente da verificação final.
-- **Novos testes E2E escritos** (`valores-375`, `movimento-reduzido`, `admin`, `admin-qualidade`, estados lento/erro/vazio e 404), **ainda não executados**: dependem da verificação final do harness.
+- **375 px:** valores de temperatura e umidade sem quebra entre número e unidade (espaço não separável e `whitespace-nowrap`; commit `de32ce0`). Confirmado no gate E2E 0030 (HEAD `cbbd4a8`).
+- **Novos testes E2E** (`valores-375`, `movimento-reduzido`, `admin`, `admin-qualidade`, estados lento/erro/vazio e 404), executados na verificação final no HEAD `cbbd4a8`: lint e build ok; E2E (Chromium e Firefox) 190 aprovados, 0 falhas, 0 flaky, 4 pulados, 56 screenshots; unitários 228/228. Antes da aprovação houve 3 verificações reprovadas (11 falhas + 1 flaky; 1 falha; 6 falhas + 1 flaky), corrigidas em `a4968a3`, `51c6855`, `4a0c395`, `b37bf2d`, `bb51488` e `cbbd4a8`. Depois disso, a T104 alterou `AuthProvider.jsx` (recusa de conta sem papel admin não exibe mais "Sua sessão expirou") e `MainNav.jsx` (item ativo visível a 375 px), além de documentos: **nova verificação será feita**.
 - Checklist dos requisitos: [docs/requisitos-fiap-frontend.md](docs/requisitos-fiap-frontend.md) e revisão visual: [docs/revisao-visual-frontend.md](docs/revisao-visual-frontend.md).
 - CRUD e permissões **validados no Supabase remoto** com contas reais de teste (31/31: API e interface) e no Supabase local (SQL 50/50, papéis 14/14, interface 24/24). Detalhes em `docs/security-review.md`.
 - **Dashboard:** resumo (pontos, contagens por conectividade e por estado ambiental), última medição, conectividade **provisória** (online/atrasado/offline, separada do estado ambiental), visão por ponto e evolução recente. Atualização automática (polling), pausada com a aba oculta. Mostra apenas o `environmental_status` gravado; sem leituras aparece "Sem dados", e estado ausente aparece "Não classificado".
@@ -244,7 +244,9 @@ Detalhes em [docs/data-contract.md](docs/data-contract.md), [docs/architecture-d
 - **Aceite humano da interface 3C:** aprovação estética do design pela equipe e conferência com o Supabase configurado. A parte objetiva (375/768/1366 px, teclado, axe-core, reduced motion, console, hierarquia de títulos) já roda nos testes E2E; o offset `sm:top-20` da barra de filtros fixa do Histórico não tem teste específico.
 - Referências visuais aprovadas (`toHaveScreenshot`) ainda não existem: hoje os testes geram screenshots para revisão, mas não comparam imagens entre versões.
 - axe-core no Firefox está pulado (com motivo registrado no teste) nas páginas com gráficos: o Firefox derruba a página durante a análise no runner de testes; essas páginas são verificadas no Chromium.
-- **Execução final dos gates** (lint, build, unitários e E2E em Chromium e Firefox) no HEAD com todas as tarefas: pendente da verificação final do harness; screenshots "Depois" também.
+- **Nova verificação dos gates** após os commits da T104 (os gates aprovados foram executados em `cbbd4a8`); confirmar em captura a 375 px o item "Gerenciar" visível na navegação.
+- "Page crashed" intermitente do Firefox (axe do login escuro e medição no Dashboard): ocorreu em execuções intermediárias e passou na final; causa raiz não identificada.
+- Sem teste automatizado para a regressão do aviso "Sua sessão expirou" após recusa de conta sem papel admin (não há teste de componentes; `web/e2e` fora do escopo da T104).
 - **Enunciado oficial da FIAP** não está no repositório: o checklist segue a lista do objetivo. **"CitizenTech"** não está definido em nenhum documento do repositório, e uma **API pública de terceiros** (se o enunciado exigir) não foi implementada: decisões de produto da equipe. Ver `docs/requisitos-fiap-frontend.md`.
 - Dashboard, Histórico e área administrativa são `lazy`; o chunk com o Recharts tem ~381 kB (111 kB gzip) e o build não emite mais aviso de chunk acima de 500 kB.
 - `components/ui/icons.jsx` segue como camada sobre lucide-react, com consumidores a migrar para importar direto.
