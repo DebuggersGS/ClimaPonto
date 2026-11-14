@@ -44,7 +44,20 @@ export default function AuthProvider({ children }) {
   }, [])
 
   // authService.signIn já recusa (e desconecta) contas sem papel de administrador.
-  const signIn = useCallback((email, password) => authService.signIn(email, password), [])
+  // Essa desconexão é decisão da própria entrada, não expiração: o SIGNED_OUT dela
+  // é tratado como manual para não exibir "Sua sessão expirou" depois da recusa.
+  const signIn = useCallback(async (email, password) => {
+    manualSignOut.current = true
+    try {
+      const user = await authService.signIn(email, password)
+      manualSignOut.current = false
+      return user
+    } catch (error) {
+      // Só a recusa por papel emite SIGNED_OUT (que zera o marcador); nos demais erros nada foi desconectado.
+      if (error?.kind !== 'permission') manualSignOut.current = false
+      throw error
+    }
+  }, [])
 
   /** Chamado quando uma operação no banco indica sessão expirada. */
   const handleSessionExpired = useCallback(async () => {
