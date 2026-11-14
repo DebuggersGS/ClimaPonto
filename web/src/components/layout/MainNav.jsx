@@ -1,5 +1,4 @@
-import { useEffect, useRef } from 'react'
-import { NavLink, useLocation } from 'react-router'
+import { NavLink } from 'react-router'
 import { motion, useReducedMotion } from 'motion/react'
 import { useAuth } from '../../hooks/useAuth.js'
 import { cn } from '../../utils/cn.js'
@@ -13,38 +12,27 @@ const PUBLIC_ITEMS = [
 
 const ADMIN_ITEM = { to: '/admin/pontos', label: 'Gerenciar' }
 
-/** Navegação principal. O NavLink define aria-current="page" no item ativo; a pill ativa desliza entre itens. */
+/**
+ * Navegação principal. O NavLink define aria-current="page" no item ativo; a pill ativa desliza entre itens.
+ * Em telas estreitas os itens dividem a largura e quebram de linha se preciso: nada fica escondido
+ * por rolagem interna, e cada alvo tem ao menos 44 px de altura.
+ */
 export default function MainNav({ className }) {
   const { isAdmin } = useAuth()
   const reducedMotion = useReducedMotion()
-  const navRef = useRef(null)
-  const { pathname } = useLocation()
   const items = isAdmin ? [...PUBLIC_ITEMS, ADMIN_ITEM] : PUBLIC_ITEMS
 
-  // Em telas estreitas o item ativo pode ficar fora da área rolável: traz para a vista
-  // rolando só a navegação (scrollIntoView também poderia rolar a página).
-  useEffect(() => {
-    const nav = navRef.current
-    const active = nav?.querySelector('[aria-current="page"]')
-    if (!nav || !active) return
-    const navBox = nav.getBoundingClientRect()
-    const box = active.getBoundingClientRect()
-    if (box.right > navBox.right) nav.scrollLeft += box.right - navBox.right + 8
-    else if (box.left < navBox.left) nav.scrollLeft -= navBox.left - box.left + 8
-  }, [pathname, isAdmin])
-
   return (
-    // Se faltar espaço, a rolagem fica DENTRO da navegação (nunca na página).
-    <nav ref={navRef} aria-label="Navegação principal" className={cn('max-w-full overflow-x-auto', className)}>
-      <ul className="flex w-max gap-1 rounded-full bg-slate-900/5 p-1">
+    <nav aria-label="Navegação principal" className={cn('max-w-full', className)}>
+      <ul className="flex w-full flex-wrap gap-1 rounded-3xl bg-slate-900/5 p-1 sm:w-max sm:rounded-full">
         {items.map((item) => (
-          <li key={item.to}>
+          <li key={item.to} className="min-w-0 flex-1 sm:flex-none">
             <NavLink
               to={item.to}
               end={item.end}
               className={({ isActive }) =>
                 cn(
-                  'relative inline-flex min-h-10 items-center rounded-full px-4 py-2 text-sm transition-colors duration-150',
+                  'relative flex min-h-11 items-center justify-center rounded-full px-2 py-2 text-sm transition-colors duration-150 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 sm:inline-flex sm:px-4',
                   isActive ? 'font-semibold text-slate-900' : 'font-medium text-slate-700 hover:text-slate-900',
                 )
               }
