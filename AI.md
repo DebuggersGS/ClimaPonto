@@ -225,7 +225,7 @@ Não foram testados leitores de tela, navegadores além do Chrome, nem dispositi
 **Executado de verdade (gate de navegador do harness: Playwright 1.65.0, Chromium 158 e Firefox 159, modo mock, isolado e sem rede):**
 
 - `G-20261113-e21494`, HEAD `76899ac`: 76 testes aprovados, 4 pulados, 0 falhas, 0 instáveis; lint e build aprovados.
-- `G-20261113-ec01eb`, HEAD `d2be3a8` (antes desta documentação): 78 aprovados, 4 pulados, 0 falhas, 0 instáveis.
+- `G-20261113-ec01eb`: execução de verificação da sessão de manutenção no HEAD `d2be3a8` (evidência do harness `evidence/h8/climaponto-e2e-final-20261113T234849`) e gate oficial do objetivo no HEAD `99eba02` (registro `0008-gate-e2e`; entre os dois commits só a documentação mudou): nas duas, 78 aprovados, 4 pulados, 0 falhas, 0 instáveis.
 - 12 screenshots reais por execução: Dashboard, Histórico e Pontos, em 1366 px e 375 px, nos dois navegadores.
 
 **Defeitos encontrados pelos testes e corrigidos:**
