@@ -221,10 +221,12 @@ export default function AdminStopsPage() {
 
       {!isLoading && !error && (
         <>
-          <h2 className="sr-only">Pontos cadastrados</h2>
-          <p className="mb-3 text-sm text-slate-600" aria-live="polite">
-            {visibleStops.length} de {stops.length} pontos
-          </p>
+          <div className="mb-3 flex flex-wrap items-baseline gap-x-3 gap-y-1">
+            <h2 className="text-sm font-semibold text-slate-900">Pontos cadastrados</h2>
+            <p className="text-sm text-slate-600" aria-live="polite">
+              {visibleStops.length} de {stops.length} pontos
+            </p>
+          </div>
           {visibleStops.length === 0 ? (
             <EmptyState
               title={stops.length === 0 ? 'Nenhum ponto cadastrado' : 'Nenhum ponto encontrado'}
