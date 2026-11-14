@@ -22,18 +22,23 @@ function Stat({ term, value, formatValue }) {
   )
 }
 
+/** Ícone da tendência; fica fora do <dd> para o texto do valor ser um único nó em linha. */
+function TrendIcon({ trend }) {
+  if (trend.status !== 'available') return null
+  const Icon = trend.variation > 0 ? ArrowUpRight : trend.variation < 0 ? ArrowDownRight : Minus
+  return <Icon aria-hidden="true" className="h-4 w-4" />
+}
+
 function Trend({ trend, formatValue }) {
   if (trend.status !== 'available') {
     return <span className="text-slate-600">Dados insuficientes para indicar tendência</span>
   }
   const { variation } = trend
-  const Icon = variation > 0 ? ArrowUpRight : variation < 0 ? ArrowDownRight : Minus
   const sign = variation > 0 ? '+' : variation < 0 ? '−' : ''
   const word = variation > 0 ? 'Subiu' : variation < 0 ? 'Caiu' : 'Estável'
   return (
-    <span className="inline-flex items-center gap-1.5 whitespace-nowrap font-semibold text-slate-900">
-      <Icon aria-hidden="true" className="h-4 w-4" />
-      {word} ({sign}{formatValue(Math.abs(variation))})
+    <span className="whitespace-nowrap font-semibold text-slate-900">
+      {`${word} (${sign}${formatValue(Math.abs(variation))})`}
     </span>
   )
 }
@@ -63,7 +68,10 @@ export default function ReadingsSummary({ readings, field, label, formatValue, i
           <dd className="font-semibold tabular-nums text-slate-900">{summary.count}</dd>
         </div>
         <div className="inline-flex items-center gap-1.5">
-          <dt>Tendência:</dt>
+          <dt className="inline-flex items-center gap-1.5">
+            <TrendIcon trend={summary.trend} />
+            Tendência:
+          </dt>
           <dd>
             <Trend trend={summary.trend} formatValue={formatValue} />
           </dd>
