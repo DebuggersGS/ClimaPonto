@@ -5,6 +5,9 @@
  * Códigos de referência: docs/data-contract.md, seção 8.
  */
 
+/** Mensagem quando a conta autenticada não é administradora. */
+export const NOT_ADMIN_MESSAGE = 'Esta conta não tem acesso administrativo.'
+
 export class AppError extends Error {
   /**
    * @param {string} message  mensagem para o usuário

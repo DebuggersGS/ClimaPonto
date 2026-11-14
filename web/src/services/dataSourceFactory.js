@@ -2,6 +2,8 @@ import { createMockReadingsApi } from './mockReadingsApi.js'
 import { createSupabaseStopsApi } from './stopsApi.js'
 import { fetchLatestReadings, fetchReadingHistory } from './readingsApi.js'
 import { AppError } from './errors.js'
+import { createMockAuthApi } from './mockAuthApi.js'
+import { createSupabaseAuthApi } from './supabaseAuthApi.js'
 import { resolveDataMode } from '../utils/dataMode.js'
 
 /**
@@ -10,7 +12,8 @@ import { resolveDataMode } from '../utils/dataMode.js'
  *
  * Regras de separação: no modo 'supabase' nenhum dado mock é usado e um erro
  * do Supabase nunca cai para o mock; no modo 'mock' o Supabase não é
- * consultado; em 'unconfigured' toda operação rejeita com erro explícito.
+ * consultado; em 'unconfigured' toda operação rejeita com erro explícito. A autenticação
+ * segue a mesma regra (demonstrativa só no mock).
  */
 
 export const UNCONFIGURED_MESSAGE =
@@ -56,6 +59,20 @@ function createUnconfiguredApi() {
   }
 }
 
+/** Autenticação indisponível: entrar e sair rejeitam com erro de configuração. */
+function createUnconfiguredAuthApi() {
+  const reject = () => Promise.reject(new AppError(UNCONFIGURED_MESSAGE, { kind: 'unavailable' }))
+  return {
+    isDemo: false,
+    available: false,
+    demoAccounts: null,
+    signIn: reject,
+    signOut: reject,
+    getSession: () => Promise.resolve(null),
+    onAuthChange: () => () => {},
+  }
+}
+
 function createSupabaseApi(client) {
   return {
     fetchLatestReadings: (options) => fetchLatestReadings(client, options),
@@ -72,18 +89,29 @@ function createSupabaseApi(client) {
  * @param {() => string} [options.getSearch] devolve a query string da URL; chamada só no modo mock
  * @param {() => Date} [options.now] relógio do mock
  * @returns {{ dataMode: 'mock'|'supabase'|'unconfigured', resolution: object,
- *   readingsApi: object, stopsApi: object }}
- *   readingsApi (fetchLatestReadings, fetchReadingHistory) e stopsApi (listStops,
- *   createStop, updateStop, setStopActive, deleteStop, countStopReadings)
+ *   readingsApi: object, stopsApi: object, authApi: object }}
+ *   readingsApi (fetchLatestReadings, fetchReadingHistory), stopsApi (listStops,
+ *   createStop, updateStop, setStopActive, deleteStop, countStopReadings) e
+ *   authApi (signIn, signOut, getSession, onAuthChange, isDemo, available,
+ *   demoAccounts). No mock a authApi é demonstrativa e em memória, nunca o
+ *   Supabase; ?mock=erro e ?mock=lento não a afetam.
  */
 export function createDataSource({ requestedMode, supabaseConfigured, client, getSearch = () => '', now }) {
   const resolution = resolveDataMode(requestedMode, { supabaseConfigured })
   const { mode } = resolution
 
   let api
-  if (mode === 'mock') api = createMockReadingsApi({ ...parseMockOptions(getSearch()), now })
-  else if (mode === 'supabase') api = createSupabaseApi(client)
-  else api = createUnconfiguredApi()
+  let authApi
+  if (mode === 'mock') {
+    api = createMockReadingsApi({ ...parseMockOptions(getSearch()), now })
+    authApi = createMockAuthApi()
+  } else if (mode === 'supabase') {
+    api = createSupabaseApi(client)
+    authApi = createSupabaseAuthApi(client)
+  } else {
+    api = createUnconfiguredApi()
+    authApi = createUnconfiguredAuthApi()
+  }
 
-  return { dataMode: mode, resolution, readingsApi: api, stopsApi: api }
+  return { dataMode: mode, resolution, readingsApi: api, stopsApi: api, authApi }
 }

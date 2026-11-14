@@ -7,7 +7,8 @@ import {
   createDataSource,
   parseMockOptions,
 } from './dataSourceFactory.js'
-import { AppError } from './errors.js'
+import { AppError, NOT_ADMIN_MESSAGE } from './errors.js'
+import { signInAdmin } from './adminAuth.js'
 
 /** Cliente Supabase falso que registra as tabelas consultadas e devolve um erro de rede. */
 function createFakeClient() {
@@ -25,6 +26,37 @@ function createFakeClient() {
     return query
   }
   return { calls, from: chain }
+}
+
+/** Cliente falso só de auth: registra chamadas e devolve invalid_credentials. */
+function createFakeAuthClient() {
+  const calls = []
+  const invalid = { code: 'invalid_credentials', status: 400, message: 'Invalid login credentials' }
+  return {
+    calls,
+    from: () => {
+      calls.push('from')
+      throw new Error('inesperado')
+    },
+    auth: {
+      signInWithPassword: async (args) => {
+        calls.push(['signInWithPassword', args.email])
+        return { data: { user: null }, error: invalid }
+      },
+      signOut: async () => {
+        calls.push('signOut')
+        return { error: null }
+      },
+      getSession: async () => {
+        calls.push('getSession')
+        return { data: { session: null }, error: null }
+      },
+      onAuthStateChange: () => {
+        calls.push('onAuthStateChange')
+        return { data: { subscription: { unsubscribe() {} } } }
+      },
+    },
+  }
 }
 
 describe('parseMockOptions', () => {
@@ -82,9 +114,18 @@ describe('createDataSource: modo mock', () => {
     assert.equal(supabase.dataMode, 'supabase')
   })
 
-  it('escritas de pontos ficam indisponíveis no mock', async () => {
+  it('escritas de pontos funcionam em memória no mock', async () => {
     const source = createDataSource({ requestedMode: 'mock', supabaseConfigured: false, client: null })
-    await assert.rejects(source.stopsApi.createStop({}), { kind: 'unavailable' })
+    const criado = await source.stopsApi.createStop({
+      code: 'NOVO-01', name: 'Ponto novo', neighborhood: 'Centro', description: null,
+      latitude: null, longitude: null, isDemo: true, active: true,
+    })
+    assert.equal(criado.id, 'mock-novo-1')
+    assert.equal((await source.stopsApi.listStops()).length, 9)
+    await assert.rejects(
+      source.stopsApi.createStop({ code: '', name: '', neighborhood: '', latitude: null, longitude: null }),
+      { kind: 'validation' },
+    )
   })
 })
 
@@ -130,5 +171,62 @@ describe('createDataSource: modo não configurado', () => {
         return true
       })
     }
+  })
+})
+
+describe('createDataSource: autenticação', () => {
+  it('"mock" devolve a auth demonstrativa e não toca client.auth, mesmo configurado', async () => {
+    const client = createFakeAuthClient()
+    const { authApi } = createDataSource({ requestedMode: 'mock', supabaseConfigured: true, client })
+    assert.equal(authApi.isDemo, true)
+    assert.equal(authApi.available, true)
+    assert.equal(authApi.demoAccounts.length, 2)
+    const user = await signInAdmin(authApi, 'admin.demo@climaponto.example', 'demo-admin-2026')
+    assert.equal(user.app_metadata.role, 'admin')
+    await authApi.signOut()
+    await authApi.getSession()
+    authApi.onAuthChange(() => {})()
+    assert.deepEqual(client.calls, [])
+  })
+
+  it('?mock=erro não afeta a auth demonstrativa', async () => {
+    const { authApi } = createDataSource({
+      requestedMode: 'mock', supabaseConfigured: false, client: null, getSearch: () => '?mock=erro,lento',
+    })
+    await signInAdmin(authApi, 'admin.demo@climaponto.example', 'demo-admin-2026')
+  })
+
+  it('"supabase" e "auto" configurado usam só client.auth: credenciais demo são recusadas', async () => {
+    for (const requestedMode of ['supabase', 'auto']) {
+      const client = createFakeAuthClient()
+      const { authApi } = createDataSource({ requestedMode, supabaseConfigured: true, client })
+      assert.equal(authApi.isDemo, false)
+      assert.equal(authApi.demoAccounts, null)
+      assert.equal(authApi.available, true)
+      await assert.rejects(
+        signInAdmin(authApi, ' admin.demo@climaponto.example ', 'demo-admin-2026'),
+        { kind: 'validation', message: 'E-mail ou senha incorretos.' },
+      )
+      assert.deepEqual(client.calls, [['signInWithPassword', 'admin.demo@climaponto.example']])
+    }
+  })
+
+  it('"unconfigured": indisponível, signIn rejeita e não há conta demo', async () => {
+    const { authApi } = createDataSource({ requestedMode: 'supabase', supabaseConfigured: false, client: null })
+    assert.equal(authApi.available, false)
+    assert.equal(authApi.isDemo, false)
+    assert.equal(authApi.demoAccounts, null)
+    await assert.rejects(authApi.signIn('admin.demo@climaponto.example', 'demo-admin-2026'), (err) => {
+      assert.ok(err instanceof AppError)
+      assert.equal(err.message, UNCONFIGURED_MESSAGE)
+      return true
+    })
+    await assert.rejects(authApi.signOut(), AppError)
+    assert.equal(await authApi.getSession(), null)
+    assert.equal(typeof authApi.onAuthChange(() => {}), 'function')
+  })
+
+  it('NOT_ADMIN_MESSAGE é a mensagem de conta sem acesso administrativo', () => {
+    assert.equal(NOT_ADMIN_MESSAGE, 'Esta conta não tem acesso administrativo.')
   })
 })

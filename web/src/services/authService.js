@@ -1,46 +1,29 @@
-import { AppError, toAuthError } from './errors.js'
-import { supabase } from './supabaseClient.js'
+import { authApi } from './dataSource.js'
+import { isAdminUser, signInAdmin } from './adminAuth.js'
 
 /**
- * Autenticação administrativa com Supabase Auth (e-mail e senha).
- * Não existe cadastro público: contas são criadas manualmente no painel.
+ * Autenticação administrativa: fachada sobre `authApi` de dataSource.js.
+ * No modo mock é a autenticação demonstrativa em memória; no modo supabase,
+ * o Supabase Auth; sem configuração, indisponível.
  *
  * O papel exibido aqui serve apenas para a INTERFACE. Quem garante as
  * permissões é o RLS do banco.
  */
 
-function requireClient() {
-  if (!supabase) {
-    throw new AppError('O Supabase não está configurado nesta instalação. Consulte o README.', { kind: 'unknown' })
-  }
-  return supabase
+export { isAdminUser }
+
+/** Entra e exige papel de administrador (recusa e desconecta quem não for). */
+export function signIn(email, password) {
+  return signInAdmin(authApi, email, password)
 }
 
-/** true quando o usuário tem app_metadata.role === 'admin'. */
-export function isAdminUser(user) {
-  return user?.app_metadata?.role === 'admin'
+export function signOut() {
+  return authApi.signOut()
 }
 
-export async function signIn(email, password) {
-  const client = requireClient()
-  const { data, error } = await client.auth.signInWithPassword({ email: email.trim(), password })
-  if (error) throw toAuthError(error)
-  return data.user
-}
-
-export async function signOut() {
-  const client = requireClient()
-  const { error } = await client.auth.signOut()
-  // Mesmo se o servidor falhar, a sessão local é descartada pelo supabase-js.
-  if (error) throw toAuthError(error)
-}
-
-/** Sessão atual (lida do armazenamento local e renovada se necessário). */
-export async function getCurrentSession() {
-  if (!supabase) return null
-  const { data, error } = await supabase.auth.getSession()
-  if (error) throw toAuthError(error)
-  return data.session
+/** Sessão atual ou null. */
+export function getCurrentSession() {
+  return authApi.getSession()
 }
 
 /**
@@ -48,7 +31,16 @@ export async function getCurrentSession() {
  * @param {(event: string, session: object|null) => void} callback
  */
 export function onAuthChange(callback) {
-  if (!supabase) return () => {}
-  const { data } = supabase.auth.onAuthStateChange((event, session) => callback(event, session))
-  return () => data.subscription.unsubscribe()
+  return authApi.onAuthChange(callback)
+}
+
+/** false quando a autenticação não está configurada. */
+export const isAuthAvailable = authApi.available
+
+/** true só no modo mock (contas fictícias). */
+export const isDemoAuth = authApi.isDemo
+
+/** Contas fictícias para exibir no login, ou null fora do mock. */
+export function getDemoAccounts() {
+  return authApi.demoAccounts
 }
