@@ -1,5 +1,5 @@
 // Histórico: seleção de ponto, filtro de período, tabela, gráficos e estados (modo mock).
-import { test, expect } from 'harness-e2e'
+import { test, expect, snap, settle } from 'harness-e2e'
 
 const filtros = (page) => page.getByRole('region', { name: 'Filtros do histórico' })
 
@@ -83,3 +83,36 @@ test('desktop: a página termina no rodapé (sem rolagem vazia causada pela tabe
   const regiao = page.getByRole('region', { name: 'Tabela de leituras (com rolagem)' })
   await expect(regiao).toHaveAttribute('tabindex', '0')
 })
+
+test('ponto sem leituras: texto orienta a tentar outro período', async ({ page }) => {
+  await page.goto('/historico?ponto=MOCK-04&periodo=24h')
+  const main = page.getByRole('main')
+  await expect(main).toContainText('Nenhuma leitura no período')
+  await expect(main).toContainText('Tente outro período')
+  await expect(main.getByRole('button', { name: 'Últimos 7 dias' }).first()).toBeVisible()
+})
+
+test('?mock=erro: a nova tentativa permanece visível após acioná-la', async ({ page }) => {
+  await page.goto('/historico?ponto=MOCK-01&periodo=24h&mock=erro')
+  const alerta = page.getByRole('alert')
+  await alerta.getByRole('button', { name: 'Tentar novamente' }).click()
+  await expect(alerta).toContainText('Não foi possível carregar os pontos')
+  await expect(alerta.getByRole('button', { name: 'Tentar novamente' })).toBeVisible()
+})
+
+for (const [vpNome, vp] of [['mobile', { width: 375, height: 812 }], ['desktop', { width: 1366, height: 900 }]]) {
+  test(`snap dos estados de carregamento, erro e vazio do Histórico (${vpNome})`, async ({ page }, testInfo) => {
+    await page.setViewportSize(vp)
+    await page.goto('/historico?ponto=MOCK-01&periodo=24h&mock=lento')
+    await expect(page.getByRole('status').filter({ hasText: 'Carregando leituras…' })).toBeVisible()
+    await snap(page, testInfo, `estado-carregando-historico-${vpNome}`)
+    await page.goto('/historico?mock=erro')
+    await expect(page.getByRole('alert')).toContainText('Não foi possível carregar os pontos')
+    await settle(page)
+    await snap(page, testInfo, `estado-erro-historico-${vpNome}`)
+    await page.goto('/historico?ponto=MOCK-04&periodo=24h')
+    await expect(page.getByRole('main')).toContainText('Nenhuma leitura no período')
+    await settle(page)
+    await snap(page, testInfo, `estado-vazio-historico-${vpNome}`)
+  })
+}

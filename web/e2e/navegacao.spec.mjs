@@ -1,5 +1,5 @@
 // Navegação, modo de dados e estrutura comum (ClimaPonto, modo mock: VITE_DATA_MODE=mock).
-import { test, expect } from 'harness-e2e'
+import { test, expect, snap, settle } from 'harness-e2e'
 
 const PAGES = [
   ['Dashboard', '/', 'Dashboard · ClimaPonto'],
@@ -38,3 +38,24 @@ test('rota inexistente mostra a página de não encontrado dentro do layout', as
   await expect(page.getByRole('navigation', { name: 'Navegação principal' })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Dashboard', exact: true })).toBeVisible()
 })
+
+test('404: título, explicação e link de volta ao Dashboard', async ({ page }) => {
+  await page.goto('/rota-que-nao-existe')
+  await expect(page).toHaveTitle('Página não encontrada · ClimaPonto')
+  await expect(page.getByRole('heading', { level: 1, name: 'Página não encontrada' })).toBeVisible()
+  await expect(page.getByRole('main')).toContainText('Este endereço não existe')
+  await expect(page.getByRole('main')).toContainText('O link pode estar incorreto ou a página foi movida.')
+  await page.getByRole('main').getByRole('link', { name: 'Voltar para o Dashboard' }).click()
+  await expect(page).toHaveURL(/\/$/)
+  await expect(page.getByRole('heading', { level: 1, name: 'Dashboard' })).toBeVisible()
+})
+
+for (const [vpNome, vp] of [['mobile', { width: 375, height: 812 }], ['desktop', { width: 1366, height: 900 }]]) {
+  test(`snap da página 404 (${vpNome})`, async ({ page }, testInfo) => {
+    await page.setViewportSize(vp)
+    await page.goto('/rota-que-nao-existe')
+    await expect(page.getByRole('heading', { level: 1, name: 'Página não encontrada' })).toBeVisible()
+    await settle(page)
+    await snap(page, testInfo, `estado-404-${vpNome}`)
+  })
+}

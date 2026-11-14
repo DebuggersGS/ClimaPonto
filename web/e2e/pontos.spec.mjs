@@ -1,5 +1,5 @@
 // Pontos: lista, ponto demonstrativo, acesso ao histórico e estado de erro (modo mock).
-import { test, expect } from 'harness-e2e'
+import { test, expect, snap, settle } from 'harness-e2e'
 
 const itens = (page) => page.getByRole('main').getByRole('list').first().getByRole('listitem')
 
@@ -24,3 +24,35 @@ test('?mock=erro: alerta com nova tentativa e nenhuma lista parcial', async ({ p
   await expect(page.getByRole('alert')).toContainText('Não foi possível carregar os pontos')
   await expect(page.getByRole('link', { name: 'Ver histórico' })).toHaveCount(0)
 })
+
+test('?mock=lento: status de carregamento visível e depois a lista', async ({ page }) => {
+  await page.goto('/pontos?mock=lento')
+  await expect(page.getByRole('status').filter({ hasText: 'Carregando pontos…' })).toBeVisible()
+  await expect(page.getByRole('link', { name: 'Ver histórico' })).toHaveCount(0)
+  await expect(itens(page)).toHaveCount(8, { timeout: 15_000 })
+  await expect(page.getByRole('status').filter({ hasText: 'Carregando pontos…' })).toHaveCount(0)
+})
+
+test('?mock=erro: a nova tentativa é visível e acionável', async ({ page }) => {
+  await page.goto('/pontos?mock=erro')
+  const alerta = page.getByRole('alert')
+  await expect(alerta.getByRole('button', { name: 'Tentar novamente' })).toBeVisible()
+  await alerta.getByRole('button', { name: 'Tentar novamente' }).click()
+  // o modo mock continua falhando: o alerta permanece e nenhuma lista parcial aparece
+  await expect(alerta).toContainText('Não foi possível carregar os pontos')
+  await expect(page.getByRole('link', { name: 'Ver histórico' })).toHaveCount(0)
+})
+
+const VPS = [['mobile', { width: 375, height: 812 }], ['desktop', { width: 1366, height: 900 }]]
+for (const [vpNome, vp] of VPS) {
+  test(`snap dos estados de carregamento e erro de Pontos (${vpNome})`, async ({ page }, testInfo) => {
+    await page.setViewportSize(vp)
+    await page.goto('/pontos?mock=lento')
+    await expect(page.getByRole('status').filter({ hasText: 'Carregando pontos…' })).toBeVisible()
+    await snap(page, testInfo, `estado-carregando-pontos-${vpNome}`)
+    await page.goto('/pontos?mock=erro')
+    await expect(page.getByRole('alert')).toContainText('Não foi possível carregar os pontos')
+    await settle(page)
+    await snap(page, testInfo, `estado-erro-pontos-${vpNome}`)
+  })
+}

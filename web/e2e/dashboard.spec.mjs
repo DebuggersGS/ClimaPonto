@@ -1,7 +1,7 @@
 // Dashboard: indicadores, estados por ponto, gráficos e estados de carregamento/erro (modo mock).
 // Dataset determinístico: MOCK-01 normal, MOCK-02 atenção, MOCK-03 crítico, MOCK-04 sem dados,
 // MOCK-05 atrasado, MOCK-06 offline, MOCK-07 histórico longo, MOCK-08 demonstrativo.
-import { test, expect } from 'harness-e2e'
+import { test, expect, snap, settle } from 'harness-e2e'
 
 const resumo = (page) => page.getByRole('region', { name: 'Resumo' })
 const cards = (page) => page.getByRole('region', { name: 'Pontos monitorados' }).getByRole('listitem')
@@ -53,8 +53,8 @@ test('cada card leva ao histórico do ponto', async ({ page }) => {
 test('última medição em destaque com temperatura, umidade e horário', async ({ page }) => {
   const destaque = page.getByRole('region', { name: 'Última medição' })
   await expect(destaque.getByRole('heading', { level: 3 })).toContainText('(MOCK-')
-  await expect(destaque).toContainText(/\d+,\d °C/)
-  await expect(destaque).toContainText(/\d+,\d %/)
+  await expect(destaque).toContainText(/\d+,\d\u00A0°C/)
+  await expect(destaque).toContainText(/\d+,\d\u00A0%/)
   await expect(destaque.locator('time')).toBeVisible()
 })
 
@@ -84,3 +84,24 @@ test('?mock=lento: estado de carregamento visível e conteúdo depois', async ({
   await expect(page.getByRole('button', { name: 'Atualizando…' })).toBeDisabled()
   await expect(resumo(page)).toBeVisible({ timeout: 15_000 })
 })
+
+test('?mock=erro: a nova tentativa permanece visível após acioná-la', async ({ page }) => {
+  await page.goto('/?mock=erro')
+  const alerta = page.getByRole('alert')
+  await alerta.getByRole('button', { name: 'Tentar novamente' }).click()
+  await expect(alerta).toContainText('Não foi possível carregar os pontos')
+  await expect(alerta.getByRole('button', { name: 'Tentar novamente' })).toBeVisible()
+})
+
+for (const [vpNome, vp] of [['mobile', { width: 375, height: 812 }], ['desktop', { width: 1366, height: 900 }]]) {
+  test(`snap dos estados de carregamento e erro do Dashboard (${vpNome})`, async ({ page }, testInfo) => {
+    await page.setViewportSize(vp)
+    await page.goto('/?mock=lento')
+    await expect(page.getByRole('status').filter({ hasText: 'Carregando o Dashboard' })).toBeVisible()
+    await snap(page, testInfo, `estado-carregando-dashboard-${vpNome}`)
+    await page.goto('/?mock=erro')
+    await expect(page.getByRole('alert')).toContainText('Não foi possível carregar os pontos')
+    await settle(page)
+    await snap(page, testInfo, `estado-erro-dashboard-${vpNome}`)
+  })
+}
