@@ -22,7 +22,7 @@ function UserMenu() {
 
   return (
     <div className="flex min-w-0 items-center gap-2 text-sm">
-      <span className="max-w-40 truncate text-slate-600" title={user?.email}>
+      <span className="max-w-32 truncate sm:max-w-48 text-slate-600" title={user?.email}>
         {user?.email}
       </span>
       <Button variant="secondary" size="sm" onClick={handleSignOut}>

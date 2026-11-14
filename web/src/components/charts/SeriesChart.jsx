@@ -54,6 +54,8 @@ export default function SeriesChart({ series, field, title, unit, periodId, form
               tick={AXIS_TICK}
               tickFormatter={(ms) => formatTick(ms, periodId)}
               minTickGap={32}
+              tickMargin={8}
+              padding={{ left: 8, right: 8 }}
               interval="preserveStartEnd"
             />
             <YAxis
