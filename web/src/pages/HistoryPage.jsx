@@ -1,5 +1,5 @@
 import { useId } from 'react'
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { useSearchParams } from 'react-router'
 import HistoryHeader from '../components/history/HistoryHeader.jsx'
 import PeriodFilter from '../components/history/PeriodFilter.jsx'
@@ -66,6 +66,7 @@ function ResultsContent({ stop, period, periodId, readings, truncated, discarded
 export default function HistoryPage() {
   useDocumentTitle('Histórico')
   const selectId = useId()
+  const reducedMotion = useReducedMotion()
   const [searchParams, setSearchParams] = useSearchParams()
   const { stops, isLoading: stopsLoading, error: stopsError, reload: reloadStops, source } = useStops()
 
@@ -196,7 +197,7 @@ export default function HistoryPage() {
 
       <div className="min-h-64">
         <AnimatePresence mode="wait" initial={false}>
-          <motion.div key={contentKey} {...FADE}>
+          <motion.div key={contentKey} {...(reducedMotion ? {} : FADE)}>
             {content}
           </motion.div>
         </AnimatePresence>

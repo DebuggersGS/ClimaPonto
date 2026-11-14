@@ -1,5 +1,5 @@
 import { useId } from 'react'
-import { motion } from 'motion/react'
+import { motion, useReducedMotion } from 'motion/react'
 import { cn } from '../../utils/cn.js'
 import { INDICATOR_SPRING } from './motion.js'
 
@@ -11,6 +11,7 @@ import { INDICATOR_SPRING } from './motion.js'
  */
 export default function SegmentedControl({ label, options, value, onChange, className }) {
   const groupId = useId()
+  const reducedMotion = useReducedMotion()
   return (
     <div role="group" aria-label={label} className={cn('inline-flex max-w-full flex-wrap gap-1 rounded-full bg-slate-900/5 p-1', className)}>
       {options.map((option) => {
@@ -29,7 +30,7 @@ export default function SegmentedControl({ label, options, value, onChange, clas
             {active && (
               <motion.span
                 layoutId={`segmented-${groupId}`}
-                transition={INDICATOR_SPRING}
+                transition={reducedMotion ? { duration: 0 } : INDICATOR_SPRING}
                 aria-hidden="true"
                 className="absolute inset-0 rounded-full bg-white shadow-card ring-1 ring-slate-900/5"
               />

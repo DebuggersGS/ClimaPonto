@@ -32,7 +32,7 @@ export default function SeriesChart({ series, field, title, unit, periodId, form
   }
 
   return (
-    <motion.figure aria-describedby={describedBy} variants={fadeUp} initial="hidden" animate="visible" className="min-w-0">
+    <motion.figure aria-describedby={describedBy} variants={fadeUp} initial={reducedMotion ? false : 'hidden'} animate="visible" className="min-w-0">
       <figcaption className="mb-2 flex items-center gap-2 text-sm font-medium text-slate-800">
         <span aria-hidden="true" className="h-0.5 w-5 rounded-full" style={{ backgroundColor: stroke }} />
         {legend}

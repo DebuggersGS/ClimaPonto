@@ -1,5 +1,5 @@
 import { useMemo } from 'react'
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import ConnectivityRuleNote from '../components/dashboard/ConnectivityRuleNote.jsx'
 import { getDashboardPhase } from '../components/dashboard/dashboardPhase.js'
 import DashboardHero from '../components/dashboard/DashboardHero.jsx'
@@ -64,6 +64,7 @@ function ReadyContent({ stops, summary, now }) {
 export default function DashboardPage() {
   useDocumentTitle('Dashboard')
   const { stops, isLoading, error, source } = useStops()
+  const reducedMotion = useReducedMotion()
   const {
     readings,
     discardedCount,
@@ -107,7 +108,7 @@ export default function DashboardPage() {
       )}
 
       <AnimatePresence mode="wait" initial={false}>
-        <motion.div key={phase} {...PHASE_TRANSITION}>
+        <motion.div key={phase} {...(reducedMotion ? {} : PHASE_TRANSITION)}>
           {phase === 'loading' && <DashboardSkeleton />}
           {phase === 'unconfigured' && <UnconfiguredState />}
           {phase === 'empty' && <NoStopsState />}

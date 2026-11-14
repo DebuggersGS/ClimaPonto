@@ -1,5 +1,5 @@
 import { NavLink } from 'react-router'
-import { motion } from 'motion/react'
+import { motion, useReducedMotion } from 'motion/react'
 import { useAuth } from '../../hooks/useAuth.js'
 import { cn } from '../../utils/cn.js'
 import { INDICATOR_SPRING } from '../ui/motion.js'
@@ -15,6 +15,7 @@ const ADMIN_ITEM = { to: '/admin/pontos', label: 'Gerenciar' }
 /** Navegação principal. O NavLink define aria-current="page" no item ativo; a pill ativa desliza entre itens. */
 export default function MainNav({ className }) {
   const { isAdmin } = useAuth()
+  const reducedMotion = useReducedMotion()
   const items = isAdmin ? [...PUBLIC_ITEMS, ADMIN_ITEM] : PUBLIC_ITEMS
 
   return (
@@ -38,7 +39,7 @@ export default function MainNav({ className }) {
                   {isActive && (
                     <motion.span
                       layoutId="main-nav-pill"
-                      transition={INDICATOR_SPRING}
+                      transition={reducedMotion ? { duration: 0 } : INDICATOR_SPRING}
                       aria-hidden="true"
                       className="absolute inset-0 rounded-full bg-white shadow-card ring-1 ring-slate-900/5"
                     />
