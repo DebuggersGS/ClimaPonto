@@ -274,6 +274,21 @@ Não foram testados leitores de tela, navegadores além do Chrome, nem dispositi
 
 **Pendências reais:** nova verificação após a T104 e confirmação visual do item "Gerenciar" a 375 px; teste automatizado da regressão do aviso de sessão; aceite estético humano; axe-core pulado no Firefox nas páginas com gráficos (com motivo no teste); enunciado oficial da FIAP ausente do repositório; definição de "CitizenTech" e eventual API pública de terceiros (decisões de produto).
 
+### Busca, filtros e insights (14/11/2026, objetivo G-20261114-9de6e3)
+
+- Tarefas anteriores do objetivo (código da interface): `a255420` (filtros puros), `147d1e5` (insights), `3151019` (navegação sem rolagem interna), `fc0d363` (busca, filtros e insights nas páginas).
+- T3 (IA): `web/e2e/filtros.spec.mjs` (commit `dc3c974`), lendo o dataset mock e os componentes para as asserções; decisão 37 em `docs/architecture-decisions.md`; README e este registro.
+
+**Executado de verdade na T3 (worktree, sem rede):**
+
+- `node --test` sobre os `*.test.js` de `web/src` (listados por glob): 253 testes, 57 suítes, 253 aprovados, 0 falhas.
+- `npm --prefix web run lint`: 0 erros; 2 avisos `set-state-in-effect` preexistentes.
+- `npm --prefix web run build`: concluído (`built in 700ms`).
+- `node --check web/e2e/filtros.spec.mjs`: sintaxe válida.
+- O sandbox negou rede a `registry.npmjs.org` em um dos comandos `npm`; sem efeito nos resultados.
+
+**Não executado localmente:** os testes E2E (não há Playwright nem o módulo `harness-e2e` no ambiente). Portanto o `filtros.spec.mjs` **nunca rodou**: seletores e expectativas foram escritos a partir da leitura do código e podem precisar de ajuste após o gate do harness. Também não houve `check:supabase` nem conferência em navegador real.
+
 ## Princípios adotados
 
 - O código gerado por IA é revisado pela equipe antes de ser aprovado.
