@@ -6,11 +6,14 @@ const PAGES = [
   ['dashboard', '/', 'Pontos monitorados'],
   ['historico', '/historico?ponto=MOCK-01&periodo=24h', 'Leituras'],
   ['pontos', '/pontos', null],
+  // sem gráficos: região indefinida = basta o h1 (a 404 não tem região nomeada)
+  ['nao-encontrada', '/rota-que-nao-existe', undefined],
 ]
 
 async function ready(page, region) {
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-  if (region) await expect(page.getByRole('region', { name: region, exact: true })).toBeVisible()
+  if (region === undefined) await expect(page.getByRole('link', { name: 'Voltar para o Dashboard' })).toBeVisible()
+  else if (region) await expect(page.getByRole('region', { name: region, exact: true })).toBeVisible()
   else await expect(page.getByRole('link', { name: 'Ver histórico' }).first()).toBeVisible()
   // medições (axe/contraste, layout, screenshots) só depois das animações de entrada
   await settle(page)
@@ -38,7 +41,7 @@ for (const colorScheme of ['light', 'dark']) {
       // Firefox: o processo de conteúdo trava durante a análise do axe nas páginas com gráficos SVG (Recharts)
       // quando executado pelo Playwright Test (reproduzido com e sem isolamento, trace e vídeo; não reproduz
       // fora do runner). As regras do axe avaliam o DOM e não dependem do motor: cobertura feita no Chromium.
-      test.skip(testInfo.project.name === 'firefox' && nome !== 'pontos', 'axe-core no Firefox derruba a página com gráficos (limitação do navegador; coberto no Chromium)')
+      test.skip(testInfo.project.name === 'firefox' && !['pontos', 'nao-encontrada'].includes(nome), 'axe-core no Firefox derruba a página com gráficos (limitação do navegador; coberto no Chromium)')
       await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' })
       await page.goto(rota)
       await ready(page, region)
