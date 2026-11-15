@@ -65,10 +65,14 @@ python matematica/climaponto_modelagem.py
 | No menu | O que faz |
 |---|---|
 | **1** | Escolhe o ponto de ônibus: digite número, código ou nome, ou dê Enter para ver a lista |
-| **2** | Alterna o período: últimos 12 meses ou período do relatório |
-| **3** | Mostra a leitura do sensor ESP32, o estado do ponto e a tendência |
-| **4 a 6** | Modelo e limites, derivadas e integrais |
-| **7** | Roda tudo e abre os gráficos (também salvos em `matematica/figuras`) |
+| **2** | Troca o período: últimos 12 meses ou período do relatório. Se o ponto não tiver dados suficientes, o programa explica e usa os 12 meses completos mais recentes |
+| **3** | Sensor ESP32: temperatura agora, estado do ponto e tendência |
+| **4** | Dados reais: com que frequência passa de 30 °C e de 35 °C? |
+| **5** | Modelo e limites: de quanto em quanto tempo o sensor deve medir? |
+| **6** | Derivadas: quando o calor sobe, chega ao pico e desce? |
+| **7** | Integrais: quanto calor se acumula? |
+
+Cada análise responde a uma pergunta em linguagem simples, com tabelas e um resumo final, abre os gráficos e depois pergunta se você quer salvá-los em `matematica/figuras`. As fórmulas e o passo a passo ficam no relatório.
 
 > Os dados são baixados automaticamente do repositório na primeira vez e ficam guardados em `matematica/dados_cache`. Nas próximas vezes, o programa roda até sem internet.
 
@@ -78,7 +82,7 @@ python matematica/climaponto_modelagem.py
 python -m unittest discover -s testes -v
 ```
 
-50 testes automatizados cobrem regras de estado, validação de dados, falta de internet, arquivos corrompidos, entradas inválidas no menu, Ctrl+C, terminal do Windows, matemática (reproduz os números do relatório) e o robô de atualização.
+51 testes automatizados cobrem regras de estado, validação de dados, falta de internet, arquivos corrompidos, entradas inválidas no menu, Ctrl+C, terminal do Windows, matemática (reproduz os números do relatório) e o robô de atualização.
 
 ## Equipe Debuggers
 

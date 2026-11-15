@@ -14,7 +14,7 @@
    - Modelo e limites: variáveis, função ajustada aos dados reais e limites.
    - Derivadas: crescimento/decrescimento, pontos críticos e taxa de variação.
    - Integrais: área sob a curva e calor acumulado (graus-hora).
-   - Gráficos com matplotlib: abrem na tela e ficam salvos em "figuras".
+   - Gráficos com matplotlib: abrem na tela e, se o usuário quiser, são salvos em "figuras".
    - Leitura do sensor ClimaPonto (ESP32), parte de Edge Computing da solução
      integrada (nesta versão, leitura de demonstração: ver seção 4).
 
@@ -402,11 +402,36 @@ def construir_modelos(dados, inicio, fim, ponto):
     return modelos
 
 
+def secao(pergunta, explicacao=()):
+    """Título da análise em forma de pergunta + explicação curta em linguagem simples."""
+    titulo(pergunta)
+    for linha in explicacao:
+        print(f"  {linha}")
+
+
+def resumo(*itens):
+    print("\n  EM RESUMO")
+    for item in itens:
+        print(f"     {item.strip()}" if item.startswith("   ") else f"  -> {item}")
+
+
+def faixas(intervalos, tipo):
+    """Junta os trechos crescentes/decrescentes do dia, emendando o que passa da meia-noite."""
+    trechos = [[a, b] for a, b, k in intervalos if k == tipo]
+    if len(trechos) > 1 and trechos[0][0] == 0.0 and trechos[-1][1] == 24.0:
+        trechos[-1][1] = trechos.pop(0)[1] + 24
+    return " e ".join(f"das {hora_formatada(a)} às {hora_formatada(b)}" for a, b in trechos) or "nunca"
+
+
+def mes_ano(chave):
+    return f"{NOMES_MES[chave[1] - 1]}/{chave[0]}"
+
+
+
 # =============================================================================
 # 3. VERIFICAÇÃO DOS LIMIARES 30 °C / 35 °C NOS DADOS REAIS
 # =============================================================================
 def verificar_limiares(modelos):
-    titulo("VERIFICAÇÃO DOS LIMIARES DO CLIMAPONTO (30 °C atenção / 35 °C crítico)")
     dados = modelos["dados"]
     temps = np.array([v for _, v in dados])
     por_dia, por_hora = defaultdict(list), defaultdict(int)
@@ -418,15 +443,25 @@ def verificar_limiares(modelos):
     h30, h35 = int(np.sum(temps >= 30)), int(np.sum(temps >= 35))
     total_horas = int((modelos["fim"] - modelos["inicio"]).total_seconds() // 3600)
     na_janela = sum(n for h, n in por_hora.items() if 11 <= h <= 17) / h30 * 100 if h30 else 0.0
-    print(f"Leituras válidas: {len(temps)} de {total_horas} horas ({len(temps) / total_horas * 100:.1f} %)")
-    print(f"Mínima {temps.min():.1f} °C | máxima {temps.max():.1f} °C | média {temps.mean():.2f} °C")
-    for p in (50, 90, 95, 98, 99, 99.9):
-        print(f"  percentil {p:>5}: {np.percentile(temps, p):.2f} °C")
-    print(f"Horas com T >= 30 °C: {h30} ({h30 / len(temps) * 100:.2f} %) | T >= 35 °C: {h35}")
-    print(f"Dias com máxima >= 30 °C: {int(np.sum(tmax >= 30))} | >= 35 °C: {int(np.sum(tmax >= 35))}")
-    print(f"{na_janela:.1f} % das horas >= 30 °C acontecem entre 11h e 17h")
-    return dict(temps=temps, por_hora=por_hora, h30=h30, h35=h35, na_janela=na_janela,
-                pct30=h30 / len(temps) * 100)
+    pct30 = h30 / len(temps) * 100
+    ponto = modelos["ponto"]
+
+    secao("DADOS REAIS - COM QUE FREQUÊNCIA O CALOR PASSA DE 30 °C E DE 35 °C?",
+          (f"Medições de hora em hora da estação {ponto['referencia']},",
+           f"de {modelos['inicio']:%d/%m/%Y} a {modelos['fim'] - timedelta(days=1):%d/%m/%Y}."))
+    print(f"\n  Horas com medição: {len(temps)} de {total_horas} ({len(temps) / total_horas * 100:.1f} %)")
+    print(f"  Temperatura: mínima {temps.min():.1f} °C | média {temps.mean():.1f} °C | máxima {temps.max():.1f} °C")
+    print(f"\n  {'Estado do ClimaPonto':<26}{'Horas no período':>18}{'Dias em que aconteceu':>24}")
+    for nome, horas_lim, limiar in (("Atenção (30 °C ou mais)", h30, 30), ("Crítico (35 °C ou mais)", h35, 35)):
+        pct = horas_lim / len(temps) * 100
+        texto_pct = f"{pct:.1f} %" if pct >= 0.1 or pct == 0 else f"{pct:.2f} %"
+        print(f"  {nome:<26}{horas_lim:>9} ({texto_pct:>6}){int(np.sum(tmax >= limiar)):>15} dias")
+    if h30:
+        print(f"\n  {na_janela:.1f} % das horas acima de 30 °C aconteceram entre 11h e 17h.")
+    resumo(f"30 °C só é passado em {pct30:.1f} % das horas: o alerta de atenção aparece nos momentos",
+           "   realmente quentes, sem tocar o tempo todo.",
+           f"35 °C é um extremo raro ({h35} h no período): bom limite para o estado crítico.")
+    return dict(temps=temps, por_hora=por_hora, h30=h30, h35=h35, na_janela=na_janela, pct30=pct30)
 
 
 # =============================================================================
@@ -525,53 +560,68 @@ def painel_sensor(ponto, modelos):
 # =============================================================================
 # 5. MODELO MATEMÁTICO E LIMITES
 # =============================================================================
-def modelo_e_limites(modelos):
-    titulo("MODELO MATEMÁTICO E LIMITES")
-    print("Variáveis e grandezas")
-    print("   t  = hora do dia (h), 0 <= t <= 24 ............ variável independente")
-    print("   T  = temperatura do ar (°C) .................. variável dependente")
-    print("   T' = taxa de variação (°C/h) | ∫T dt = temperatura acumulada (°C·h)")
-    print("   d  = dias desde o início do período | Tm(d) = média diária (°C) - ciclo anual")
+def resumo_curva(info):
+    """Mínima, máxima e hora de cada uma, a partir dos pontos críticos da curva ajustada."""
+    criticos = analisar_derivada(info["expr"])["criticos"] or [dict(T=info["coef"][0], t=0.0)]
+    menor = min(criticos, key=lambda c: c["T"])
+    maior = max(criticos, key=lambda c: c["T"])
+    return (f"{menor['T']:5.2f} °C às {hora_formatada(menor['t'])}",
+            f"{maior['T']:5.2f} °C às {hora_formatada(maior['t'])}")
 
-    print("\nFunção ajustada aos dados reais por mínimos quadrados")
-    print("   T(t) = a0 + a1 cos(πt/12) + b1 sen(πt/12) + a2 cos(πt/6) + b2 sen(πt/6)")
-    print(f"   {'modelo':<32}{'a0':>8}{'a1':>8}{'b1':>8}{'a2':>8}{'b2':>8}{'R²':>8}{'RMSE':>7}")
-    for grupo, rotulo in (("perfis", "perfil médio"), ("quentes", "dia mais quente")):
+
+def modelo_e_limites(modelos):
+    secao("MODELO E LIMITES - DE QUANTO EM QUANTO TEMPO O SENSOR DEVE MEDIR?",
+          ("A temperatura sobe e desce todo dia no ritmo do Sol. O programa encontrou, pelos",
+           "dados reais, a curva que melhor descreve esse ciclo de 24 h (série de Fourier,",
+           "ajustada por mínimos quadrados). A fórmula completa está no relatório."))
+
+    for grupo, nome in (("perfis", "DIA TÍPICO de cada estação do ano (média de cada hora)"),
+                        ("quentes", "DIA MAIS QUENTE de cada estação do ano")):
+        coluna_dia = "Dia         " if grupo == "quentes" else ""
+        print(f"\n  {nome}")
+        print(f"  {'Estação':<11}{coluna_dia}{'Média':>9}   "
+              f"{'Mais frio':<20}{'Mais quente':<20}{'Erro da curva':>13}")
         for est in ESTACOES_ANO:
             info = modelos[grupo][est]
-            nome = f"{est} - {rotulo}" + (f" {info['dia']:%d/%m/%y}" if grupo == "quentes" else "")
-            print(f"   {nome:<32}" + "".join(f"{v:8.3f}" for v in info["coef"])
-                  + f"{info['r2']:8.4f}{info['rmse']:7.2f}")
+            menor, maior = resumo_curva(info)
+            dia = f"{info['dia']:%d/%m/%Y}  " if grupo == "quentes" else ""
+            print(f"  {est:<11}{dia}{info['coef'][0]:6.2f} °C   "
+                  f"{menor:<20}{maior:<20}{info['rmse']:9.2f} °C")
+    print("  (Erro da curva = diferença média entre a curva e as medições reais.)")
     a = modelos["anual"]
-    print(f"   Ciclo anual: Tm(d) = {a['coef'][0]:.3f} + {a['coef'][1]:.3f} cos(2πd/365) + "
-          f"{a['coef'][2]:.3f} sen(2πd/365)  (R² = {a['r2']:.3f})")
+    print(f"\n  Ao longo do ano, a média diária varia em torno de {a['coef'][0]:.1f} °C, "
+          "mais quente no verão")
+    print("  e mais fria no inverno (curva anual, também ajustada aos dados).")
 
     T = modelos["perfis"]["Verão"]["expr"]
     h, D = sp.symbols("h D", positive=True)
     t0 = HORA_LIMITE
-    print(f"\nLimites calculados sobre o perfil do verão:\n   T(t) = {sp.sstr(T)}")
     quociente = (T.subs(t, t0 + h) - T.subs(t, t0)) / h            # taxa média -> instantânea
     L1 = float(sp.limit(quociente, h, 0))
     tabela = [(p, float(quociente.subs(h, p / 60))) for p in (60, 30, 15, 10, 5, 1)]
-    print(f"   L1 = lim h->0 [T({t0:.0f}+h) - T({t0:.0f})]/h = {L1:.4f} °C/h")
-    print("        intervalo | taxa média (°C/h) | erro relativo")
-    for passo, valor in tabela:
-        print(f"        {passo:>5d} min | {valor:>17.4f} | {abs(valor - L1) / max(abs(L1), 1e-9) * 100:6.1f} %")
+    escala = abs(L1) if abs(L1) > 1e-9 else 1.0
     L2 = float(sp.limit(T, t, 24, "-"))                               # continuidade do ciclo
-    print(f"   L2 = lim t->24- T(t) = {L2:.4f} °C   e   T(0) = {float(T.subs(t, 0)):.4f} °C")
     media_janela = sp.integrate(T, (t, t0, t0 + D)) / D               # média de janela -> pontual
     L3 = float(sp.limit(media_janela, D, 0))
-    print(f"   L3 = lim D->0 (1/D)∫T dt = {L3:.4f} °C = T({t0:.0f}) = {float(T.subs(t, t0)):.4f} °C"
-          f"  (janela de 10 min: {float(media_janela.subs(D, 1 / 6)):.4f} °C)")
 
-    escala = abs(L1) if abs(L1) > 1e-9 else 1.0
-    erro60 = abs(tabela[0][1] - L1) / escala * 100
+    print(f"\n  LIMITE: quanto o intervalo entre leituras atrapalha? (verão, às {t0:.0f}h)")
+    print("  O sensor mede a velocidade do aquecimento comparando duas leituras. Quanto menor o")
+    print("  intervalo h entre elas, mais perto chega do valor real, que é o limite quando h -> 0.")
+    print(f"  Valor real: lim h->0 [T({t0:.0f}+h) - T({t0:.0f})] / h = {L1:.3f} °C por hora\n")
+    print(f"  {'Leitura a cada':>16}{'Velocidade medida':>21}{'Erro':>9}")
+    for passo, valor in tabela:
+        print(f"  {passo:>12} min{valor:>16.3f} °C/h{abs(valor - L1) / escala * 100:>8.1f} %")
+    print("\n  Outros dois limites conferidos:")
+    print(f"  - lim t->24 T(t) = {L2:.2f} °C = T(0): o dia termina como começa, "
+          "a curva não tem 'saltos'.")
+    print(f"  - Média dos 10 min após as {t0:.0f}h = {float(media_janela.subs(D, 1 / 6)):.2f} °C; "
+          f"leitura do instante = {L3:.2f} °C.")
+
     erro10 = abs(tabela[3][1] - L1) / escala * 100
-    print("\nInterpretação")
-    print(f"   L1: leitura de hora em hora erra {erro60:.1f} % na taxa de aquecimento; a cada 10 min,")
-    print(f"       {erro10:.1f} %. -> O sensor do ClimaPonto deve medir pelo menos a cada 10 minutos.")
-    print("   L2: o dia termina na mesma temperatura em que começa -> função contínua no ciclo.")
-    print("   L3: média de janela curta ≈ leitura pontual -> dá para suavizar ruído sem distorcer.")
+    erro60 = abs(tabela[0][1] - L1) / escala * 100
+    resumo(f"De hora em hora o erro é de {erro60:.0f} %; a cada 10 minutos, cai para {erro10:.1f} %.",
+           "   Por isso o sensor do ClimaPonto mede a cada 10 minutos.",
+           "A média de 10 minutos quase não muda o valor: dá para usá-la para filtrar ruídos.")
     return dict(L1=L1, tabela=tabela, T=T)
 
 
@@ -598,47 +648,57 @@ def analisar_derivada(expr):
 
 
 def derivadas(modelos):
-    titulo("DERIVADAS - TAXA DE VARIAÇÃO DA TEMPERATURA")
-    print("Procedimento: d/dt[cos(kt)] = -k sen(kt) e d/dt[sen(kt)] = k cos(kt) (regra da cadeia)")
-    print("   T'(t) = (π/12)[-a1 sen(πt/12) + b1 cos(πt/12)] + (π/6)[-a2 sen(πt/6) + b2 cos(πt/6)]")
+    secao("DERIVADAS - QUANDO O CALOR SOBE, CHEGA AO PICO E DESCE?",
+          ("A derivada T'(t) é a velocidade da temperatura, em °C por hora:",
+           "positiva = esquentando | negativa = esfriando | zero = momento mais quente ou mais frio."))
     resultados = {"perfis": {}, "quentes": {}}
-    for grupo in ("perfis", "quentes"):
-        for est in ESTACOES_ANO:
-            info = modelos[grupo][est]
-            an = analisar_derivada(info["expr"])
-            resultados[grupo][est] = an
-            rotulo = "perfil médio" if grupo == "perfis" else f"dia mais quente {info['dia']:%d/%m/%Y}"
-            print(f"\n[{est} - {rotulo}]")
-            if grupo == "perfis" and est == "Verão":
-                print(f"   T'(t)  = {sp.sstr(an['d1'])}")
-                print(f"   T''(t) = {sp.sstr(an['d2'])}")
-            for a, b, tipo in an["intervalos"]:
-                print(f"   {hora_formatada(a)} a {hora_formatada(b)}: {tipo}")
-            for c in an["criticos"]:
-                print(f"   ponto crítico {hora_formatada(c['t'])}: {c['tipo']} = {c['T']:.2f} °C "
-                      f"(T'' = {c['d2']:+.3f} °C/h²)")
-            print(f"   aquecimento mais rápido {an['aquec']['taxa']:+.3f} °C/h às "
-                  f"{hora_formatada(an['aquec']['t'])} | resfriamento mais rápido "
-                  f"{an['resfr']['taxa']:+.3f} °C/h às {hora_formatada(an['resfr']['t'])}")
+    for est in ESTACOES_ANO:
+        for grupo in ("perfis", "quentes"):
+            resultados[grupo][est] = analisar_derivada(modelos[grupo][est]["expr"])
+
+    print("\n  DIA TÍPICO de cada estação do ano")
+    for est in ESTACOES_ANO:
+        an = resultados["perfis"][est]
+        frio = min(an["criticos"], key=lambda c: c["T"])
+        quente = max(an["criticos"], key=lambda c: c["T"])
+        print(f"\n  {est}")
+        print(f"     esquenta {faixas(an['intervalos'], 'crescente')} | "
+              f"esfria {faixas(an['intervalos'], 'decrescente')}")
+        print(f"     mais frio: {frio['T']:.2f} °C às {hora_formatada(frio['t'])} | "
+              f"mais quente: {quente['T']:.2f} °C às {hora_formatada(quente['t'])}")
+        print(f"     aquece mais rápido às {hora_formatada(an['aquec']['t'])} ({an['aquec']['taxa']:+.2f} °C/h) | "
+              f"esfria mais rápido às {hora_formatada(an['resfr']['t'])} ({an['resfr']['taxa']:+.2f} °C/h)")
+
+    print("\n  DIA MAIS QUENTE de cada estação do ano")
+    print(f"  {'Estação':<11}{'Dia':<12}{'Mais quente':<21}Aquecimento mais rápido")
+    for est in ESTACOES_ANO:
+        an, info = resultados["quentes"][est], modelos["quentes"][est]
+        quente = max(an["criticos"], key=lambda c: c["T"])
+        print(f"  {est:<11}{info['dia']:%d/%m/%Y}  {quente['T']:5.2f} °C às {hora_formatada(quente['t'])}"
+              f"    {an['aquec']['taxa']:+.2f} °C/h às {hora_formatada(an['aquec']['t'])}")
+
     Ta = modelos["anual"]["expr"]
     d1a, d2a = sp.diff(Ta, d), sp.diff(Ta, d, 2)
-    print(f"\n[Ciclo anual]  Tm'(d) = {sp.sstr(d1a)} °C/dia")
     criticos_ano = []
     for r in raizes(d1a, d, 0, 365):
         tipo = "máximo" if float(d2a.subs(d, r)) < 0 else "mínimo"
-        data = modelos["inicio"] + timedelta(days=round(r))
-        criticos_ano.append(dict(d=r, Tm=float(Ta.subs(d, r)), tipo=tipo, data=data))
-        print(f"   {tipo} do ciclo sazonal em {data:%d/%m/%Y}: Tm = {float(Ta.subs(d, r)):.2f} °C")
+        criticos_ano.append(dict(d=r, Tm=float(Ta.subs(d, r)), tipo=tipo,
+                                 data=modelos["inicio"] + timedelta(days=round(r))))
     resultados["anual"] = dict(d1=d1a, criticos=criticos_ano)
+    if criticos_ano:
+        print("\n  Ao longo do ano (derivada da curva anual igual a zero):")
+        for c in sorted(criticos_ano, key=lambda c: c["data"]):
+            nome = "dia mais quente" if c["tipo"] == "máximo" else "dia mais frio"
+            print(f"     {nome} do ano, em média: {c['data']:%d/%m/%Y} ({c['Tm']:.2f} °C)")
+
     picos = [max(resultados["perfis"][e]["criticos"], key=lambda c: c["T"])["t"]
              for e in ESTACOES_ANO if resultados["perfis"][e]["criticos"]] or [0.0]
     rapidos = [resultados["perfis"][e]["aquec"]["t"] for e in ESTACOES_ANO]
-    print("\nInterpretação: T'(t) é quantos °C por hora o ar ganha (>0) ou perde (<0) naquele")
-    print(f"   instante. O pico de calor ocorre entre {hora_formatada(min(picos))} e "
-          f"{hora_formatada(max(picos))}, e o aquecimento é mais rápido")
-    print(f"   entre {hora_formatada(min(rapidos))} e {hora_formatada(max(rapidos))}. Pela aproximação "
-          "T(t+Δt) ≈ T(t) + T'(t)Δt, o ClimaPonto")
-    print("   avisa 'atenção prevista' antes de o limiar de 30 °C ser atingido (opção do sensor no menu).")
+    resumo(f"O pico de calor é entre {hora_formatada(min(picos))} e {hora_formatada(max(picos))}, "
+           "não ao meio-dia: o chão continua aquecendo o ar.",
+           f"O calor sobe mais rápido entre {hora_formatada(min(rapidos))} e {hora_formatada(max(rapidos))}. "
+           "Com essa velocidade, o sensor",
+           "   prevê quando o ponto vai passar de 30 °C e avisa antes (veja a opção 3 do menu).")
     return resultados
 
 
@@ -672,44 +732,52 @@ def graus_hora_dados_reais(dados, limiar):
 
 
 def integrais(modelos):
-    titulo("INTEGRAIS - CALOR ACUMULADO")
-    Tv = modelos["perfis"]["Verão"]["expr"]
-    print(f"Integral indefinida (verão): ∫T(t)dt = {sp.sstr(sp.integrate(Tv, t))} + C")
-    print("   Em [0, 24] os senos e cossenos se anulam: ∫0^24 T dt = 24·a0 (a0 = média do dia)")
-    areas = {}
-    print("\nÁrea sob a curva (°C·h) e temperatura média = área / duração")
+    secao("INTEGRAIS - QUANTO CALOR SE ACUMULA?",
+          ("A integral soma a temperatura ao longo do tempo (área sob a curva, em °C·h).",
+           "Dividindo essa área pela duração, temos a temperatura média do intervalo."))
+    areas, maior_diferenca = {}, 0.0
+    print("\n  Temperatura média no DIA TÍPICO de cada estação")
+    print(f"  {'Estação':<11}{'Dia inteiro':>13}{'Das 11h às 17h':>17}{'Diferença':>12}")
     for est in ESTACOES_ANO:
         T = modelos["perfis"][est]["expr"]
         area_dia = float(sp.integrate(T, (t, 0, 24)))
         area_jan = float(sp.integrate(T, (t, *JANELA_EXPOSICAO)))
-        conf = trapezio(sp.lambdify(t, T, "numpy"), 0, 24)
+        maior_diferenca = max(maior_diferenca, abs(trapezio(sp.lambdify(t, T, "numpy"), 0, 24) - area_dia))
         areas[est] = (area_dia, area_jan)
-        print(f"   {est:<9} ∫0^24 = {area_dia:7.2f} (trapézio {conf:7.2f}) -> média {area_dia / 24:5.2f} °C"
-              f" | ∫11^17 = {area_jan:6.2f} -> média 11h-17h {area_jan / 6:5.2f} °C")
+        print(f"  {est:<11}{area_dia / 24:>10.2f} °C{area_jan / 6:>14.2f} °C{area_jan / 6 - area_dia / 24:>+9.1f} °C")
+    print("  (Integrais conferidas por outro método, a regra do trapézio: "
+          + ("resultados iguais.)" if maior_diferenca < 5e-3 else f"diferença de {maior_diferenca:.3f} °C·h.)"))
 
-    print("\nGrandeza acumulada: graus-hora acima de 30 °C, E30 = ∫ max(T - 30, 0) dt (°C·h)")
+    print("\n  CALOR ACIMA DE 30 °C (graus-hora: quanto e por quanto tempo passou de 30 °C)")
+    print("  Exemplo: 10 °C·h = 5 horas a 2 °C acima de 30 °C, ou 2 horas a 5 °C acima.")
     e30 = {}
+    print(f"\n  {'Estação':<11}{'Dia mais quente':<18}{'Acima de 30 °C':<17}{'Calor acumulado':>16}")
     for est in ESTACOES_ANO:
         info = modelos["quentes"][est]
-        total, trechos, conf = graus_hora(info["expr"], LIMIAR_ATENCAO)
-        obs = info["temps"]
-        real = float(np.sum((np.maximum(obs[1:] - 30, 0) + np.maximum(obs[:-1] - 30, 0)) / 2))
+        total, trechos, _ = graus_hora(info["expr"], LIMIAR_ATENCAO)
         e30[est] = total
-        faixa = ", ".join(f"{hora_formatada(a)}-{hora_formatada(b)}" for a, b, _ in trechos) or "nunca"
-        print(f"   {est:<9} {info['dia']:%d/%m/%Y} (máx {obs.max():.1f} °C): T > 30 °C em {faixa}"
-              f" -> E30 = {total:.2f} °C·h (trapézio {conf:.2f}; dados reais {real:.2f})")
+        faixa = " e ".join(f"{hora_formatada(a)}-{hora_formatada(b)}" for a, b, _ in trechos) or "nunca"
+        print(f"  {est:<11}{info['dia']:%d/%m/%Y}        {faixa:<17}{total:>11.2f} °C·h")
+
     por_mes, horas = graus_hora_dados_reais(modelos["dados"], LIMIAR_ATENCAO)
     total_ano = sum(por_mes.values())
-    print("   Dados reais, mês a mês:")
-    for chave in sorted(set(por_mes) | set(horas)):
-        print(f"     {chave[1]:02d}/{chave[0]}: {por_mes.get(chave, 0):7.2f} °C·h em "
-              f"{horas.get(chave, 0):3d} h com T >= 30 °C")
-    por_mes35, _ = graus_hora_dados_reais(modelos["dados"], LIMIAR_CRITICO)
-    print(f"   TOTAL DO PERÍODO: {total_ano:.2f} °C·h acima de 30 °C | "
-          f"{sum(por_mes35.values()):.2f} °C·h acima de 35 °C")
-    anual = float(sp.integrate(modelos["anual"]["expr"], (d, 0, 365)))
-    print(f"   Ciclo anual: ∫0^365 Tm dd = {anual:.1f} °C·dia -> média anual {anual / 365:.2f} °C")
-    print("\nGráficos: abrem na tela e ficam salvos na pasta 'figuras' (título, eixos, unidades, fonte)")
+    meses = sorted(set(por_mes) | set(horas))
+    print(f"\n  {'Mês (medições reais)':<24}{'Calor acumulado':>16}{'Horas acima de 30 °C':>23}")
+    for chave in meses:
+        print(f"  {mes_ano(chave):<24}{por_mes.get(chave, 0):>11.2f} °C·h{horas.get(chave, 0):>17}")
+    print(f"  {'TOTAL':<24}{total_ano:>11.2f} °C·h{sum(horas.values()):>17}")
+
+    jan = areas["Verão"]
+    itens = [f"No verão, quem espera o ônibus das 11h às 17h enfrenta {jan[1] / 6 - jan[0] / 24:.1f} °C "
+             "a mais que a média do dia."]
+    if total_ano > 0:
+        mes_max = max(por_mes, key=por_mes.get)
+        sem_calor = [mes_ano(k) for k in meses if por_mes.get(k, 0) == 0]
+        itens.append(f"{mes_ano(mes_max)} concentrou {por_mes[mes_max] / total_ano * 100:.0f} % de todo o calor "
+                     "acima de 30 °C do período.")
+        if sem_calor:
+            itens.append(f"Sem calor acima de 30 °C em: {', '.join(sem_calor)}.")
+    resumo(*itens)
     return dict(areas=areas, e30=e30, por_mes=por_mes, horas=horas, total_ano=total_ano)
 
 
@@ -723,7 +791,8 @@ def estilo():
         "axes.grid": True, "grid.color": "#e1e0d9", "grid.linewidth": 0.6,
         "xtick.color": "#52514e", "ytick.color": "#52514e", "axes.spines.top": False,
         "axes.spines.right": False, "lines.linewidth": 2.0, "legend.frameon": False,
-        "axes.facecolor": "#fcfcfb", "figure.facecolor": "white"})
+        "axes.facecolor": "#fcfcfb", "figure.facecolor": "white",
+        "figure.constrained_layout.use": True})       # nada cortado, mesmo se a janela mudar de tamanho
 
 
 def limiares(ax):
@@ -734,17 +803,24 @@ def limiares(ax):
     ax.text(0.995, LIMIAR_CRITICO + 0.25, "crítico 35 °C", transform=tr, ha="right", fontsize=8, color="#52514e")
 
 
-def salvar(fig, modelos, nome, y=-0.02):
+def finalizar(fig, modelos, nome, y=-0.02):
+    """Coloca a fonte dos dados no gráfico e guarda o nome do arquivo para salvar depois."""
     ponto = modelos["ponto"]
     fonte = (f"Fonte: {ponto['referencia']} ({ponto['id']} {ponto['nome']}), "
              f"{modelos['inicio']:%m/%Y} a {modelos['fim'] - timedelta(days=1):%m/%Y}. Elaboração própria.")
     fig.text(0.5, y, fonte, ha="center", fontsize=8, color="#52514e")
-    pasta = PASTA_FIG / ponto["id"]
+    fig.climaponto_arquivo = nome
+
+
+def salvar_figuras(figuras, modelos):
+    pasta = PASTA_FIG / modelos["ponto"]["id"]
     try:
         pasta.mkdir(parents=True, exist_ok=True)
-        fig.savefig(pasta / nome)
-    except OSError as erro:   # pasta sem permissão de escrita: o gráfico ainda aparece na tela
-        print(f"  Aviso: não foi possível salvar {nome} ({erro}).")
+        for fig in figuras:
+            fig.savefig(pasta / fig.climaponto_arquivo)
+        print(f"  {len(figuras)} gráfico(s) salvo(s) em {pasta}")
+    except OSError as erro:   # pasta sem permissão de escrita
+        print(f"  Não foi possível salvar os gráficos ({erro}).")
 
 
 def meses_do_periodo(modelos):
@@ -770,7 +846,7 @@ def graficos_dados(modelos, lim):
     ax.set_xlim(0, len(temps))
     ax.set(xlabel="Leituras horárias em ordem cronológica", ylabel="Temperatura do ar (°C)",
            title=f"Figura 1 - Série horária real ({modelos['ponto']['nome']})")
-    salvar(fig, modelos, "fig01_serie_horaria.png", y=-0.07)
+    finalizar(fig, modelos, "fig01_serie_horaria.png", y=-0.07)
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.2), gridspec_kw=dict(width_ratios=[1.3, 1]))
     ax1.hist(temps, bins=np.arange(np.floor(temps.min()), np.ceil(temps.max()) + 0.5, 0.5),
@@ -778,16 +854,16 @@ def graficos_dados(modelos, lim):
     ax1.axvline(30, color=COR_ATENCAO, lw=1.6, ls="--")
     ax1.axvline(35, color=COR_CRITICO, lw=1.6, ls="--")
     topo = ax1.get_ylim()[1]
-    ax1.text(30.3, topo * 0.70, f"atenção 30 °C\n≈ percentil {100 - lim['pct30']:.1f}\n{lim['h30']} h", fontsize=8)
-    ax1.text(35.3, topo * 0.40, f"crítico\n35 °C\n{lim['h35']} h", fontsize=8)
+    caixa = dict(facecolor="white", edgecolor="none", alpha=0.9, pad=2)
+    ax1.text(30.3, topo * 0.80, f"atenção: 30 °C\n{lim['h30']} h no período", fontsize=8, va="top", bbox=caixa)
+    ax1.text(35.3, topo * 0.50, f"crítico: 35 °C\n{lim['h35']} h", fontsize=8, va="top", bbox=caixa)
     ax1.set(xlabel="Temperatura horária do ar (°C)", ylabel="Número de horas", title="Distribuição das leituras")
     ax2.bar(range(24), [lim["por_hora"].get(h, 0) for h in range(24)], color=COR_ATENCAO, width=0.8)
     ax2.set_xticks(range(0, 24, 3))
     ax2.set(xlabel="Hora do dia (horário de Brasília)", ylabel="Horas com T ≥ 30 °C",
             title=f"Quando 30 °C é atingido ({lim['na_janela']:.0f} % entre 11h e 17h)")
     fig.suptitle("Figura 2 - Verificação dos limiares do ClimaPonto", fontweight="bold")
-    fig.tight_layout()
-    salvar(fig, modelos, "fig02_limiares.png")
+    finalizar(fig, modelos, "fig02_limiares.png")
 
 
 def graficos_modelo(modelos, res_modelo):
@@ -807,8 +883,7 @@ def graficos_modelo(modelos, res_modelo):
     for ax in eixos[:, 0]:
         ax.set_ylabel("Temperatura, T (°C)")
     fig.suptitle("Figura 3 - Função de Fourier ajustada aos dados reais (perfil médio)", fontweight="bold")
-    fig.tight_layout()
-    salvar(fig, modelos, "fig03_ajuste_funcao.png")
+    finalizar(fig, modelos, "fig03_ajuste_funcao.png")
 
     T, L1, t0 = res_modelo["T"], res_modelo["L1"], HORA_LIMITE
     f = sp.lambdify(t, T, "numpy")
@@ -838,8 +913,7 @@ def graficos_modelo(modelos, res_modelo):
             title="Taxa média convergindo ao limite")
     ax2.legend(fontsize=8, loc="best")
     fig.suptitle("Figura 4 - Limite do quociente de diferenças", fontweight="bold")
-    fig.tight_layout()
-    salvar(fig, modelos, "fig04_limite.png")
+    finalizar(fig, modelos, "fig04_limite.png")
 
 
 def graficos_derivadas(modelos, res_deriv):
@@ -864,8 +938,7 @@ def graficos_derivadas(modelos, res_deriv):
     ax2.set_xlim(0, 24)
     ax2.legend(ncol=4, loc="lower left", fontsize=8.5)
     fig.suptitle("Figura 5 - Funções e derivadas por estação do ano", fontweight="bold")
-    fig.tight_layout()
-    salvar(fig, modelos, "fig05_derivadas.png")
+    finalizar(fig, modelos, "fig05_derivadas.png")
 
     a = modelos["anual"]
     dd = np.linspace(0, 365, 731)
@@ -885,8 +958,7 @@ def graficos_derivadas(modelos, res_deriv):
     ax2.set_xticklabels([NOMES_MES[mes - 1] for _, mes in meses_do_periodo(modelos)])
     ax2.set(xlabel="Dias desde o início do período, d", ylabel="Tm'(d) (°C/dia)", title="Derivada do ciclo anual")
     fig.suptitle("Figura 6 - Ciclo anual e sua derivada", fontweight="bold")
-    fig.tight_layout()
-    salvar(fig, modelos, "fig06_ciclo_anual.png")
+    finalizar(fig, modelos, "fig06_ciclo_anual.png")
 
 
 def graficos_integrais(modelos, res_integ):
@@ -906,7 +978,7 @@ def graficos_integrais(modelos, res_integ):
     ax.set(xlabel="Hora do dia, t (h)", ylabel="Temperatura, T (°C)",
            title="Figura 7 - Área sob a curva: carga térmica acumulada no dia médio de verão")
     ax.legend(loc="lower center", fontsize=8.5, ncol=2)
-    salvar(fig, modelos, "fig07_area_sob_curva.png")
+    finalizar(fig, modelos, "fig07_area_sob_curva.png")
 
     fig, eixos = plt.subplots(2, 2, figsize=(11, 7), sharey=True)
     for ax, est in zip(eixos.flat, ESTACOES_ANO):
@@ -926,8 +998,7 @@ def graficos_integrais(modelos, res_integ):
     for ax in eixos[:, 0]:
         ax.set_ylabel("Temperatura, T (°C)")
     fig.suptitle("Figura 8 - Graus-hora acima de 30 °C no dia mais quente de cada estação", fontweight="bold")
-    fig.tight_layout()
-    salvar(fig, modelos, "fig08_graus_hora_dias.png")
+    finalizar(fig, modelos, "fig08_graus_hora_dias.png")
 
     meses = meses_do_periodo(modelos)
     valores = [res_integ["por_mes"].get(k, 0.0) for k in meses]
@@ -941,12 +1012,40 @@ def graficos_integrais(modelos, res_integ):
     ax.set_ylim(0, max(max(valores) * 1.35, 1))
     ax.set(xlabel="Mês (rótulo: °C·h e horas com T ≥ 30 °C)", ylabel="Graus-hora acima de 30 °C (°C·h)",
            title=f"Figura 9 - Calor acumulado acima de 30 °C: {res_integ['total_ano']:.0f} °C·h no período")
-    salvar(fig, modelos, "fig09_graus_hora_mensal.png", y=-0.07)
+    finalizar(fig, modelos, "fig09_graus_hora_mensal.png", y=-0.07)
 
 
-def mostrar_graficos(modelos):
-    print(f"\nGráficos salvos em {PASTA_FIG / modelos['ponto']['id']}. Feche as janelas para voltar ao menu.")
-    plt.show()
+def caber_na_tela(fig):
+    """Diminui a janela do gráfico se ela for maior que a tela (evita título e eixos cortados)."""
+    try:
+        janela = fig.canvas.manager.window
+        if hasattr(janela, "winfo_screenwidth"):          # TkAgg, padrão no Windows
+            largura, altura = janela.winfo_screenwidth(), janela.winfo_screenheight()
+        else:                                             # QtAgg
+            area = janela.screen().availableGeometry()
+            largura, altura = area.width(), area.height()
+        pixels = fig.dpi / getattr(fig.canvas, "device_pixel_ratio", 1)
+        escala = min(1.0, 0.92 * largura / (fig.get_figwidth() * pixels),
+                     0.82 * altura / (fig.get_figheight() * pixels))
+        if escala < 1:
+            fig.set_size_inches(fig.get_figwidth() * escala, fig.get_figheight() * escala, forward=True)
+    except (AttributeError, TypeError, RuntimeError, ValueError):
+        pass                                              # outro tipo de janela: mantém o tamanho
+
+
+def mostrar_graficos(modelos, salvar_direto=False):
+    """Abre os gráficos na tela e depois pergunta se o usuário quer salvá-los."""
+    figuras = [plt.figure(n) for n in plt.get_fignums()
+               if hasattr(plt.figure(n), "climaponto_arquivo")]
+    if not salvar_direto:
+        print("\nOs gráficos abriram em janelas. Feche as janelas para continuar.")
+        for fig in figuras:
+            caber_na_tela(fig)
+        plt.show()
+        resposta = input(f"Deseja salvar os {len(figuras)} gráfico(s) na pasta 'figuras'? (s/n): ")
+        salvar_direto = resposta.strip().lower() in ("s", "sim")
+    if salvar_direto:
+        salvar_figuras(figuras, modelos)
     plt.close("all")
 
 
@@ -1012,22 +1111,37 @@ def dados_suficientes(dados, inicio, fim):
     return True, ""
 
 
-def preparar(base, ponto, modo):
-    """Recorta os dados da estação do ponto no período e ajusta os modelos.
-    Devolve None (com aviso) quando não há dados suficientes."""
+def periodo_disponivel(base, ponto, modo):
+    """Verifica, sem ajustar modelos, se o ponto tem dados suficientes no período."""
     serie = serie_da_estacao(base, ponto["estacao"])
     if not serie:
+        return False, "", None, None
+    inicio, fim = definir_periodo(serie, modo)
+    ok, motivo = dados_suficientes(recortar(serie, inicio, fim), inicio, fim)
+    return ok, motivo, inicio, fim
+
+
+def explicar_indisponivel(ponto, motivo, inicio, fim):
+    if inicio is None:
         print(f"\n  Dados da estação {ponto['estacao']} ainda não estão na base. O robô do repositório"
               "\n  inclui na próxima atualização mensal.")
-        return None
-    inicio, fim = definir_periodo(serie, modo)
-    dados = recortar(serie, inicio, fim)
-    ok, motivo = dados_suficientes(dados, inicio, fim)
+    else:
+        print(f"\n  {ponto['id']} {ponto['nome']} não tem dados suficientes de {inicio:%m/%Y} a "
+              f"{fim - timedelta(days=1):%m/%Y}: {motivo}.\n  Motivo: a estação {ponto['estacao']} do INMET "
+              "ficou sem medições em parte desses meses.")
+
+
+def preparar(base, ponto, modo, avisar=True):
+    """Recorta os dados da estação do ponto no período e ajusta os modelos.
+    Devolve None (com explicação) quando não há dados suficientes."""
+    ok, motivo, inicio, fim = periodo_disponivel(base, ponto, modo)
     if not ok:
-        print(f"\n  Não dá para analisar {ponto['id']} {ponto['nome']} de {inicio:%m/%Y} a "
-              f"{fim - timedelta(days=1):%m/%Y}: {motivo}.")
+        if avisar:
+            explicar_indisponivel(ponto, motivo, inicio, fim)
         return None
-    if modo == "recente" and fim < (serie[-1][0] + timedelta(hours=4)).replace(day=1, hour=0):
+    serie = serie_da_estacao(base, ponto["estacao"])
+    dados = recortar(serie, inicio, fim)
+    if avisar and modo == "recente" and fim < (serie[-1][0] + timedelta(hours=4)).replace(day=1, hour=0):
         print(f"\n  Aviso: a estação {ponto['estacao']} do INMET teve falhas nos meses mais recentes;"
               "\n  usando os 12 meses completos mais recentes com dados suficientes.")
     print(f"\n  Ajustando modelos para {ponto['id']} {ponto['nome']} "
@@ -1037,7 +1151,7 @@ def preparar(base, ponto, modo):
     return modelos
 
 
-def cabecalho(modelos, origem):
+def cabecalho(modelos, origem, troca_periodo):
     ponto = modelos["ponto"]
     print("\n" + "=" * 70)
     print("  CLIMAPONTO | Monitoramento de calor em pontos de ônibus - SP")
@@ -1049,24 +1163,25 @@ def cabecalho(modelos, origem):
     print("  Sensor ESP32: demonstração (origem: simulacao_esp32)")
     print("-" * 70)
     print("  1 - Escolher ponto de ônibus (localidade)")
-    print("  2 - Escolher período (últimos 12 meses / período do relatório)")
-    print("  3 - Leitura atual do sensor ESP32 e estado do ponto")
-    print("  4 - Modelo matemático e limites")
-    print("  5 - Derivadas: taxa de variação")
-    print("  6 - Integrais: calor acumulado")
-    print("  7 - Rodar tudo e mostrar os gráficos")
+    print(f"  2 - {troca_periodo}")
+    print("  3 - Sensor ESP32: temperatura agora, estado do ponto e tendência")
+    print("  4 - Dados reais: com que frequência passa de 30 °C e de 35 °C?")
+    print("  5 - Modelo e limites: de quanto em quanto tempo o sensor deve medir?")
+    print("  6 - Derivadas: quando o calor sobe, chega ao pico e desce?")
+    print("  7 - Integrais: quanto calor se acumula?")
     print("  0 - Sair")
     print("=" * 70)
 
 
-def rodar_tudo(modelos):
+def rodar_tudo(modelos, salvar_direto=False):
+    """Usado só pelo modo automático (--tudo): gera todas as análises e os 9 gráficos."""
     lim = verificar_limiares(modelos)
     res_modelo, res_deriv, res_integ = modelo_e_limites(modelos), derivadas(modelos), integrais(modelos)
     graficos_dados(modelos, lim)
     graficos_modelo(modelos, res_modelo)
     graficos_derivadas(modelos, res_deriv)
     graficos_integrais(modelos, res_integ)
-    mostrar_graficos(modelos)
+    mostrar_graficos(modelos, salvar_direto)
 
 
 def configurar_terminal():
@@ -1080,13 +1195,27 @@ def configurar_terminal():
 
 def menu(base, origem, ponto, modelos, modo):
     while True:
-        cabecalho(modelos, origem)
+        alvo = "relatorio" if modo == "recente" else "recente"
+        texto = "Usar o período do relatório (11/2025 a 10/2026)" if alvo == "relatorio" \
+            else "Voltar para os últimos 12 meses disponíveis"
+        if not periodo_disponivel(base, ponto, alvo)[0]:
+            texto += f" - indisponível para {ponto['nome']} (falhas do INMET)"
+        cabecalho(modelos, origem, texto)
         opcao = input("Escolha uma opção: ").strip()
         match opcao:
             case "1":
                 escolhido = escolher_ponto()
                 if escolhido is not None and escolhido is not ponto:
-                    novo = preparar(base, escolhido, modo)
+                    ok, motivo, inicio, fim = periodo_disponivel(base, escolhido, modo)
+                    if not ok and modo == "relatorio" and inicio is not None \
+                            and periodo_disponivel(base, escolhido, "recente")[0]:
+                        explicar_indisponivel(escolhido, motivo, inicio, fim)
+                        print("  Por isso, este ponto usa os 12 meses completos mais recentes com dados.")
+                        novo = preparar(base, escolhido, "recente", avisar=False)
+                        if novo is not None:
+                            modo = "recente"
+                    else:
+                        novo = preparar(base, escolhido, modo)
                     if novo is not None:
                         ponto, modelos = escolhido, novo
                         print(f"  ✔ Ponto {ponto['id']} - {ponto['nome']} selecionado")
@@ -1096,19 +1225,24 @@ def menu(base, origem, ponto, modelos, modo):
                 if novo is not None:
                     modo, modelos = novo_modo, novo
                     print(f"  ✔ Período: {modelos['modo']}")
+                else:
+                    fim = modelos["fim"] - timedelta(days=1)
+                    print(f"  Por isso, o programa continua com {modelos['inicio']:%m/%Y} a {fim:%m/%Y},"
+                          " os 12 meses completos mais recentes.")
             case "3":
                 painel_sensor(ponto, modelos)
             case "4":
-                graficos_modelo(modelos, modelo_e_limites(modelos))
+                graficos_dados(modelos, verificar_limiares(modelos))
                 mostrar_graficos(modelos)
             case "5":
-                graficos_derivadas(modelos, derivadas(modelos))
+                graficos_modelo(modelos, modelo_e_limites(modelos))
                 mostrar_graficos(modelos)
             case "6":
-                graficos_integrais(modelos, integrais(modelos))
+                graficos_derivadas(modelos, derivadas(modelos))
                 mostrar_graficos(modelos)
             case "7":
-                rodar_tudo(modelos)
+                graficos_integrais(modelos, integrais(modelos))
+                mostrar_graficos(modelos)
             case "0":
                 print("Até logo! ClimaPonto - equipe Debuggers.")
                 return
@@ -1124,8 +1258,8 @@ def main():
         modelos = preparar(base, ponto, modo)
         if modelos is None:
             sys.exit("Sem dados suficientes para o ponto piloto P001.")
-        if "--tudo" in sys.argv:
-            rodar_tudo(modelos)
+        if "--tudo" in sys.argv:            # modo automático: roda tudo e salva os gráficos
+            rodar_tudo(modelos, salvar_direto=True)
         else:
             menu(base, origem, ponto, modelos, modo)
     except (KeyboardInterrupt, EOFError):

@@ -226,7 +226,7 @@ class Periodo(unittest.TestCase):
                 est["temperaturas"][i] = None
         resultado, saida = silencioso(cp.preparar, base, P001, "recente")
         self.assertIsNone(resultado)
-        self.assertIn("Não dá para analisar", saida)
+        self.assertIn("não tem dados suficientes", saida)
 
     def test_estacao_ausente_nao_quebra(self):
         ponto_novo = {**P002, "estacao": "A999"}
@@ -378,9 +378,21 @@ class ArquivosESistema(unittest.TestCase):
         fig = cp.plt.figure()
         with mock.patch.object(cp.Figure if hasattr(cp, "Figure") else type(fig), "savefig",
                                side_effect=PermissionError("somente leitura")):
-            _, saida = silencioso(cp.salvar, fig, modelos, "x.png")
+            cp.finalizar(fig, modelos, "x.png")
+            _, saida = silencioso(cp.salvar_figuras, [fig], modelos)
         cp.plt.close("all")
-        self.assertIn("não foi possível salvar", saida)
+        self.assertIn("Não foi possível salvar", saida)
+
+    def test_graficos_so_sao_salvos_se_o_usuario_quiser(self):
+        modelos, _ = silencioso(cp.preparar, BASE_REAL, P001, "recente")
+        pasta = Path(tempfile.mkdtemp()) / "figuras"
+        with mock.patch.object(cp, "PASTA_FIG", pasta):
+            for resposta, esperado in (("n", 0), ("", 0), ("S", 2)):
+                silencioso(cp.graficos_modelo, modelos, silencioso(cp.modelo_e_limites, modelos)[0])
+                with entradas(resposta):
+                    silencioso(cp.mostrar_graficos, modelos)
+                self.assertEqual(len(list(pasta.glob("*/*.png"))), esperado, resposta)
+        cp.plt.close("all")
 
     def pasta_com_programa(self):
         """Só o .py + a cópia local (simula a segunda execução, sem internet no teste)."""
