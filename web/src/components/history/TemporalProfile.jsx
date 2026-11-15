@@ -24,11 +24,16 @@ function Highlight({ highlight }) {
 /**
  * Perfil descritivo por horário do dia ou por dia da semana (America/Sao_Paulo).
  * Alternativa em texto: cada faixa com leituras vira um item de lista.
- * @param {{ readings: object[], kind: 'hour'|'weekday' }} props
+ * Em 24 h o perfil semanal cobre no máximo dois dias da semana: não compara dias, declara dados insuficientes.
+ * @param {{ readings: object[], kind: 'hour'|'weekday', periodId: string }} props
  */
-export default function TemporalProfile({ readings, kind }) {
+export default function TemporalProfile({ readings, kind, periodId }) {
   const profile = useMemo(() => (kind === 'hour' ? buildHourlyProfile(readings) : buildWeekdayProfile(readings)), [readings, kind])
+  const tooShort = kind === 'weekday' && periodId === '24h'
   const filled = profile.buckets.filter((bucket) => !bucket.empty)
+  if (tooShort) {
+    return <p>Dados insuficientes: o período de 24 horas cobre no máximo dois dias da semana. Escolha 7 ou 30 dias para comparar dias da semana.</p>
+  }
   return (
     <div>
       <p className="mb-2 text-slate-600">Fuso America/Sao_Paulo; considera só as leituras filtradas.</p>

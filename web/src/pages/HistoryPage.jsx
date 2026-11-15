@@ -71,10 +71,10 @@ function ResultsContent({ stop, period, periodId, originId, readings, truncated,
       <section aria-labelledby="analysis-heading" className="space-y-3">
         <SectionTitle id="analysis-heading">Análises do período</SectionTitle>
         <CollapsibleSection title="Por horário do dia">
-          <TemporalProfile readings={readings} kind="hour" />
+          <TemporalProfile readings={readings} kind="hour" periodId={periodId} />
         </CollapsibleSection>
         <CollapsibleSection title="Por dia da semana">
-          <TemporalProfile readings={readings} kind="weekday" />
+          <TemporalProfile readings={readings} kind="weekday" periodId={periodId} />
         </CollapsibleSection>
         <CollapsibleSection title="Linha do tempo">
           <ReadingsTimeline readings={readings} />

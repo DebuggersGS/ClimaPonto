@@ -1,3 +1,4 @@
+import { Star } from 'lucide-react'
 import { useId } from 'react'
 import { shouldShowFilter } from '../../utils/stopFilters.js'
 import Button from './Button.jsx'
@@ -42,7 +43,8 @@ function NeighborhoodSelect({ options, value, onChange }) {
  * Barra de busca e filtros de pontos. Cada filtro só aparece quando há ao menos
  * 2 valores distintos nos dados (ou houver valor ativo; ver shouldShowFilter); só oferece valores presentes, com contagem.
  * O total ("Mostrando X de Y pontos") fica numa região aria-live.
- * @param {{ filter: ReturnType<import('../../hooks/useStopFilters.js').useStopFilters>, dimensions: Array<'neighborhood'|'environmental'|'connectivity'> }} props
+ * A dimensão 'favorites' acrescenta o botão "Somente favoritos" (sempre disponível).
+ * @param {{ filter: ReturnType<import('../../hooks/useStopFilters.js').useStopFilters>, dimensions: Array<'neighborhood'|'environmental'|'connectivity'|'favorites'> }} props
  */
 export default function StopFilterBar({ filter, dimensions }) {
   const { filters, setFilter, clear, options, results, total, hasActiveFilters } = filter
@@ -80,6 +82,18 @@ export default function StopFilterBar({ filter, dimensions }) {
             options={[{ value: '', label: 'Todos' }, ...options[name].map(withCount)]}
           />
         ))}
+
+      {dimensions.includes('favorites') && (
+        <Button
+          variant={filters.favoritesOnly ? 'primary' : 'secondary'}
+          size="sm"
+          aria-pressed={filters.favoritesOnly}
+          onClick={() => setFilter('favoritesOnly', !filters.favoritesOnly)}
+        >
+          <Star aria-hidden="true" className="h-4 w-4" fill={filters.favoritesOnly ? 'currentColor' : 'none'} />
+          Somente favoritos
+        </Button>
+      )}
 
       <div className="flex flex-wrap items-center gap-3">
         <p role="status" aria-live="polite" aria-atomic="true" className="text-sm font-medium text-slate-700">
