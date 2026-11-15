@@ -5,6 +5,9 @@ import HistoryHeader from '../components/history/HistoryHeader.jsx'
 import PeriodFilter from '../components/history/PeriodFilter.jsx'
 import ReadingsEvolution from '../components/history/ReadingsEvolution.jsx'
 import ReadingsTable from '../components/history/ReadingsTable.jsx'
+import DailySummary from '../components/history/DailySummary.jsx'
+import ExportCsvButton from '../components/history/ExportCsvButton.jsx'
+import OriginSelect from '../components/history/OriginSelect.jsx'
 import StopSelect from '../components/history/StopSelect.jsx'
 import Button from '../components/ui/Button.jsx'
 import Card from '../components/ui/Card.jsx'
@@ -15,6 +18,8 @@ import Skeleton from '../components/ui/Skeleton.jsx'
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js'
 import { useReadingsHistory } from '../hooks/useReadingsHistory.js'
 import { useStops } from '../hooks/useStops.js'
+import { ALL_ORIGINS, buildOriginOptions, filterByOrigin, parseOriginId } from '../utils/historyExploration.js'
+import { getReadingSourceInfo } from '../utils/readings.js'
 import { HISTORY_LIMIT, HISTORY_PERIODS, parsePeriodId } from '../utils/historyPeriods.js'
 
 const FADE = { initial: { opacity: 0, y: 6 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0 }, transition: { duration: 0.2 } }
@@ -36,7 +41,7 @@ function LoadingState() {
   )
 }
 
-function ResultsContent({ stop, period, periodId, readings, truncated, discardedCount }) {
+function ResultsContent({ stop, period, periodId, originId, readings, truncated, discardedCount }) {
   return (
     <div className="space-y-6">
       {truncated && (
@@ -51,6 +56,10 @@ function ResultsContent({ stop, period, periodId, readings, truncated, discarded
             : `${discardedCount} leituras recebidas foram descartadas por estarem inválidas.`}
         </FeedbackMessage>
       )}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <DailySummary readings={readings} />
+        <ExportCsvButton readings={readings} stop={stop} periodId={periodId} originId={originId} />
+      </div>
       <section aria-labelledby="evolution-heading">
         <SectionTitle id="evolution-heading">Evolução</SectionTitle>
         <ReadingsEvolution readings={readings} periodId={periodId} headingLevel={3} />
@@ -75,10 +84,13 @@ export default function HistoryPage() {
   const period = HISTORY_PERIODS.find((item) => item.id === periodId)
   const stop = stops.find((item) => item.code === code)
 
-  const { readings, truncated, discardedCount, isLoading, error, retry } = useReadingsHistory({
+  const originId = parseOriginId(searchParams.get('origem'))
+  const { readings: allReadings, truncated, discardedCount, isLoading, error, retry } = useReadingsHistory({
     stopId: stop?.id,
     periodId,
   })
+  const originOptions = buildOriginOptions(allReadings)
+  const readings = filterByOrigin(allReadings, originId)
 
   function updateParams(changes) {
     const next = new URLSearchParams(searchParams)
@@ -93,7 +105,8 @@ export default function HistoryPage() {
   const notFound = !stopsLoading && !stopsError && !unconfigured && code !== '' && !stop
   const showResults = Boolean(stop) && !error
   const loading = showResults && isLoading && readings.length === 0
-  const empty = showResults && !isLoading && readings.length === 0
+  const empty = showResults && !isLoading && allReadings.length === 0
+  const emptyByOrigin = showResults && !isLoading && allReadings.length > 0 && readings.length === 0
 
   let content = null
   let contentKey = 'none'
@@ -162,13 +175,23 @@ export default function HistoryPage() {
         }
       />
     )
+  } else if (emptyByOrigin) {
+    contentKey = `empty-origin-${stop.code}-${periodId}-${originId}`
+    content = (
+      <EmptyState
+        title="Nenhuma leitura com esta origem"
+        message={`Não há leituras de origem "${getReadingSourceInfo(originId).label}" para ${stop.name} em: ${period.label.toLowerCase()}.`}
+        action={<Button variant="secondary" onClick={() => updateParams({ origem: '' })}>Mostrar todas as origens</Button>}
+      />
+    )
   } else if (showResults) {
-    contentKey = `results-${stop.code}-${periodId}`
+    contentKey = `results-${stop.code}-${periodId}-${originId}`
     content = (
       <ResultsContent
         stop={stop}
         period={period}
         periodId={periodId}
+        originId={originId}
         readings={readings}
         truncated={truncated}
         discardedCount={discardedCount}
@@ -187,10 +210,16 @@ export default function HistoryPage() {
 
       {/* Fixa só a partir de sm: no celular a topbar quebra em várias linhas e cobriria o filtro. */}
       <Card variant="glass" className="z-30 mb-6 sm:sticky sm:top-20" aria-label="Filtros do histórico">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
           <div className="sm:w-md sm:max-w-full">
             <StopSelect stops={stops} value={stop?.code ?? ''} onChange={(value) => updateParams({ ponto: value })} id={selectId} />
           </div>
+          <OriginSelect
+            options={originOptions}
+            value={originId}
+            onChange={(value) => updateParams({ origem: value === ALL_ORIGINS ? '' : value })}
+            id={`${selectId}-origem`}
+          />
           <PeriodFilter value={periodId} onChange={(value) => updateParams({ periodo: value })} />
         </div>
       </Card>
