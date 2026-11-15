@@ -53,6 +53,7 @@ Apresentação em slides: [`ClimaPonto_TotalExperience.pdf`](ClimaPonto_TotalExp
 - *Estudo sobre as condições das paradas de ônibus na cidade de São Paulo*. Revista ENIAC Pesquisa, 2018.
 - Prefeitura de São Paulo, Câmara Temática da Mobilidade a Pé, reunião de 13/05/2026.
 - INMET, estação A701 Mirante de Santana, nov/2025 a out/2026 (análise do grupo no repositório ClimaPonto-DPS).
+- Pesquisa de campo do grupo: conversa com 2 passageiros que usam ônibus todos os dias, nov/2026. Os nomes foram omitidos para proteger os entrevistados.
 
 ## Equipe Debuggers
 
@@ -64,4 +65,4 @@ Apresentação em slides: [`ClimaPonto_TotalExperience.pdf`](ClimaPonto_TotalExp
 
 ## Uso de inteligência artificial
 
-O grupo usou IA como copiloto, como o edital permite. Nesta disciplina, o assistente Claude (Anthropic) ajudou a estruturar a apresentação conforme a rubrica, redigir requisitos, regras de negócio e textos de interface, desenhar os protótipos de média fidelidade e pesquisar fontes públicas sobre calor urbano. O conteúdo foi revisado pelo grupo para ficar coerente com o código do ESP32, a aplicação web e a análise matemática. Nenhuma fala de usuário foi inventada: a pesquisa de campo está indicada como pendente no slide 4 até ser realizada.
+O grupo usou IA como copiloto, como o edital permite. Nesta disciplina, o assistente Claude (Anthropic) ajudou a estruturar a apresentação conforme a rubrica, redigir requisitos, regras de negócio e textos de interface, desenhar os protótipos de média fidelidade e pesquisar fontes públicas sobre calor urbano. O conteúdo foi revisado pelo grupo para ficar coerente com o código do ESP32, a aplicação web e a análise matemática. As entrevistas foram feitas pelo grupo com passageiros reais; nenhuma fala foi criada pela IA.
