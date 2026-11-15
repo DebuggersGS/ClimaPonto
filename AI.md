@@ -314,6 +314,16 @@ Não foram testados leitores de tela, navegadores além do Chrome, nem dispositi
 - Escritos `web/e2e/insights.spec.mjs` e `web/e2e/historico-exploracao.spec.mjs` e ajustado `web/e2e/filtros.spec.mjs` (metodologia recolhida). Executados localmente apenas `npm run lint` e `npm run build` (ok). Os E2E em Chromium e Firefox **não foram executados** pelo agente (módulo `harness-e2e` só roda no gate); os resultados virão do gate.
 - Lacuna: erro do comparador com "Tentar novamente" sem teste (o mock de erro também derruba a lista de pontos).
 
+### Fase 4 — Mapa, favoritos, alertas e palette (15/11/2026, objetivo G-20261115-b9e99d)
+
+- **T1:** utils puros de mapa, favoritos, alertas e command palette, com testes unitários.
+- **T2:** perfis por hora e dia da semana, linha do tempo, qualidade das leituras e relatório CSV, com testes.
+- **T3:** `/pontos` com mapa esquemático SVG, lista, ficha do ponto, favoritos e laboratório de cenários mock.
+- **T4:** Histórico ampliado, `AlertsPanel`, aviso de offline e Command Palette.
+- **T5 (documentação), execuções reais na worktree:** `npm run lint` sem erros e 2 avisos `set-state-in-effect` preexistentes; `npm run build` concluído; `node --test` nos 26 arquivos `*.test.js` de `src`: 368 aprovados, 0 falhas. O sandbox negou rede a `registry.npmjs.org`, sem efeito.
+- **E2E:** especs escritos em `web/e2e` (`mapa`, `favoritos`, `alertas`, `palette`, `laboratorio`, `ficha-ponto`, `pontos`, `historico-perfis`, `qualidade`, `conexao`), **não executados localmente**; resultados virão do gate (pendente de verificação).
+- O código gerado por IA permanece sujeito à revisão da equipe.
+
 ## Princípios adotados
 
 - O código gerado por IA é revisado pela equipe antes de ser aprovado.

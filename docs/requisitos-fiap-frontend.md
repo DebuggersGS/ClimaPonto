@@ -126,6 +126,21 @@ Execuções locais da T104 no HEAD `b57d477` (worktree, sem rede): `node --test`
 - Nova verificação do harness sobre os commits posteriores a `cbbd4a8` (`AuthProvider.jsx`, `MainNav.jsx`).
 - Screenshots "Depois" a 375 px confirmando o item "Gerenciar" visível.
 
+## Evidências da Fase 4 (G-20261115-b9e99d)
+
+| Requisito | Evidência |
+| --- | --- |
+| Componentes reutilizáveis, hooks e utils | mapa, ficha, favoritos, `AlertsPanel`, palette (`web/src/components`, `hooks`, `utils/stopMap.js`, `favoriteStops.js`, `stopAlerts.js`, `commandSearch.js`) |
+| Testes unitários | 368/368 com `node --test` (execução de 15/11/2026) |
+| Mapa e lista de pontos | `web/e2e/mapa.spec.mjs`, `pontos.spec.mjs`, `ficha-ponto.spec.mjs` |
+| Favoritos, alertas, palette | `favoritos.spec.mjs`, `alertas.spec.mjs`, `palette.spec.mjs` |
+| Histórico: perfis, qualidade, CSV | `historico-perfis.spec.mjs`, `qualidade.spec.mjs`, `historico-exploracao.spec.mjs` |
+| Offline e laboratório mock | `conexao.spec.mjs`, `laboratorio.spec.mjs` |
+
+Lint sem erros (2 avisos preexistentes) e build ok. **E2E escritos e ainda não executados: pendente de verificação pelo gate (Chromium e Firefox).**
+
+Pendências: seletor manual de tema e refinamento do hero; mapa com ruas; coordenadas nulas no Supabase remoto (fallback); limites ambientais aprovados; previsões; notificações do navegador; aceite estético humano.
+
 ## Lacunas reais (também no README)
 
 1. Enunciado oficial ausente do repositório: checklist não conferido contra o texto da FIAP.

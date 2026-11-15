@@ -231,6 +231,12 @@ O fallback sem dependências (ícones SVG inline, movimento só por CSS, gráfic
 - **Dependências:** nenhuma nova.
 - **Trade-offs:** o tema segue o sistema e não há como forçá-lo; o remapeamento de `slate` afeta qualquer uso da escala, então textos que usam `slate` como cor fixa precisam de conferência visual no escuro (gate 0015: axe nos dois temas sem violações; conferência visual de 4 capturas em `docs/revisao-visual-frontend.md`).
 
+## 39. Mapa esquemático SVG, favoritos locais e Command Palette nativa
+- **Mapa:** esquema SVG próprio (`utils/stopMap.js` projeta coordenadas; fallback sinalizado quando nulas), sem biblioteca nem mapa base. Descartados Leaflet e MapLibre: dependência nova e tiles exigem rede (o E2E roda sem rede). Trade-off: sem ruas; fica como pendência.
+- **Favoritos:** `localStorage`, só com códigos dos pontos (`utils/favoriteStops.js`); sem dados pessoais e sem servidor. Códigos desconhecidos são ignorados.
+- **Command Palette:** `<dialog>` nativo (foco, Esc e inerte no fundo pelo navegador) e busca pura em `utils/commandSearch.js`. Descartada biblioteca de palette.
+- **Dependências:** nenhuma nova. Os pontos do Supabase remoto têm coordenadas nulas, então o mapa usa posições de fallback indicadas na interface.
+
 ## Resultado da 3C (fatos medidos em 2026-11-12)
 - `npm run build` conclui sem aviso de chunk acima de 500 kB (após o `React.lazy` de Dashboard e Histórico). Medido: `index` 224,53 kB (71,31 kB gzip); chunk compartilhado com o Recharts (`StopSelect-*`) 380,62 kB (111,40 kB gzip); `useStops` 152,91 kB (51,96 kB gzip); `useDocumentTitle` 47,01 kB; `stopsService` 30,27 kB; `components` 29,81 kB; `DashboardPage` 18,29 kB; `AdminStopsPage` 14,50 kB; `HistoryPage` 10,60 kB; `AdminLoginPage` 1,83 kB. Antes do `lazy`, o chunk único era 893,94 kB (276,54 kB gzip). CSS: 42,96 kB (8,29 kB gzip). O tamanho da 3B era 321,08 kB (101,14 kB gzip). CSS: 42,96 kB (8,29 kB gzip). O tamanho anterior da 3B era 321,08 kB (101,14 kB gzip), então a 3C custou cerca de 573 kB (175 kB gzip) no bundle principal; a estimativa da decisão 32 (~90–110 kB gzip só para Recharts) é plausível dentro desse aumento, mas não foi medida por pacote.
 - `npm run lint`: 0 erros e 2 avisos `set-state-in-effect` (decisão 31).
