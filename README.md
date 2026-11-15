@@ -85,7 +85,7 @@ No modo mock, dois parâmetros de URL permitem conferir estados: `?mock=erro` (t
 npm --prefix web run dev
 ```
 
-Com `VITE_DATA_MODE=mock`, percorra Dashboard, Pontos e Histórico e confira em **375, 768 e 1366 px** (sem rolagem horizontal em 375 px). Use também `?mock=erro` e `?mock=lento`, teclado (foco visível), emulação de `prefers-reduced-motion: reduce` (as animações devem ser suprimidas) e rode o axe-core. As ferramentas de navegador ficam fora do repositório. Os testes E2E correspondentes (Chromium e Firefox, 375/768/1366 px, axe-core, movimento reduzido) **já foram escritos**, mas a **execução** é feita pela verificação final do harness, depois desta etapa; até lá, não há resultado registrado (ver *Pendente*). O aceite estético humano também segue pendente.
+Com `VITE_DATA_MODE=mock`, percorra Dashboard, Pontos e Histórico e confira em **375, 768 e 1366 px** (sem rolagem horizontal em 375 px). Use também `?mock=erro` e `?mock=lento`, teclado (foco visível), emulação de `prefers-reduced-motion: reduce` (as animações devem ser suprimidas) e rode o axe-core. As ferramentas de navegador ficam fora do repositório. Os testes E2E correspondentes (Chromium e Firefox, 375/768/1366 px, axe-core, movimento reduzido) **já foram escritos** e rodam no gate do harness; o último resultado registrado (evidência 0015, 286 aprovados, 0 falhas) está em `docs/revisao-visual-frontend.md`. O aceite estético humano também segue pendente.
 
 ### Configuração do Supabase
 
