@@ -28,7 +28,7 @@ export default function EmptyState({ title, message, variant = 'neutral', action
     <div
       role={role ?? (variant === 'error' ? 'alert' : undefined)}
       className={cn(
-        'flex flex-col items-center rounded-card border border-dashed border-slate-300 bg-white/70 px-6 py-10 text-center',
+        'flex flex-col items-center rounded-card border border-dashed border-slate-300 bg-surface/70 px-6 py-10 text-center',
         className,
       )}
     >

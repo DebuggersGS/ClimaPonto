@@ -27,7 +27,7 @@ export default function TextField({ label, error, hint, multiline = false, requi
         required={required}
         aria-invalid={error ? true : undefined}
         aria-describedby={describedBy}
-        className={`block w-full rounded-md border bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus-visible:outline-2 focus-visible:outline-brand-600 ${
+        className={`block w-full rounded-md border bg-surface px-3 py-2 text-sm text-slate-900 shadow-sm focus-visible:outline-2 focus-visible:outline-brand-600 ${
           error ? 'border-red-500' : 'border-slate-300'
         } ${multiline ? 'min-h-24' : 'min-h-10'}`}
         {...props}

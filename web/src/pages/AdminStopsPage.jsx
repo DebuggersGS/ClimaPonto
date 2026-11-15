@@ -182,7 +182,7 @@ export default function AdminStopsPage() {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Código, nome ou bairro"
-              className="block min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus-visible:outline-2 focus-visible:outline-brand-600"
+              className="block min-h-10 w-full rounded-md border border-slate-300 bg-surface px-3 py-2 text-sm shadow-sm focus-visible:outline-2 focus-visible:outline-brand-600"
             />
           </div>
           <div>
@@ -193,7 +193,7 @@ export default function AdminStopsPage() {
               id="stop-status"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="block min-h-10 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm shadow-sm focus-visible:outline-2 focus-visible:outline-brand-600 sm:w-40"
+              className="block min-h-10 w-full rounded-md border border-slate-300 bg-surface px-3 py-2 text-sm shadow-sm focus-visible:outline-2 focus-visible:outline-brand-600 sm:w-40"
             >
               {STATUS_FILTERS.map((option) => (
                 <option key={option.value} value={option.value}>

@@ -8,11 +8,11 @@ const card = cva('rounded-card p-5', {
       glass: 'surface-glass',
       elevated: 'bg-surface shadow-elevated ring-1 ring-slate-900/5',
       // Destaque escuro: texto claro com contraste AA sobre o ink
-      dark: 'bg-ink text-slate-100 shadow-elevated ring-1 ring-white/10',
+      dark: 'bg-ink text-on-ink shadow-elevated ring-1 ring-white/10',
       inset: 'bg-slate-50 ring-1 ring-inset ring-slate-900/5',
     },
     interactive: {
-      true: 'transition-[transform,box-shadow] duration-250 ease-out-soft hover:-translate-y-0.5 hover:shadow-elevated',
+      true: 'transition-[transform,box-shadow] duration-250 ease-out-soft motion-safe:hover:-translate-y-0.5 hover:shadow-elevated',
       false: '',
     },
   },
@@ -29,11 +29,11 @@ export default function Card({ title, children, className, headingLevel = 2, var
   return (
     <section className={cn(card({ variant, interactive: Boolean(interactive) }), className)} {...props}>
       {title && (
-        <Heading className={cn('mb-2 text-base font-semibold', isDark ? 'text-white' : 'text-slate-900')}>
+        <Heading className={cn('mb-2 text-base font-semibold', isDark ? 'text-on-ink' : 'text-slate-900')}>
           {title}
         </Heading>
       )}
-      <div className={cn('text-sm', isDark ? 'text-slate-300' : 'text-slate-600')}>{children}</div>
+      <div className={cn('text-sm', isDark ? 'text-on-ink-muted' : 'text-slate-600')}>{children}</div>
     </section>
   )
 }

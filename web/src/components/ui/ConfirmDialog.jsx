@@ -36,7 +36,7 @@ export default function ConfirmDialog({
       ref={dialogRef}
       onCancel={handleCancel}
       aria-labelledby="confirm-dialog-title"
-      className="m-auto w-[min(32rem,calc(100vw-2rem))] rounded-lg p-0 shadow-xl backdrop:bg-slate-900/50"
+      className="m-auto w-[min(32rem,calc(100vw-2rem))] rounded-lg p-0 shadow-xl backdrop:bg-ink/60"
     >
       {open && (
         <div className="p-6">

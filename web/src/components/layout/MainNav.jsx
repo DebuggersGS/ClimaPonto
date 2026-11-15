@@ -24,7 +24,7 @@ export default function MainNav({ className }) {
 
   return (
     <nav aria-label="Navegação principal" className={cn('max-w-full', className)}>
-      <ul className="flex w-full flex-wrap gap-1 rounded-3xl bg-slate-900/5 p-1 sm:w-max sm:rounded-full">
+      <ul className="flex w-full flex-wrap gap-1 glass-control rounded-3xl p-1 sm:w-max sm:rounded-full">
         {items.map((item) => (
           <li key={item.to} className="min-w-0 flex-1 sm:flex-none">
             <NavLink
@@ -44,7 +44,7 @@ export default function MainNav({ className }) {
                       layoutId="main-nav-pill"
                       transition={reducedMotion ? { duration: 0 } : INDICATOR_SPRING}
                       aria-hidden="true"
-                      className="absolute inset-0 rounded-full bg-white shadow-card ring-1 ring-slate-900/5"
+                      className="absolute inset-0 rounded-full bg-surface shadow-card ring-1 ring-slate-900/5"
                     />
                   )}
                   <span className="relative">{item.label}</span>

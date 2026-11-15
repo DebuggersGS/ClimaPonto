@@ -27,7 +27,7 @@ export default function MetricCard({ label, value, unit, icon: Icon, description
         {Icon && (
           <span
             aria-hidden="true"
-            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-700"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-50 text-brand-700 dark:bg-brand-900/40 dark:text-brand-200"
           >
             <Icon className="h-4 w-4" />
           </span>

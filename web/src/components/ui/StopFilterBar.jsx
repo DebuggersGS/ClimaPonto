@@ -25,7 +25,7 @@ function NeighborhoodSelect({ options, value, onChange }) {
         id={id}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        className="block min-h-11 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 shadow-sm focus-visible:outline-2 focus-visible:outline-brand-600"
+        className="block min-h-11 w-full rounded-md border border-slate-300 bg-surface px-3 py-2 text-sm text-slate-900 shadow-sm focus-visible:outline-2 focus-visible:outline-brand-600"
       >
         <option value="">Todos os bairros</option>
         {options.map((option) => (
