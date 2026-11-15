@@ -15,6 +15,7 @@ import RecentEvolutionPanel from '../components/dashboard/RecentEvolutionPanel.j
 import RefreshControl from '../components/dashboard/RefreshControl.jsx'
 import StopGrid from '../components/dashboard/StopGrid.jsx'
 import InsightsPanel from '../components/dashboard/InsightsPanel.jsx'
+import StopComparison from '../components/dashboard/StopComparison.jsx'
 import DataSourceBadge from '../components/ui/DataSourceBadge.jsx'
 import NoResultsState from '../components/ui/NoResultsState.jsx'
 import StopFilterBar from '../components/ui/StopFilterBar.jsx'
@@ -71,6 +72,7 @@ function ReadyContent({ stops, summary, now, source }) {
         >
           <DataSourceBadge source={source} />
           <InsightsPanel insights={insights} />
+          <StopComparison stops={stops} />
         </Section>
       </div>
 
