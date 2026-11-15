@@ -14,6 +14,7 @@ import LatestReadingHighlight from '../components/dashboard/LatestReadingHighlig
 import RecentEvolutionPanel from '../components/dashboard/RecentEvolutionPanel.jsx'
 import RefreshControl from '../components/dashboard/RefreshControl.jsx'
 import StopGrid from '../components/dashboard/StopGrid.jsx'
+import AlertsPanel from '../components/dashboard/AlertsPanel.jsx'
 import InsightsPanel from '../components/dashboard/InsightsPanel.jsx'
 import StopComparison from '../components/dashboard/StopComparison.jsx'
 import DataSourceBadge from '../components/ui/DataSourceBadge.jsx'
@@ -27,6 +28,7 @@ import { useStopFilters } from '../hooks/useStopFilters.js'
 import { useNow } from '../hooks/useNow.js'
 import { useStops } from '../hooks/useStops.js'
 import { summarizeDashboard } from '../utils/readings.js'
+import { deriveStopAlerts } from '../utils/stopAlerts.js'
 import { buildDashboardInsights } from '../utils/dashboardInsights.js'
 
 const PHASE_TRANSITION = {
@@ -47,8 +49,10 @@ function ReadyContent({ stops, summary, now, source }) {
   // Insights e Evolução continuam calculados sobre todos os pontos.
   const filter = useStopFilters(summary.items, { now })
   const insights = useMemo(() => buildDashboardInsights(summary, now), [summary, now])
+  const alerts = useMemo(() => deriveStopAlerts(summary.items, { now }), [summary, now])
   return (
     <>
+      <AlertsPanel alerts={alerts} />
       <div className="mb-section grid grid-cols-1 gap-x-5 gap-y-8 lg:grid-cols-12">
         <Section title="Resumo" eyebrow="Visão geral" className="mb-0 min-w-0 lg:col-span-7">
           <DashboardSummary summary={summary} />
