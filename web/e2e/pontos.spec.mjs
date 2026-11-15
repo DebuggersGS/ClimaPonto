@@ -1,10 +1,10 @@
-// Pontos: lista, ponto demonstrativo, acesso ao histórico e estado de erro (modo mock).
+// Pontos (vista Lista; o mapa é o padrão e tem spec próprio): lista, ponto demonstrativo, acesso ao histórico e estado de erro (modo mock).
 import { test, expect, snap, settle } from 'harness-e2e'
 
 const itens = (page) => page.getByRole('main').getByRole('list').first().getByRole('listitem')
 
 test('lista os 8 pontos com código, bairro e acesso ao histórico', async ({ page }) => {
-  await page.goto('/pontos')
+  await page.goto('/pontos?vista=lista')
   await expect(itens(page)).toHaveCount(8)
   for (const code of ['MOCK-01', 'MOCK-04', 'MOCK-08']) await expect(itens(page).filter({ hasText: code })).toHaveCount(1)
   await expect(itens(page).filter({ hasText: 'MOCK-02' }).getByRole('heading', { level: 2 })).toHaveText('Largo da Batata')
@@ -13,7 +13,7 @@ test('lista os 8 pontos com código, bairro e acesso ao histórico', async ({ pa
 })
 
 test('Ver histórico abre o histórico do ponto escolhido', async ({ page }) => {
-  await page.goto('/pontos')
+  await page.goto('/pontos?vista=lista')
   await itens(page).filter({ hasText: 'MOCK-02' }).getByRole('link', { name: 'Ver histórico' }).click()
   await expect(page).toHaveURL(/\/historico\?.*ponto=MOCK-02/)
   await expect(page.getByText('Código MOCK-02')).toBeVisible()
@@ -26,7 +26,7 @@ test('?mock=erro: alerta com nova tentativa e nenhuma lista parcial', async ({ p
 })
 
 test('?mock=lento: status de carregamento visível e depois a lista', async ({ page }) => {
-  await page.goto('/pontos?mock=lento')
+  await page.goto('/pontos?vista=lista&mock=lento')
   await expect(page.getByRole('status').filter({ hasText: 'Carregando pontos…' })).toBeVisible()
   await expect(page.getByRole('link', { name: 'Ver histórico' })).toHaveCount(0)
   await expect(itens(page)).toHaveCount(8, { timeout: 15_000 })

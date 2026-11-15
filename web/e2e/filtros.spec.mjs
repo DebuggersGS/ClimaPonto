@@ -29,7 +29,7 @@ async function abrirDashboard(page) {
 }
 
 async function abrirPontos(page) {
-  await page.goto('/pontos')
+  await page.goto('/pontos?vista=lista')
   await expect(itensPontos(page)).toHaveCount(8)
 }
 
@@ -202,12 +202,12 @@ test.describe('Dashboard: insights', () => {
 test.describe('Pontos: busca e bairro', () => {
   test.beforeEach(async ({ page }) => abrirPontos(page))
 
-  test('sem filtros de estado ambiental ou conectividade; só busca e bairro', async ({ page }) => {
+  test('busca, bairro, estado ambiental, conectividade e somente favoritos', async ({ page }) => {
     await expect(busca(page)).toBeVisible()
     await expect(page.getByRole('combobox', { name: 'Bairro' })).toBeVisible()
-    await expect(grupoEstado(page)).toHaveCount(0)
-    await expect(grupoConect(page)).toHaveCount(0)
-    await expect(page.getByRole('button', { name: /^(Normal|Online|Offline)/ })).toHaveCount(0)
+    await expect(grupoEstado(page)).toHaveCount(1)
+    await expect(grupoConect(page)).toHaveCount(1)
+    await expect(page.getByRole('button', { name: 'Somente favoritos' })).toHaveAttribute('aria-pressed', 'false')
     await expect(contagem(page)).toHaveText('Mostrando 8 de 8 pontos')
   })
 
@@ -298,7 +298,7 @@ test('teclado (Pontos): busca e bairro operáveis sem mouse', async ({ page }) =
   await expect(itensPontos(page)).toHaveCount(1)
   await page.keyboard.press('Tab')
   await expect(page.getByRole('combobox', { name: 'Bairro' })).toBeFocused()
-  await page.keyboard.press('Tab')
+  await limpar(page).first().focus()
   await expect(limpar(page).first()).toBeFocused()
   await page.keyboard.press('Enter')
   await expect(itensPontos(page)).toHaveCount(8)
@@ -517,6 +517,7 @@ test.describe('mobile 375 px', () => {
 
     await nav.getByRole('link', { name: 'Pontos', exact: true }).click()
     await expect(page.getByRole('heading', { level: 1, name: 'Pontos' })).toBeVisible()
+    await page.getByRole('button', { name: 'Lista', exact: true }).click()
     await expect(itensPontos(page).first()).toBeVisible()
     await page.getByRole('combobox', { name: 'Bairro' }).selectOption({ label: 'Lapa (1)' })
     await settle(page)
