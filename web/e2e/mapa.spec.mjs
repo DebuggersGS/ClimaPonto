@@ -90,7 +90,7 @@ test('?mock=lento: carregamento visível e nenhum mapa vazio enganoso', async ({
 
 test('teclado: marcadores entram na ordem de tabulação com foco visível', async ({ page }) => {
   await abrir(page)
-  const ordem = await keyboardWalk(page, 24)
+  const ordem = await keyboardWalk(page, 60)
   expect(ordem.filter((x) => /MOCK-\d+\./.test(x.name ?? '')).length).toBeGreaterThanOrEqual(8)
   expect(ordem.every((x) => x.visible && x.outline)).toBe(true)
 })

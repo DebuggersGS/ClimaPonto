@@ -20,7 +20,7 @@ export default function FavoriteButton({ name, pressed, onToggle, className }) {
       )}
     >
       <Star aria-hidden="true" className="h-4 w-4" fill={pressed ? 'currentColor' : 'none'} />
-      {pressed ? 'Favorito (marcado)' : 'Favorito'}
+      Favorito
     </button>
   )
 }

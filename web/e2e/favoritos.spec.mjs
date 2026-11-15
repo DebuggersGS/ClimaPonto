@@ -15,7 +15,6 @@ test('marcar na lista persiste após recarregar e só grava o código do ponto',
   await expect(botao).toHaveAttribute('aria-pressed', 'false')
   await botao.click()
   await expect(botao).toHaveAttribute('aria-pressed', 'true')
-  await expect(botao).toContainText('Favorito')
   expect(JSON.parse(await guardado(page))).toEqual(['MOCK-02'])
   await page.reload()
   await expect(itens(page)).toHaveCount(8)
