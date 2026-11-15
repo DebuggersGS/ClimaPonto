@@ -6,6 +6,11 @@ import PeriodFilter from '../components/history/PeriodFilter.jsx'
 import ReadingsEvolution from '../components/history/ReadingsEvolution.jsx'
 import ReadingsTable from '../components/history/ReadingsTable.jsx'
 import DailySummary from '../components/history/DailySummary.jsx'
+import CollapsibleSection from '../components/history/CollapsibleSection.jsx'
+import ExportReportButton from '../components/history/ExportReportButton.jsx'
+import ReadingQuality from '../components/history/ReadingQuality.jsx'
+import ReadingsTimeline from '../components/history/ReadingsTimeline.jsx'
+import TemporalProfile from '../components/history/TemporalProfile.jsx'
 import ExportCsvButton from '../components/history/ExportCsvButton.jsx'
 import OriginSelect from '../components/history/OriginSelect.jsx'
 import StopSelect from '../components/history/StopSelect.jsx'
@@ -58,8 +63,26 @@ function ResultsContent({ stop, period, periodId, originId, readings, truncated,
       )}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <DailySummary readings={readings} />
-        <ExportCsvButton readings={readings} stop={stop} periodId={periodId} originId={originId} />
+        <div className="flex flex-wrap items-center gap-2">
+          <ExportCsvButton readings={readings} stop={stop} periodId={periodId} originId={originId} />
+          <ExportReportButton readings={readings} stop={stop} periodId={periodId} />
+        </div>
       </div>
+      <section aria-labelledby="analysis-heading" className="space-y-3">
+        <SectionTitle id="analysis-heading">Análises do período</SectionTitle>
+        <CollapsibleSection title="Por horário do dia">
+          <TemporalProfile readings={readings} kind="hour" />
+        </CollapsibleSection>
+        <CollapsibleSection title="Por dia da semana">
+          <TemporalProfile readings={readings} kind="weekday" />
+        </CollapsibleSection>
+        <CollapsibleSection title="Linha do tempo">
+          <ReadingsTimeline readings={readings} />
+        </CollapsibleSection>
+        <CollapsibleSection title="Qualidade das medições">
+          <ReadingQuality readings={readings} periodId={periodId} discardedCount={discardedCount} truncated={truncated} />
+        </CollapsibleSection>
+      </section>
       <section aria-labelledby="evolution-heading">
         <SectionTitle id="evolution-heading">Evolução</SectionTitle>
         <ReadingsEvolution readings={readings} periodId={periodId} headingLevel={3} />
