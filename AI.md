@@ -308,6 +308,12 @@ Não foram testados leitores de tela, navegadores além do Chrome, nem dispositi
 - **Conferência visual:** 4 PNGs do 0015 foram abertos (dashboard desktop claro, dashboard mobile claro, histórico desktop escuro, histórico mobile escuro; descrição em `docs/revisao-visual-frontend.md`). A revisão de código achou sobreposição de "27,2 °C" e "53,3 %" em "Última medição" a 1366 px; T102 corrigiu com container query e novo teste E2E. **Não executado:** gate depois dessa correção (será confirmada no próximo gate).
 - O código gerado por IA permanece sujeito à revisão da equipe.
 
+### Fase 3 — Insights, comparador e exploração (15/11/2026, objetivo G-20261115-a610fa)
+
+- **T3 (testes E2E e documentação):** o briefing e os PNGs em `/home/harness/climaponto-fase3` não puderam ser lidos (restrição de leitura); a conferência visual contra eles fica para um humano.
+- Escritos `web/e2e/insights.spec.mjs` e `web/e2e/historico-exploracao.spec.mjs` e ajustado `web/e2e/filtros.spec.mjs` (metodologia recolhida). Executados localmente apenas `npm run lint` e `npm run build` (ok). Os E2E em Chromium e Firefox **não foram executados** pelo agente (módulo `harness-e2e` só roda no gate); os resultados virão do gate.
+- Lacuna: erro do comparador com "Tentar novamente" sem teste (o mock de erro também derruba a lista de pontos).
+
 ## Princípios adotados
 
 - O código gerado por IA é revisado pela equipe antes de ser aprovado.
