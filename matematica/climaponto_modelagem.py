@@ -29,8 +29,7 @@
 
  Como executar
    pip install numpy sympy matplotlib
-   python climaponto_modelagem.py            (menu interativo)
-   python climaponto_modelagem.py --tudo     (roda tudo direto, ponto P001)
+   python climaponto_modelagem.py
 =============================================================================
 """
 

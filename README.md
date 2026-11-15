@@ -4,7 +4,7 @@
 
 <p align="center">
   <b>Global Solution FIAP 2026.2 · CitizenTech da Minha Cidade · Engenharia de Software 1º ano</b><br>
-  Equipe <b>Debuggers</b>
+  Disciplina <b>Differentiated Problem Solving</b> · Equipe <b>Debuggers</b>
 </p>
 
 ---
@@ -34,19 +34,21 @@
 [INMET - dados históricos oficiais] ──(robô mensal)── dados/inmet_sp.json
 ```
 
-| Componente | Disciplina | Responsável | Pasta |
-|---|---|---|---|
-| Sensor ESP32 (Wokwi): leitura, classificação local, sinais | Edge Computing & Computer Systems | Vinícius | `edge/` *(a adicionar)* |
-| Painel web com CRUD de pontos | Front-end Design · Web Development | Enrico | `web/` *(a adicionar)* |
-| Programa de operação (cadastro e consulta de leituras) | Computational Thinking with Python | Guilherme | `python/` |
-| Modelagem matemática (limites, derivadas, integrais) | Differentiated Problem Solving | Guilherme | `matematica/` |
-| UX, requisitos, protótipos e pitch | Software & Total Experience Design · Storytelling | Vinícius | `ux/` *(a adicionar)* |
+| Componente | Disciplina | Responsável |
+|---|---|---|
+| Sensor ESP32 (Wokwi): leitura, classificação local, sinais | Edge Computing & Computer Systems | Vinícius |
+| Painel web com CRUD de pontos | Front-end Design · Web Development | Enrico |
+| Programa de operação (cadastro e consulta de leituras) | Computational Thinking with Python | Guilherme |
+| **Modelagem matemática (limites, derivadas, integrais)** | **Differentiated Problem Solving** | **Guilherme** |
+| UX, requisitos, protótipos e pitch | Software & Total Experience Design · Storytelling | Vinícius |
+
+Este repositório contém a parte de **Differentiated Problem Solving** (pasta `matematica/`). As demais partes ficam nos repositórios de cada disciplina, na organização DebuggersGS.
 
 ## Dados
 
 - **Fonte:** medições reais das estações automáticas do **INMET** ([dados históricos](https://portal.inmet.gov.br/dadoshistoricos)), convertidas de UTC para o horário de Brasília.
 - **Estações de referência:** A701 Mirante de Santana (P001), A771 Interlagos (P002), A755 Barueri (P003).
-- **Atualização automática:** o robô [`atualizar_dados.yml`](.github/workflows/atualizar_dados.yml) roda todo dia 3, baixa os arquivos oficiais do INMET (centenas de MB) nos servidores do GitHub e publica só as 3 estações em [`dados/inmet_sp.json`](dados/inmet_sp.json) (~230 KB).
+- **Atualização automática:** o robô [`atualizar_dados.yml`](.github/workflows/atualizar_dados.yml) roda todo dia 3, baixa os arquivos oficiais do INMET (grandes, com todas as estações do país) nos servidores do GitHub e publica só as 3 estações em [`dados/inmet_sp.json`](dados/inmet_sp.json) (~230 KB).
 - **No programa:** baixa esse JSON leve do GitHub em segundos. Se o GitHub falhar, baixa direto do portal do INMET (reserva). Guarda uma cópia em `dados_cache` para rodar sem internet nas próximas vezes.
 - **Falhas do INMET:** a estação de Barueri ficou sem dados em vários meses de 2026. O programa detecta e usa automaticamente os 12 meses completos mais recentes com dados suficientes.
 - **Sensor ESP32:** nesta versão, as leituras do sensor no programa de matemática são de **demonstração** (`"origem": "simulacao_esp32"`), no mesmo formato JSON que o ESP32 vai enviar.
