@@ -13,7 +13,8 @@ const contagem = (page) => page.getByRole('status').filter({ hasText: /^Mostrand
 const grupoEstado = (page) => page.getByRole('group', { name: 'Filtrar por estado ambiental' })
 const grupoConect = (page) => page.getByRole('group', { name: 'Filtrar por conectividade' })
 const limpar = (page) => page.getByRole('button', { name: 'Limpar filtros' })
-const vazio = (page) => page.getByRole('heading', { name: 'Nenhum ponto encontrado' })
+// O título do EmptyState é um parágrafo em negrito (não um heading); a mensagem identifica o estado.
+const vazio = (page) => page.getByText('Nenhum ponto encontrado', { exact: true })
 
 const monitorados = (page) => page.getByRole('region', { name: 'Pontos monitorados' })
 const cardsDash = (page) => monitorados(page).getByRole('listitem')
@@ -23,6 +24,8 @@ async function abrirDashboard(page) {
   await page.goto('/')
   await expect(page.getByRole('region', { name: 'Resumo', exact: true })).toBeVisible()
   await expect(cardsDash(page)).toHaveCount(8)
+  // Evolução recente carrega as leituras depois do resto; só então o texto fixo é estável.
+  await expect(page.getByText('Carregando leituras…')).toHaveCount(0)
 }
 
 async function abrirPontos(page) {
@@ -308,7 +311,7 @@ for (const colorScheme of ['light', 'dark']) {
     await grupoEstado(page).getByRole('button', { name: 'Normal (5)' }).click()
     await grupoConect(page).getByRole('button', { name: 'Online (5)' }).click()
     await busca(page).fill('mock')
-    await expect(cardsDash(page)).toHaveCount(4)
+    await expect(cardsDash(page)).toHaveCount(3)
     await settle(page)
     const v = await axeViolations(page)
     await testInfo.attach(`axe-dashboard-filtros-${colorScheme}`, { body: JSON.stringify(v, null, 2), contentType: 'application/json' })
@@ -440,7 +443,7 @@ test.describe('mobile 375 px', () => {
     await verificarNavegacao(page, PUBLICOS, 'Dashboard')
     await grupoEstado(page).getByRole('button', { name: 'Normal (5)' }).click()
     await grupoConect(page).getByRole('button', { name: 'Online (5)' }).click()
-    await expect(cardsDash(page)).toHaveCount(4)
+    await expect(cardsDash(page)).toHaveCount(3)
     await settle(page)
     await verificarNavegacao(page, PUBLICOS, 'Dashboard com filtros')
     await busca(page).fill('zzz-inexistente')
@@ -463,7 +466,8 @@ test.describe('mobile 375 px', () => {
 
   test('visitante: Histórico com navegação completa e sem rolagem lateral', async ({ page }) => {
     await page.goto('/historico?ponto=MOCK-01&periodo=24h')
-    await expect(page.getByRole('table')).toBeVisible()
+    // em 375 px as leituras viram lista de cartões (não há tabela)
+    await expect(page.getByRole('region', { name: 'Leituras' }).getByRole('listitem').first()).toBeVisible()
     await settle(page)
     await verificarNavegacao(page, PUBLICOS, 'Histórico')
   })
