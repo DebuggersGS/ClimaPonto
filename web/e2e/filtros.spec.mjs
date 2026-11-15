@@ -164,28 +164,36 @@ test.describe('Dashboard: insights', () => {
     await expect(insights(page).getByText(/^Fonte:/)).toBeVisible()
   })
 
-  test('cinco insights deterministas, cada um com título, texto e "Como foi calculado"', async ({ page }) => {
-    const itens = insights(page).getByRole('listitem')
-    await expect(itens).toHaveCount(5)
-    await expect(insights(page).getByRole('heading', { level: 3 })).toHaveText([
+  test('cinco insights deterministas; texto e "Como foi calculado" ficam na metodologia recolhida', async ({ page }) => {
+    const regiao = insights(page)
+    const cartoes = regiao.getByRole('list').first().getByRole('listitem')
+    await expect(cartoes).toHaveCount(5)
+    await expect(regiao.getByRole('heading', { level: 3 })).toHaveText([
       'Estados ambientais gravados',
       'Temperatura: maior e menor',
       'Umidade: maior e menor',
       'Pontos sem leitura recente',
       'Há leituras que não são medição real',
+      'Comparar dois pontos',
     ])
-    await expect(itens.filter({ hasText: /^Como foi calculado/ })).toHaveCount(0)
-    for (let n = 0; n < 5; n++) await expect(itens.nth(n)).toContainText('Como foi calculado:')
+    const botao = regiao.getByRole('button', { name: 'Como foi calculado' })
+    await expect(botao).toHaveAttribute('aria-expanded', 'false')
+    await expect(regiao).not.toContainText('Como foi calculado:')
+    await expect(regiao).not.toContainText('não é recalculado a partir de temperatura ou umidade')
 
-    await expect(itens.nth(0)).toContainText('Normal: 5; Atenção: 1; Crítico: 1.')
-    await expect(itens.nth(0)).toContainText('não é recalculado a partir de temperatura ou umidade')
+    await botao.click()
+    await expect(botao).toHaveAttribute('aria-expanded', 'true')
+    const detalhe = regiao.locator('#' + (await botao.getAttribute('aria-controls'))).getByRole('listitem')
+    await expect(detalhe).toHaveCount(5)
+    await expect(detalhe.nth(0)).toContainText('Normal: 5; Atenção: 1; Crítico: 1.')
+    await expect(detalhe.nth(0)).toContainText('não é recalculado a partir de temperatura ou umidade')
     // MOCK-03 é o ponto com a temperatura mais alta (clamp 36–41 °C; os demais ficam abaixo)
-    await expect(itens.nth(1)).toContainText(/Maior: \d+,\d °C em Terminal Parque Dom Pedro II \(MOCK-03\)\./)
-    await expect(itens.nth(1)).toContainText('não é classificação ambiental')
-    await expect(itens.nth(2)).toContainText(/Maior: .*Menor: /)
-    await expect(itens.nth(3)).toContainText('2 pontos offline ou sem dados.')
-    await expect(itens.nth(4)).toContainText('7 pontos com última leitura de simulação, teste ou origem desconhecida')
-    await expect(insights(page)).not.toContainText('Dados insuficientes')
+    await expect(detalhe.nth(1)).toContainText(/Maior: \d+,\d °C em Terminal Parque Dom Pedro II \(MOCK-03\)\./)
+    await expect(detalhe.nth(1)).toContainText('não é classificação ambiental')
+    await expect(detalhe.nth(2)).toContainText(/Maior: .*Menor: /)
+    await expect(detalhe.nth(3)).toContainText('2 pontos offline ou sem dados.')
+    await expect(detalhe.nth(4)).toContainText('7 pontos com última leitura de simulação, teste ou origem desconhecida')
+    await expect(regiao).not.toContainText('Dados insuficientes')
   })
 })
 
