@@ -89,3 +89,57 @@ O "Page crashed" do Firefox é intermitente (ocorreu também no axe do login esc
 - Estados: `estado-carregando-`, `estado-erro-` (dashboard, historico, pontos), `estado-vazio-historico-` e `estado-404-`, em `mobile` e `desktop`.
 
 A aprovação estética definitiva continua com a equipe (login e lista administrativa a 375 px; Histórico a 1366 px).
+
+## Premium 3.0 (G-20261115-739025)
+
+Fase de evolução visual sobre a base G-20261114-9de6e3 (HEAD `4d0d2d0`). Nada aqui é medição de sensor; os dados continuam fictícios (modo mock) e sinalizados na interface.
+
+### Antes (base `4d0d2d0`)
+
+Capturas reais do gate E2E aprovado da base, evidência 0027 (Playwright, Chromium, modo mock). Raiz: `/home/harness/claude-harness/state/climaponto/goals/G-20261114-9de6e3/evidence/0027-gate-e2e-artifacts/test-results/`. As imagens não foram copiadas para o repositório.
+
+| Tela / largura | Arquivo (dentro da raiz) |
+|---|---|
+| Dashboard, desktop | `qualidade-dashboard-em-des-197ef-reposição-ou-erro-de-design-chromium/dashboard-desktop.png` (1366x4644) |
+| Dashboard, mobile | `qualidade-dashboard-em-mob-c0350-reposição-ou-erro-de-design-chromium/dashboard-mobile.png` |
+| Histórico, desktop | `qualidade-historico-em-des-5d74b-reposição-ou-erro-de-design-chromium/historico-desktop.png` |
+| Histórico, mobile | `qualidade-historico-em-mob-091bf-reposição-ou-erro-de-design-chromium/historico-mobile.png` |
+
+Observado nas imagens **lidas** (Dashboard desktop e Histórico desktop; as de mobile não foram abertas nesta fase):
+
+- Só tema claro nas capturas de layout; fundo azul-acinzentado claro. (A base tinha auditoria axe com "tema dark" nos testes, mas as capturas lidas estão em claro.)
+- Dashboard: faixa escura de abertura (hero) com título e botão "Atualizar agora"; depois seções **empilhadas em uma coluna única** (Resumo, Última medição, nota de conectividade, Evolução recente, Insights, Pontos monitorados). Cartões de resumo em fileira de 4; "Última medição" ocupa a largura toda com bastante espaço vazio à direita; insights em grade de 2 colunas com cartão final sozinho.
+- Navegação em pílula cinza clara com item ativo branco; sem translucidez perceptível.
+- Histórico: dois cartões de gráfico lado a lado (área com preenchimento suave, laranja e azul), mínimo/máximo/média acima do gráfico, sem miniatura de tendência no cabeçalho do cartão; tabela de leituras com selos de origem e estado.
+
+### Depois (a preencher após o gate)
+
+O gate E2E deste objetivo gera os snaps do novo spec (T3). Nomes esperados:
+
+- `premium-dashboard-desktop-claro`, `premium-dashboard-desktop-escuro`
+- `premium-dashboard-mobile-claro`, `premium-dashboard-mobile-escuro`
+- `premium-historico-desktop-claro`, `premium-historico-desktop-escuro`
+- `premium-historico-mobile-claro`, `premium-historico-mobile-escuro`
+
+Local esperado: `/home/harness/claude-harness/state/climaponto/goals/G-20261115-739025/evidence/<n>-gate-e2e-artifacts/`.
+
+**Pendente:** o número da evidência `<n>` e a análise visual do "depois" serão preenchidos depois que o gate rodar. Nenhuma imagem "depois" foi vista até este commit, portanto nada é descrito sobre elas.
+
+### O que mudou por área (conforme o código de T1 e T2)
+
+| Área | Mudança | Onde |
+|---|---|---|
+| Bento | No desktop (`lg`), grade de 12 colunas: Resumo (7) ao lado de Última medição (5); Evolução recente (8) ao lado de Insights (4); a nota de conectividade ocupa a linha inteira. Em telas menores volta a uma coluna. Seções são filhas diretas da grade, e a ordem do DOM é a ordem visual. | `web/src/pages/DashboardPage.jsx` |
+| Vidro | Classes `surface-glass` e `glass-control` (translucidez com `backdrop-filter`), aplicadas à navegação e aos controles; com fallback opaco via `@supports not`. Não é usado em cartões de conteúdo. | `web/src/styles/index.css`, `MainNav.jsx` e controles |
+| Tipografia | Ajustes de hierarquia em títulos, rótulos e números nos componentes de dashboard, histórico e UI (`tabular-nums` nos valores). | componentes em `web/src/components/` |
+| Tema escuro | Automático por `prefers-color-scheme`: tokens `surface*` e a escala `slate` remapeados em CSS; variantes `dark:` locais para marca e estado (ex.: botão `subtle`). Sem seletor manual. | `index.css`, `ui/Button.jsx`, `ui/tones.js` |
+| Sparklines | Componente `Sparkline` e função pura `buildSparkline` (testada em `sparkline.test.js`) no cabeçalho dos cartões de Temperatura e Umidade do Histórico/Evolução. Usam só a série já carregada, não interpolam, quebram o trecho em valores ausentes, não renderizam com menos de 2 valores e têm `aria-label` com mínimo, máximo e último; o último valor também aparece em texto. | `Sparkline.jsx`, `utils/sparkline.js`, `ReadingsEvolution.jsx` |
+| Gráficos | `SeriesChart` passou a usar tokens de tema (cores legíveis em claro e escuro). | `charts/SeriesChart.jsx` |
+| Microinterações | Botões com `motion-safe:active:scale-[0.98]`; cartões interativos com `motion-safe:hover:-translate-y-0.5`; realce `metric-flash` e shimmer do esqueleto com variante escura. Com `prefers-reduced-motion` as transições seguem desligadas (regra global existente). | `Button.jsx`, `Card.jsx`, `index.css` |
+| Mobile | Grade Bento colapsa para uma coluna; navegação e controles com vidro; verificação de 375 px (sem rolagem horizontal, alvos de toque) fica a cargo do E2E de T3, **ainda não executado**. | `DashboardPage.jsx`, `MainNav.jsx` |
+
+### Verificações até aqui
+
+- T1: `npm run lint` e `npm run build` ok.
+- T2: `node --test` 266/266, lint e build ok.
+- E2E (Chromium e Firefox), axe-core e screenshots: **pendentes** (gate do harness ainda não executado).

@@ -298,6 +298,16 @@ Não foram testados leitores de tela, navegadores além do Chrome, nem dispositi
 
 **T102 (revisão de código, rodada 1):** a regra "filtro só aparece com 2 ou mais valores" foi movida para `shouldShowFilter` em `utils/stopFilters.js` (com testes), e `resolveActiveFilters` faz o hook `useStopFilters` ignorar valor selecionado que sumiu das opções (derivado, sem efeito); README e decisão 37 atualizados, incluindo o CSS global acima. Verificações locais: `node --test src/utils/stopFilters.test.js src/utils/dashboardInsights.test.js` 29/29; `npm run lint` 0 erros e 2 avisos `set-state-in-effect` preexistentes; `npm run build` concluído. O E2E desta última alteração será validado pelo próximo gate do harness (não rodou localmente).
 
+### Premium 3.0 (15/11/2026, objetivo G-20261115-739025)
+
+- Planejamento do objetivo em tarefas T1 a T4 (agentes do harness com o Claude); base `4d0d2d0`.
+- **T1:** tokens, tema escuro por `prefers-color-scheme`, vidro em navegação e controles, tipografia e microinterações; Bento do Dashboard (commits `0136301`, `612189c`, `0252397`). Resultado registrado: lint e build ok.
+- **T2:** função pura `buildSparkline` com testes, `Sparkline`, cabeçalho dos cartões do Histórico e tokens de tema nos gráficos (commits `434494f`, `98d6bcb`). Resultado registrado: `node --test` 266/266, lint e build ok.
+- **T3 (spec E2E visual-premium):** em andamento quando esta documentação foi escrita; nenhum resultado de E2E existe ainda.
+- **T4:** documentação. Para o "antes", foram abertas duas capturas reais da evidência 0027 da base (Dashboard e Histórico em desktop); as de mobile não foram abertas.
+- **Não executado:** E2E Chromium/Firefox, axe-core nos dois temas, conferência visual do "depois" e do mobile. Serão registrados depois do gate do harness.
+- O código gerado por IA permanece sujeito à revisão da equipe.
+
 ## Princípios adotados
 
 - O código gerado por IA é revisado pela equipe antes de ser aprovado.
