@@ -22,6 +22,9 @@
   /* Tinta escura para detalhes (cartões dark, rodapé de destaque) */
   --color-ink: #0b1220;
   --color-ink-soft: #151e30;
+  /* Texto sobre bg-ink: constante nos dois temas (ink não inverte) */
+  --color-on-ink: #f1f5f9;
+  --color-on-ink-muted: #cbd5e1;
 
   /* Superfícies */
   --color-surface: #ffffff;
@@ -66,7 +69,39 @@
   }
 }
 
+/*
+ * Tema escuro por prefers-color-scheme. Fica FORA de @theme/@layer de propósito:
+ * CSS sem camada vence a camada `theme` do Tailwind 4. Remapeamos superfícies e a
+ * escala neutra (slate) em vez de editar cada classe, o que cobre também componentes
+ * fora do escopo (inclusive de autenticação) sem alterá-los. Marca e cores de estado
+ * não são remapeadas: usos como texto ganham variantes dark: no próprio componente.
+ */
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-surface: #111a2b;
+    --color-surface-muted: #0a0f1a;
+    --color-surface-glass: rgb(17 26 43 / 0.72);
+    --color-hairline: rgb(255 255 255 / 0.08);
+
+    --color-slate-50: #172033;
+    --color-slate-100: #1e293b;
+    --color-slate-200: #2a3a52;
+    --color-slate-300: #3b4d68;
+    --color-slate-400: #64748b;
+    --color-slate-500: #8b9bb4;
+    --color-slate-600: #a7b4c8;
+    --color-slate-700: #c3cddb;
+    --color-slate-800: #dde3ec;
+    --color-slate-900: #f1f5f9;
+    --color-slate-950: #f8fafc;
+  }
+}
+
 @layer base {
+  :root {
+    color-scheme: light dark;
+  }
+
   html {
     scroll-padding-top: 5rem;
   }
@@ -92,6 +127,20 @@
     outline: 2px solid var(--color-brand-600);
     outline-offset: 2px;
   }
+
+  @media (prefers-color-scheme: dark) {
+    body {
+      background-image:
+        radial-gradient(60rem 40rem at 8% -10%, rgb(14 165 233 / 0.07), transparent 60%),
+        radial-gradient(50rem 36rem at 95% 0%, rgb(6 182 212 / 0.05), transparent 60%),
+        radial-gradient(46rem 30rem at 70% 105%, rgb(245 158 11 / 0.03), transparent 60%);
+    }
+
+    /* brand-500 (#2b8be0) tem contraste >= 3:1 sobre as superfícies escuras */
+    :focus-visible {
+      outline-color: var(--color-brand-500);
+    }
+  }
 }
 
 @layer components {
@@ -109,6 +158,21 @@
   @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
     .surface-glass {
       background-color: var(--color-surface);
+    }
+  }
+
+  /* Vidro de controles (navegação, segmentados): só aqui e no cabeçalho, nunca em cartões de conteúdo */
+  .glass-control {
+    background-color: var(--color-surface-glass);
+    -webkit-backdrop-filter: blur(16px) saturate(150%);
+    backdrop-filter: blur(16px) saturate(150%);
+    border: 1px solid var(--color-hairline);
+    box-shadow: inset 0 0 0 1px rgb(15 23 42 / 0.04);
+  }
+
+  @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .glass-control {
+      background-color: var(--color-surface-muted);
     }
   }
 
@@ -130,6 +194,13 @@
     to {
       background-color: transparent;
     }
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .skeleton-shimmer {
+    background-color: rgb(42 58 82 / 0.7);
+    background-image: linear-gradient(90deg, transparent 0%, rgb(255 255 255 / 0.08) 50%, transparent 100%);
   }
 }
 
