@@ -112,18 +112,16 @@ Observado nas imagens **lidas** (Dashboard desktop e Histórico desktop; as de m
 - Navegação em pílula cinza clara com item ativo branco; sem translucidez perceptível.
 - Histórico: dois cartões de gráfico lado a lado (área com preenchimento suave, laranja e azul), mínimo/máximo/média acima do gráfico, sem miniatura de tendência no cabeçalho do cartão; tabela de leituras com selos de origem e estado.
 
-### Depois (a preencher após o gate)
+### Depois (gate E2E, evidência 0015, HEAD `c5e3399`)
 
-O gate E2E deste objetivo gera os snaps do novo spec (T3). Nomes esperados:
+Raiz: `/home/harness/claude-harness/state/climaponto/goals/G-20261115-739025/evidence/0015-gate-e2e-artifacts/test-results/` (cada pasta `visual-premium-snap-premium-<tela>-<viewport>-<tema>-chromium/` contém o PNG). Foram abertas só 4 imagens (Chromium, modo mock); as demais (escuro do Dashboard, claro do Histórico, Firefox) não foram vistas.
 
-- `premium-dashboard-desktop-claro`, `premium-dashboard-desktop-escuro`
-- `premium-dashboard-mobile-claro`, `premium-dashboard-mobile-escuro`
-- `premium-historico-desktop-claro`, `premium-historico-desktop-escuro`
-- `premium-historico-mobile-claro`, `premium-historico-mobile-escuro`
+- `.../visual-premium-snap-premium-dashboard-desktop-claro-chromium/premium-dashboard-desktop-claro.png` (1366 px): cabeçalho escuro com gradiente e botão "Atualizar agora"; faixa roxa de modo demonstração; grade Bento com "Resumo" (cartões de contagem, barras de estado ambiental e de conectividade) à esquerda e "Última medição" à direita; gráficos de Temperatura e Umidade lado a lado; Insights em coluna estreita; cartões dos 8 pontos em 3 colunas, com selos de estado e origem em texto. **Defeito visível:** em "Última medição", "27,2 °C" e "53,3 %" estão lado a lado e se tocam/sobrepõem ("°C" invade o "5" de 53,3).
+- `.../visual-premium-snap-premium-dashboard-mobile-claro-chromium/premium-dashboard-mobile-claro.png` (375 px, imagem de 375x9933): coluna única, sem sinal de corte lateral; na miniatura ampliada não é possível ler detalhes, então só se confirma a estrutura (seções empilhadas na ordem Resumo, Última medição, Evolução recente, Insights, pontos). Valores de "Última medição" aparecem empilhados.
+- `.../visual-premium-snap-premium-historico-desktop-escuro-chromium/premium-historico-desktop-escuro.png` (1366 px): fundo azul-marinho escuro, navegação em pílula com "Histórico" ativo, filtros, dois cartões de gráfico (laranja e azul) com miniaturas de tendência, mínimo/máximo/média, tabela com selos de origem e estado em texto e ícone; texto legível.
+- `.../visual-premium-snap-premium-historico-mobile-escuro-chromium/premium-historico-mobile-escuro.png` (375x11060): tema escuro em coluna única; leituras em cartões empilhados; sem rolagem horizontal aparente. Detalhes finos ilegíveis na redução.
 
-Local esperado: `/home/harness/claude-harness/state/climaponto/goals/G-20261115-739025/evidence/<n>-gate-e2e-artifacts/`.
-
-**Pendente:** o número da evidência `<n>` e a análise visual do "depois" serão preenchidos depois que o gate rodar. Nenhuma imagem "depois" foi vista até este commit, portanto nada é descrito sobre elas.
+**Sobreposição em "Última medição" (achado da revisão de código, rodada 1):** a 1366 px o cartão (`lg:col-span-5`) é estreito para dois valores em `text-6xl` com `whitespace-nowrap` em duas colunas, e os textos se sobrepunham. **Correção (T102):** em `LatestReadingHighlight.jsx` a grade passou a usar container query do Tailwind 4 (`@container` e `@md:grid-cols-2`): os valores ficam empilhados quando o cartão tem menos de 28 rem. Novo teste em `web/e2e/visual-premium.spec.mjs` mede os retângulos a 1366x900. **A correção ainda será confirmada pelo próximo gate**; localmente só rodaram lint, build e `node --check`.
 
 ### O que mudou por área (conforme o código de T1 e T2)
 
@@ -136,10 +134,10 @@ Local esperado: `/home/harness/claude-harness/state/climaponto/goals/G-20261115-
 | Sparklines | Componente `Sparkline` e função pura `buildSparkline` (testada em `sparkline.test.js`) no cabeçalho dos cartões de Temperatura e Umidade do Histórico/Evolução. Usam só a série já carregada, não interpolam, quebram o trecho em valores ausentes, não renderizam com menos de 2 valores e têm `aria-label` com mínimo, máximo e último; o último valor também aparece em texto. | `Sparkline.jsx`, `utils/sparkline.js`, `ReadingsEvolution.jsx` |
 | Gráficos | `SeriesChart` passou a usar tokens de tema (cores legíveis em claro e escuro). | `charts/SeriesChart.jsx` |
 | Microinterações | Botões com `motion-safe:active:scale-[0.98]`; cartões interativos com `motion-safe:hover:-translate-y-0.5`; realce `metric-flash` e shimmer do esqueleto com variante escura. Com `prefers-reduced-motion` as transições seguem desligadas (regra global existente). | `Button.jsx`, `Card.jsx`, `index.css` |
-| Mobile | Grade Bento colapsa para uma coluna; navegação e controles com vidro; verificação de 375 px (sem rolagem horizontal, alvos de toque) fica a cargo do E2E de T3, **ainda não executado**. | `DashboardPage.jsx`, `MainNav.jsx` |
+| Mobile | Grade Bento colapsa para uma coluna; navegação e controles com vidro; verificação de 375 px (sem rolagem horizontal, alvos de toque) confirmada no gate E2E 0015 (sem falhas de rolagem horizontal). | `DashboardPage.jsx`, `MainNav.jsx` |
 
 ### Verificações até aqui
 
 - T1: `npm run lint` e `npm run build` ok.
 - T2: `node --test` 266/266, lint e build ok.
-- E2E (Chromium e Firefox), axe-core e screenshots: **pendentes** (gate do harness ainda não executado).
+- Gate do harness (evidência 0015, HEAD `c5e3399`): lint ok, build ok, unitários 266/266, E2E 286 aprovados, 0 falhas, 8 pulados, 0 instáveis, Chromium e Firefox. Antes, a evidência 0009 teve 6 falhas (contraste do botão Excluir no tema escuro e espera de tabela no mobile), corrigidas em T101. Depois do 0015 só mudaram a correção de layout acima e a documentação: **novo gate pendente**.

@@ -303,9 +303,9 @@ Não foram testados leitores de tela, navegadores além do Chrome, nem dispositi
 - Planejamento do objetivo em tarefas T1 a T4 (agentes do harness com o Claude); base `4d0d2d0`.
 - **T1:** tokens, tema escuro por `prefers-color-scheme`, vidro em navegação e controles, tipografia e microinterações; Bento do Dashboard (commits `0136301`, `612189c`, `0252397`). Resultado registrado: lint e build ok.
 - **T2:** função pura `buildSparkline` com testes, `Sparkline`, cabeçalho dos cartões do Histórico e tokens de tema nos gráficos (commits `434494f`, `98d6bcb`). Resultado registrado: `node --test` 266/266, lint e build ok.
-- **T3 (spec E2E visual-premium):** em andamento quando esta documentação foi escrita; nenhum resultado de E2E existe ainda.
+- **T3 (spec E2E visual-premium):** executado pelo gate. Evidência 0009: 6 falhas (contraste do botão Excluir no escuro, espera de tabela no mobile), corrigidas em T101. Evidência 0015 (HEAD `c5e3399`): lint ok, build ok, unitários 266/266, E2E 286 aprovados, 0 falhas, 8 pulados, 0 instáveis (Chromium e Firefox).
 - **T4:** documentação. Para o "antes", foram abertas duas capturas reais da evidência 0027 da base (Dashboard e Histórico em desktop); as de mobile não foram abertas.
-- **Não executado:** E2E Chromium/Firefox, axe-core nos dois temas, conferência visual do "depois" e do mobile. Serão registrados depois do gate do harness.
+- **Conferência visual:** 4 PNGs do 0015 foram abertos (dashboard desktop claro, dashboard mobile claro, histórico desktop escuro, histórico mobile escuro; descrição em `docs/revisao-visual-frontend.md`). A revisão de código achou sobreposição de "27,2 °C" e "53,3 %" em "Última medição" a 1366 px; T102 corrigiu com container query e novo teste E2E. **Não executado:** gate depois dessa correção (será confirmada no próximo gate).
 - O código gerado por IA permanece sujeito à revisão da equipe.
 
 ## Princípios adotados
