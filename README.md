@@ -28,7 +28,7 @@
 | Item | Link |
 |---|---|
 | Simulação no Wokwi | https://wokwi.com/projects/480316994502816769 |
-| Vídeo no YouTube (até 7 min) | **[colar o link do YouTube]** |
+| Vídeo no YouTube (até 7 min) | https://youtu.be/46aChij6YnE |
 
 O arquivo do vídeo também está em [`video/`](video/) (3min46s).
 
