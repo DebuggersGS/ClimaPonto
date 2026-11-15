@@ -321,3 +321,22 @@ for (const [tela, , pronto] of GALERIA) {
     }
   }
 }
+
+test('Última medição: temperatura e umidade não se sobrepõem em 1366 px', async ({ page }) => {
+  await page.setViewportSize(DESKTOP)
+  await page.emulateMedia({ reducedMotion: 'reduce' })
+  await aguardarDashboard(page)
+  await settle(page)
+  const cartao = regiao(page, 'Última medição')
+  const caixa = await cartao.boundingBox()
+  const temp = await cartao.getByText(/°C/).first().boundingBox()
+  const umid = await cartao.getByText(/%/).first().boundingBox()
+  expect(caixa && temp && umid).toBeTruthy()
+  const separados = temp.x + temp.width <= umid.x + 1 || umid.x + umid.width <= temp.x + 1 ||
+    temp.y + temp.height <= umid.y + 1 || umid.y + umid.height <= temp.y + 1
+  expect(separados).toBe(true)
+  for (const r of [temp, umid]) {
+    expect(r.x).toBeGreaterThanOrEqual(caixa.x - 1)
+    expect(r.x + r.width).toBeLessThanOrEqual(caixa.x + caixa.width + 1)
+  }
+})

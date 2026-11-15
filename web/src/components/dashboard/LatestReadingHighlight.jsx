@@ -16,7 +16,7 @@ function BigValue({ Icon, label, text, large = false }) {
         {label}
       </p>
       <p
-        className={`mt-1 whitespace-nowrap font-semibold tracking-tight text-slate-900 tabular-nums ${large ? 'text-5xl sm:text-6xl' : 'text-3xl sm:text-4xl'}`}
+        className={`mt-1 whitespace-nowrap font-semibold tracking-tight text-slate-900 tabular-nums ${large ? 'text-5xl @md:text-6xl' : 'text-3xl @md:text-4xl'}`}
       >
         {text}
         {unavailable && <span className="sr-only"> indisponível</span>}
@@ -47,9 +47,12 @@ export default function LatestReadingHighlight({ latest, now }) {
       <h3 className="break-words text-lg font-semibold text-slate-900">
         {stop.name} <span className="font-mono text-sm font-normal text-slate-600">({stop.code})</span>
       </h3>
-      <div className="mt-5 grid grid-cols-1 gap-6 sm:grid-cols-2">
+      {/* Container query: empilha os valores quando o cartão é estreito (ex.: col-span-5 em 1366 px). */}
+      <div className="@container mt-5">
+        <div className="grid grid-cols-1 gap-6 @md:grid-cols-2">
         <BigValue Icon={IconThermometer} label="Temperatura" text={formatTemperature(reading.temperatureC)} large />
         <BigValue Icon={IconDroplet} label="Umidade" text={formatHumidity(reading.humidityPct)} />
+        </div>
       </div>
       <p className="mt-5 text-sm text-slate-600">
         Medido em{' '}
