@@ -289,6 +289,15 @@ Não foram testados leitores de tela, navegadores além do Chrome, nem dispositi
 
 **Não executado localmente:** os testes E2E (não há Playwright nem o módulo `harness-e2e` no ambiente). Portanto o `filtros.spec.mjs` **nunca rodou**: seletores e expectativas foram escritos a partir da leitura do código e podem precisar de ajuste após o gate do harness. Também não houve `check:supabase` nem conferência em navegador real.
 
+**T101 (correção do E2E dos filtros):** `53c38c0` corrigiu seletores e contagens do `filtros.spec.mjs` (o EmptyState é `<p>`, contagem 3, espera o texto "Carregando leituras…" sumir, Histórico em cartões a 375 px); `c6a4867` aplicou `transition-property: none` em `prefers-reduced-motion` (mudança **global** em `index.css`: hover e foco mudam de cor instantaneamente; não há `transitionend` no código).
+
+**Gates executados pelo harness (verificação automática do objetivo), não manualmente:**
+
+1. HEAD `5dfabbd`: lint ok, build ok, unitários 25/25; E2E reprovado com 29 falhas inesperadas (quase todas no spec novo; uma, firefox admin-qualidade axe login escuro, foi "Page crashed" de ambiente), 212 aprovados, 8 pulados, 1 flaky.
+2. HEAD `c6a4867`: lint ok, build ok, unit-filters-insights 25/25; E2E aprovado em Chromium e Firefox com 241 aprovados, 0 falhas, 8 pulados, 1 flaky (Firefox, "filtro de período: 24 h, 7 dias e 30 dias" em `historico.spec.mjs`, preexistente). Gate supabase-visitor pulado (sem `web/.env.local`).
+
+**T102 (revisão de código, rodada 1):** a regra "filtro só aparece com 2 ou mais valores" foi movida para `shouldShowFilter` em `utils/stopFilters.js` (com testes), e `resolveActiveFilters` faz o hook `useStopFilters` ignorar valor selecionado que sumiu das opções (derivado, sem efeito); README e decisão 37 atualizados, incluindo o CSS global acima. Verificações locais: `node --test src/utils/stopFilters.test.js src/utils/dashboardInsights.test.js` 29/29; `npm run lint` 0 erros e 2 avisos `set-state-in-effect` preexistentes; `npm run build` concluído. O E2E desta última alteração será validado pelo próximo gate do harness (não rodou localmente).
+
 ## Princípios adotados
 
 - O código gerado por IA é revisado pela equipe antes de ser aprovado.
