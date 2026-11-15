@@ -1,6 +1,7 @@
 import { useId, useMemo } from 'react'
 import { buildChartSeries } from '../../utils/chartSeries.js'
 import { formatHumidity, formatTemperature } from '../../utils/formatters.js'
+import Sparkline from '../charts/Sparkline.jsx'
 import SeriesChart from '../charts/SeriesChart.jsx'
 import Card from '../ui/Card.jsx'
 import ReadingsSummary from './ReadingsSummary.jsx'
@@ -9,6 +10,25 @@ const SERIES = [
   { chartField: 'temperature', field: 'temperatureC', title: 'Temperatura', unit: '°C', formatValue: formatTemperature },
   { chartField: 'humidity', field: 'humidityPct', title: 'Umidade', unit: '%', formatValue: formatHumidity },
 ]
+
+/** Cabeçalho do cartão: título (heading), sparkline e último valor em texto. */
+function CardHeader({ title, headingLevel, values, chartField, formatValue }) {
+  const Heading = headingLevel === 3 ? 'h3' : 'h2'
+  const last = values.findLast((value) => typeof value === 'number' && Number.isFinite(value))
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <Heading className="text-base font-semibold text-slate-900">{title}</Heading>
+      {last !== undefined && (
+        <div className="flex min-w-0 items-center gap-2">
+          <Sparkline values={values} field={chartField} label={title.toLowerCase()} formatValue={formatValue} />
+          <span className="whitespace-nowrap text-xs text-slate-600">
+            Último: <span className="font-semibold tabular-nums text-slate-900">{formatValue(last)}</span>
+          </span>
+        </div>
+      )}
+    </div>
+  )
+}
 
 const currentTime = () => Date.now()
 
@@ -28,8 +48,15 @@ export default function ReadingsEvolution({ readings, periodId, headingLevel = 3
       {SERIES.map(({ chartField, field, title, unit, formatValue }) => {
         const summaryId = `${summaryBase}-${field}`
         return (
-          <Card key={field} title={title} headingLevel={headingLevel} className="min-w-0">
+          <Card key={field} className="min-w-0">
             <div className="space-y-4">
+              <CardHeader
+                title={title}
+                headingLevel={headingLevel}
+                values={series.map((point) => point[chartField])}
+                chartField={chartField}
+                formatValue={formatValue}
+              />
               <ReadingsSummary readings={readings} field={field} label={title.toLowerCase()} formatValue={formatValue} id={summaryId} />
               <SeriesChart
                 series={series}

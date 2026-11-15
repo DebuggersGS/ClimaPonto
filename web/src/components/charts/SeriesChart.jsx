@@ -7,7 +7,7 @@ import { fadeUp } from '../ui/motion.js'
 import ChartTooltip from './ChartTooltip.jsx'
 import { SERIES_TONES, formatTick } from './chartFormat.js'
 
-const AXIS_TICK = { fontSize: 12, fill: '#475569' }
+const AXIS_TICK = { fontSize: 12, fill: 'var(--color-slate-600)' }
 
 /**
  * Gráfico de área de uma grandeza. Lacunas ficam visíveis (connectNulls=false).
@@ -46,7 +46,7 @@ export default function SeriesChart({ series, field, title, unit, periodId, form
                 <stop offset="100%" stopColor={stroke} stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="#e2e8f0" />
+            <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="var(--color-slate-200)" />
             <XAxis
               dataKey="t"
               axisLine={false}
@@ -69,7 +69,7 @@ export default function SeriesChart({ series, field, title, unit, periodId, form
               allowDecimals={false}
             />
             <Tooltip
-              cursor={{ stroke: '#94a3b8', strokeDasharray: '3 3' }}
+              cursor={{ stroke: 'var(--color-slate-400)', strokeDasharray: '3 3' }}
               content={<ChartTooltip field={field} title={title} formatValue={formatValue} />}
             />
             <Area
@@ -81,7 +81,7 @@ export default function SeriesChart({ series, field, title, unit, periodId, form
               fill={`url(#${gradientId})`}
               connectNulls={false}
               dot={false}
-              activeDot={{ r: 4, strokeWidth: 2, stroke: '#fff' }}
+              activeDot={{ r: 4, strokeWidth: 2, stroke: 'var(--color-surface)' }}
               isAnimationActive={!reducedMotion}
               animationDuration={700}
             />
