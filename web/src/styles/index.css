@@ -220,3 +220,24 @@
     background-image: none;
   }
 }
+
+/* Entrada da ficha: só com movimento permitido (com redução, aparece sem animação). */
+@media (prefers-reduced-motion: no-preference) {
+  .stop-panel-enter {
+    animation: stop-enter 200ms var(--ease-out-soft);
+  }
+  .stop-sheet-enter {
+    animation: stop-sheet-enter 220ms var(--ease-out-soft);
+  }
+  @keyframes stop-enter {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes stop-sheet-enter {
+    from {
+      transform: translateY(2rem);
+      opacity: 0;
+    }
+  }
+}
