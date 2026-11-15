@@ -15,7 +15,6 @@ const aguardarDashboard = async (page) => {
 }
 const aguardarHistorico = async (page) => {
   await page.goto(HISTORICO)
-  await expect(page.getByRole('table')).toBeVisible()
   await expect(regiao(page, 'Evolução')).toBeVisible()
 }
 

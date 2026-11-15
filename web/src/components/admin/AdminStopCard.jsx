@@ -44,7 +44,7 @@ export default function AdminStopCard({ stop, busy, onEdit, onToggleActive, onDe
         >
           {stop.active ? 'Desativar' : 'Reativar'}
         </Button>
-        <Button variant="ghost" className="text-red-800 hover:bg-red-50" onClick={() => onDelete(stop)} disabled={busy} aria-label={`Excluir ${stop.name}`}>
+        <Button variant="ghost" className="text-red-800 hover:bg-red-50 dark:text-red-300 dark:hover:bg-red-950/40 dark:disabled:text-slate-400" onClick={() => onDelete(stop)} disabled={busy} aria-label={`Excluir ${stop.name}`}>
           Excluir
         </Button>
       </div>
