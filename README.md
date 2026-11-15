@@ -19,7 +19,7 @@
 | **Problema em uma frase** | Quem espera ônibus em São Paulo fica exposto ao calor sem nenhuma informação sobre a temperatura naquele ponto |
 | **Como funciona** | Um ESP32 com sensor no ponto mede temperatura e umidade, classifica o calor em *normal*, *atenção* (≥ 30 °C) ou *crítico* (≥ 35 °C) e alerta no local, mesmo sem internet. As leituras seguem por MQTT para a plataforma FIWARE e aparecem numa aplicação web com estado, histórico e gerenciamento dos pontos |
 | **Papel de cada componente** | ver tabela abaixo |
-| **Repositório** | https://github.com/DebuggersGS/ClimaPonto-TotalExperience |
+| **Repositório** | https://github.com/DebuggersGS/ClimaPonto-TotalEx |
 | **Indicador de impacto** | Graus-hora acima de 30 °C por ponto. Referência: 331 °C·h no ano em Santana (dados INMET, repositório [ClimaPonto-DPS](https://github.com/DebuggersGS/ClimaPonto-DPS)). Para a experiência: 80 % ou mais das pessoas interpretando o estado corretamente em teste com 5 participantes (meta proposta) |
 | **ODS** | 3 Saúde e Bem-Estar · 11 Cidades e Comunidades Sustentáveis · 13 Ação Contra a Mudança do Clima |
 
