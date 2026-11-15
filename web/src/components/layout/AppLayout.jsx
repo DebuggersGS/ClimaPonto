@@ -1,8 +1,11 @@
 import { Link, Outlet } from 'react-router'
+import { WifiOff } from 'lucide-react'
+import { useOnlineStatus } from '../../hooks/useOnlineStatus.js'
 import DemoNotice from '../ui/DemoNotice.jsx'
 import Header from './Header.jsx'
 
 export default function AppLayout() {
+  const online = useOnlineStatus()
   return (
     <div className="flex min-h-screen flex-col">
       <a
@@ -13,6 +16,15 @@ export default function AppLayout() {
       </a>
 
       <Header />
+
+      <div role="status" className={online ? undefined : 'border-b border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-400/40 dark:bg-amber-950 dark:text-amber-200'}>
+        {!online && (
+          <p className="mx-auto flex max-w-7xl items-center gap-2 px-4 py-2 text-sm font-medium sm:px-6 lg:px-8">
+            <WifiOff aria-hidden="true" className="h-4 w-4 shrink-0" />
+            Sem conexão: os dados podem estar desatualizados
+          </p>
+        )}
+      </div>
 
       <main id="conteudo" className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 sm:py-10 lg:px-8">
         <DemoNotice />

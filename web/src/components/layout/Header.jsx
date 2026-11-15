@@ -1,10 +1,12 @@
 import { Link, useNavigate } from 'react-router'
-import { Bus, ThermometerSun } from 'lucide-react'
+import { Bus, Search, ThermometerSun } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth.js'
 import { useDataMode } from '../../hooks/useDataMode.js'
 import { getDataModeTone } from '../../utils/statusTones.js'
 import Badge from '../ui/Badge.jsx'
 import Button from '../ui/Button.jsx'
+import CommandPalette from '../palette/CommandPalette.jsx'
+import { useCommandPalette } from '../../hooks/useCommandPalette.js'
 import MainNav from './MainNav.jsx'
 
 function UserMenu() {
@@ -60,16 +62,23 @@ function Logo() {
 }
 
 export default function Header() {
+  const palette = useCommandPalette()
   return (
     <header className="surface-glass sticky top-0 z-40 rounded-none border-x-0 border-t-0">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2.5 sm:px-6 lg:px-8">
         <Logo />
         <MainNav className="order-last w-full sm:order-none sm:w-auto" />
         <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
+          <Button variant="secondary" size="sm" onClick={palette.open} aria-haspopup="dialog">
+            <Search aria-hidden="true" className="h-4 w-4" />
+            Busca rápida
+            <span className="sr-only"> (Ctrl+K)</span>
+          </Button>
           <DataModeIndicator />
           <UserMenu />
         </div>
       </div>
+      <CommandPalette open={palette.isOpen} onClose={palette.close} />
     </header>
   )
 }
