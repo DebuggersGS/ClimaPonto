@@ -72,7 +72,7 @@ PONTOS = (
 )
 PERIODO_RELATORIO = (datetime(2025, 11, 1), datetime(2026, 11, 1))  # período do relatório PDF
 
-URL_DADOS = "https://raw.githubusercontent.com/DebuggersGS/ClimaPonto/main/dados/inmet_sp.json"
+URL_DADOS = "https://raw.githubusercontent.com/DebuggersGS/ClimaPonto-DPS/main/dados/inmet_sp.json"
 API_CLIMAPONTO = None  # endereço da API do backend do ClimaPonto (ainda não publicado)
 TAMANHO_MAXIMO = 20 * 1024 * 1024   # recusa respostas maiores que 20 MB
 FAIXA_VALIDA = (-5.0, 45.0)         # °C fisicamente possíveis em São Paulo

@@ -19,7 +19,7 @@
 | **Problema em uma frase** | Quem espera ônibus em São Paulo fica exposto ao calor sem nenhuma informação sobre a temperatura naquele ponto |
 | **Como funciona** | Um sensor ESP32 no ponto mede temperatura e umidade a cada 10 min, classifica o calor em *normal*, *atenção* (≥ 30 °C) ou *crítico* (≥ 35 °C), aciona sinais locais e envia as leituras para um painel web; a análise matemática define a frequência de leitura, os horários críticos e a tendência de aquecimento |
 | **Papel de cada componente** | ver tabela abaixo |
-| **Repositório** | https://github.com/DebuggersGS/ClimaPonto |
+| **Repositório** | https://github.com/DebuggersGS/ClimaPonto-DPS |
 | **Indicador de impacto** | Graus-hora acima de 30 °C por ponto (calor acumulado a que o passageiro fica exposto) e horas com alerta informado. Referência medida: 331 °C·h no ano em Santana (nov/2025 a out/2026, dados INMET) |
 | **ODS** | 3 Saúde e Bem-Estar · 11 Cidades e Comunidades Sustentáveis · 13 Ação Contra a Mudança do Clima |
 
