@@ -12,7 +12,8 @@ test.use({ viewport: DESKTOP })
 
 async function abrir(page, url) {
   await page.goto(url)
-  await expect(page.getByRole('table')).toBeVisible()
+  // em 375 px a tabela vira cartões (some da árvore de acessibilidade): a prontidão é a seção recolhível
+  await expect(secao(page, SECOES[0])).toBeVisible()
 }
 
 test('seções novas começam recolhidas e abrem por teclado', async ({ page }) => {

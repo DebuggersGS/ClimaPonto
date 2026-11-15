@@ -5,7 +5,7 @@ import { test, expect, snap, settle, keyboardWalk, horizontalOverflow, obscuredE
 const PAGES = [
   ['dashboard', '/', 'Pontos monitorados'],
   ['historico', '/historico?ponto=MOCK-01&periodo=24h', 'Leituras'],
-  ['pontos', '/pontos', null],
+  ['pontos', '/pontos?vista=lista', null],
   // sem gráficos: região indefinida = basta o h1 (a 404 não tem região nomeada)
   ['nao-encontrada', '/rota-que-nao-existe', undefined],
 ]

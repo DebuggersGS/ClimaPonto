@@ -5,7 +5,7 @@ import { test, expect } from 'harness-e2e'
 const PAGES = [
   ['Dashboard', '/', (page) => page.getByRole('region', { name: 'Resumo', exact: true })],
   ['Histórico', '/historico?ponto=MOCK-01&periodo=24h', (page) => page.getByRole('table')],
-  ['Pontos', '/pontos', (page) => page.getByRole('link', { name: 'Ver histórico' }).first()],
+  ['Pontos', '/pontos?vista=lista', (page) => page.getByRole('link', { name: 'Ver histórico' }).first()],
 ]
 
 test.beforeEach(async ({ page }) => {
