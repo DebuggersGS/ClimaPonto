@@ -188,7 +188,7 @@ test.describe('Dashboard: insights', () => {
     await expect(detalhe.nth(0)).toContainText('Normal: 5; Atenção: 1; Crítico: 1.')
     await expect(detalhe.nth(0)).toContainText('não é recalculado a partir de temperatura ou umidade')
     // MOCK-03 é o ponto com a temperatura mais alta (clamp 36–41 °C; os demais ficam abaixo)
-    await expect(detalhe.nth(1)).toContainText(/Maior: \d+,\d °C em Terminal Parque Dom Pedro II \(MOCK-03\)\./)
+    await expect(detalhe.nth(1)).toContainText(/Maior: \d+,\d\u00A0°C em Terminal Parque Dom Pedro II \(MOCK-03\)\./)
     await expect(detalhe.nth(1)).toContainText('não é classificação ambiental')
     await expect(detalhe.nth(2)).toContainText(/Maior: .*Menor: /)
     await expect(detalhe.nth(3)).toContainText('2 pontos offline ou sem dados.')

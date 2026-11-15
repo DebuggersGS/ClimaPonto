@@ -64,7 +64,9 @@ test('resumo por dia: recolhido por padrão e alternado por teclado', async ({ p
 test('CSV: download com BOM, cabeçalho, unidades, origem e uma linha por leitura exibida', async ({ page }) => {
   await page.goto(`${URL_BASE}&origem=simulation`)
   await expect(tabela(page)).toBeVisible()
-  const exibidas = (await tabela(page).locator('tbody tr').count())
+  // A tabela pagina no cliente ("Exibindo 50 de N"); o CSV leva todas as N leituras do filtro atual.
+  const status = await page.getByRole('status').filter({ hasText: /^Exibindo \d+ de \d+/ }).textContent()
+  const exibidas = Number(status.match(/de (\d+)/)[1])
   const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Exportar CSV' }).click()])
   expect(download.suggestedFilename()).toBe('climaponto-mock-01-24h-simulation.csv')
   const chunks = []
