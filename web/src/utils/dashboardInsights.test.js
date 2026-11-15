@@ -116,3 +116,33 @@ describe('buildDashboardInsights', () => {
     assert.deepEqual(summary, copy)
   })
 })
+
+describe('buildDashboardInsights: destaque curto', () => {
+  it('todo insight tem value e label não vazios, inclusive dados insuficientes', () => {
+    const empty = buildDashboardInsights([], NOW)
+    assert.deepEqual([empty[0].value, empty[0].label], ['—', 'sem leituras'])
+    const summary = summarizeDashboard(
+      [stop(1), stop(2)],
+      [reading('s1', { temperatureC: 30 }), reading('s2', { temperatureC: 20, source: 'simulation' })],
+      NOW,
+    )
+    const result = buildDashboardInsights(summary, NOW)
+    for (const insight of result) {
+      assert.ok(insight.value && insight.label, insight.id)
+    }
+  })
+
+  it('destaques refletem contagens e o maior valor', () => {
+    const summary = summarizeDashboard(
+      [stop(1), stop(2)],
+      [reading('s1', { temperatureC: 30 }), reading('s2', { temperatureC: 20, source: 'simulation' })],
+      NOW,
+    )
+    const result = buildDashboardInsights(summary, NOW)
+    assert.equal(byId(result, 'environmental-distribution').value, '2')
+    assert.match(byId(result, 'temperature-extremes').label, /SP-001/)
+    assert.match(byId(result, 'temperature-extremes').value, /30/)
+    assert.equal(byId(result, 'simulation-data').value, '1')
+    assert.equal(byId(result, 'stale-stops').value, '0')
+  })
+})

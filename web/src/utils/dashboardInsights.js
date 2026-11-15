@@ -12,6 +12,8 @@ import { ENVIRONMENTAL_STATUS_LABELS, normalizeEnvironmentalStatus } from './rea
  * @property {string} title
  * @property {string} text resultado, em português
  * @property {string} explanation como o resultado foi calculado
+ * @property {string} value destaque curto já formatado (número ou valor com unidade)
+ * @property {string} label rótulo curto do destaque
  */
 
 const STATUS_ORDER = ['normal', 'attention', 'critical', 'unclassified']
@@ -36,6 +38,8 @@ function environmentalDistribution(withReading) {
   return {
     id: 'environmental-distribution',
     title: 'Estados ambientais gravados',
+    value: String(withReading.length),
+    label: withReading.length === 1 ? 'ponto com estado gravado' : 'pontos com estado gravado',
     text: `${parts.join('; ')}.`,
     explanation:
       `Conta o estado ambiental gravado na última leitura de cada um dos ${unitsOf(withReading.length)} com leitura. ` +
@@ -60,6 +64,8 @@ function extremesInsight({ id, title, field, format, label }, withReading) {
   return {
     id,
     title,
+    value: format(max.reading[field]),
+    label: same ? 'valor igual em todos os pontos' : `maior valor, em ${max.stop?.code ?? 'ponto sem código'}`,
     text: `${text} Comparação entre pontos; não é classificação ambiental.`,
     explanation:
       `Compara a ${label} da última leitura de ${valued.length} pontos com valor (leituras sem o valor são ignoradas). ` +
@@ -75,6 +81,8 @@ function staleInsight(items, now, options) {
   return {
     id: 'stale-stops',
     title: 'Pontos sem leitura recente',
+    value: String(stale.length),
+    label: 'offline ou sem dados',
     text: stale.length === 0 ? 'Nenhum ponto está offline ou sem dados.' : `${unitsOf(stale.length)} offline ou sem dados.`,
     explanation:
       `Soma os pontos com conectividade "Offline" ou "Sem dados" pela regra de conectividade existente, ` +
@@ -88,6 +96,8 @@ function simulationInsight(withReading) {
   return {
     id: 'simulation-data',
     title: 'Há leituras que não são medição real',
+    value: String(nonSensor.length),
+    label: 'sem medição real',
     text: `${unitsOf(nonSensor.length)} com última leitura de simulação, teste ou origem desconhecida; não tratar como medição real.`,
     explanation: 'Conta as últimas leituras cuja origem não é "sensor".',
   }
@@ -113,6 +123,8 @@ export function buildDashboardInsights(summaryOrItems, now, { sendIntervalMs } =
       {
         id: 'insufficient-data',
         title: 'Dados insuficientes',
+        value: '—',
+        label: 'sem leituras',
         text: 'Ainda não há leituras para gerar insights.',
         explanation: 'Os insights usam a última leitura de cada ponto; nenhum ponto possui leitura.',
       },
