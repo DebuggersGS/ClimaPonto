@@ -144,3 +144,31 @@ describe('shouldShowFilter e resolveActiveFilters', () => {
     assert.equal(input.environmental, 'critical')
   })
 })
+
+describe('filterStops: somente favoritos', () => {
+  const favorites = ['SP-001', 'SP-002', 'SP-004']
+
+  it('desligado (ou ausente) não altera o comportamento, mesmo com favoritos informados', () => {
+    assert.deepEqual(filterStops(stops, {}, { now: NOW, favorites }), stops)
+    assert.deepEqual(filterStops(stops, { favoritesOnly: false }, { now: NOW, favorites }), stops)
+  })
+
+  it('ligado mostra só os favoritos, nos dois formatos de item', () => {
+    assert.deepEqual(codes(filterStops(stops, { favoritesOnly: true }, { now: NOW, favorites })), ['SP-001', 'SP-002', 'SP-004'])
+    assert.deepEqual(codes(filterStops(items, { favoritesOnly: true }, { now: NOW, favorites: ['SP-003'] })), ['SP-003'])
+  })
+
+  it('sem favoritos informados, ligado resulta em lista vazia', () => {
+    assert.deepEqual(filterStops(stops, { favoritesOnly: true }, { now: NOW }), [])
+    assert.deepEqual(filterStops(stops, { favoritesOnly: true }, { now: NOW, favorites: [] }), [])
+  })
+
+  it('combina por E com texto, bairro, estado ambiental e conectividade', () => {
+    const opts = { now: NOW, favorites }
+    assert.deepEqual(codes(filterStops(items, { favoritesOnly: true, text: 'paulista' }, opts)), ['SP-002'])
+    assert.deepEqual(codes(filterStops(items, { favoritesOnly: true, text: 'largo' }, opts)), [])
+    assert.deepEqual(codes(filterStops(items, { favoritesOnly: true, neighborhood: 'itaim' }, opts)), ['SP-004'])
+    assert.deepEqual(codes(filterStops(items, { favoritesOnly: true, environmental: 'critical' }, opts)), ['SP-001'])
+    assert.deepEqual(codes(filterStops(items, { favoritesOnly: true, connectivity: 'no_data' }, opts)), ['SP-004'])
+  })
+})

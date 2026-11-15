@@ -15,6 +15,7 @@ import { ENVIRONMENTAL_STATUS_LABELS, normalizeEnvironmentalStatus } from './rea
  * @property {string} [neighborhood] bairro exato (sem acentos/caixa); vazio não filtra
  * @property {'normal'|'attention'|'critical'|'unclassified'|''} [environmental] estado GRAVADO
  * @property {'online'|'delayed'|'offline'|'no_data'|'unknown'|''} [connectivity]
+ * @property {boolean} [favoritesOnly] só pontos cujo código está em `options.favorites`; desligado não filtra
  *
  * @typedef {object} FilterOption
  * @property {string} value valor a usar no filtro
@@ -54,19 +55,22 @@ function matchesText(stop, text) {
  * Filtra por E lógico, sem mutar a entrada e preservando a ordem original.
  * @param {Array<object>|null|undefined} items pontos simples ou itens do summarizeDashboard
  * @param {StopFilters} [filters]
- * @param {{ now: Date|number, sendIntervalMs?: number }} options `now` é obrigatório para filtrar por conectividade
+ * @param {{ now: Date|number, sendIntervalMs?: number, favorites?: string[] }} options `now` é obrigatório para filtrar por
+ *   conectividade; `favorites` (códigos) é usado só com `filters.favoritesOnly`
  * @returns {Array<object>} novo array com os mesmos objetos
  */
-export function filterStops(items, filters = {}, { now, sendIntervalMs } = {}) {
+export function filterStops(items, filters = {}, { now, sendIntervalMs, favorites } = {}) {
   const list = Array.isArray(items) ? items : []
   const text = normalizeSearchText(filters?.text)
   const neighborhood = normalizeSearchText(filters?.neighborhood)
   const environmental = filters?.environmental || ''
   const connectivity = filters?.connectivity || ''
+  const favoriteCodes = filters?.favoritesOnly ? new Set(Array.isArray(favorites) ? favorites : []) : null
 
   return list.filter((item) => {
     const { stop, reading } = unwrap(item)
     if (!matchesText(stop, text)) return false
+    if (favoriteCodes && !favoriteCodes.has(stop.code)) return false
     if (neighborhood && normalizeSearchText(stop.neighborhood) !== neighborhood) return false
     if (environmental) {
       if (!reading || normalizeEnvironmentalStatus(reading.environmentalStatus) !== environmental) return false
