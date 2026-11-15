@@ -174,8 +174,8 @@ class Matematica(unittest.TestCase):
         cls.modelos, _ = silencioso(cp.preparar, BASE_REAL, P001, "relatorio")
 
     def test_reproduz_numeros_do_relatorio(self):
-        q1, _ = silencioso(cp.questao1, self.modelos)
-        q3, _ = silencioso(cp.questao3, self.modelos)
+        q1, _ = silencioso(cp.modelo_e_limites, self.modelos)
+        q3, _ = silencioso(cp.integrais, self.modelos)
         self.assertAlmostEqual(q1["L1"], 0.8748, places=4)
         self.assertAlmostEqual(q3["total_ano"], 331.45, places=2)
         self.assertEqual(len(self.modelos["dados"]), 8654)

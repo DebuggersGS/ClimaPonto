@@ -11,9 +11,9 @@
 
  O que este programa faz
    - Menu para escolher o ponto de ônibus (localidade) e o período analisado.
-   - Questão 1: variáveis, função ajustada aos dados reais e limites.
-   - Questão 2: derivadas, crescimento/decrescimento, pontos críticos.
-   - Questão 3: integrais, área sob a curva e calor acumulado (graus-hora).
+   - Modelo e limites: variáveis, função ajustada aos dados reais e limites.
+   - Derivadas: crescimento/decrescimento, pontos críticos e taxa de variação.
+   - Integrais: área sob a curva e calor acumulado (graus-hora).
    - Gráficos com matplotlib: abrem na tela e ficam salvos em "figuras".
    - Leitura do sensor ClimaPonto (ESP32), parte de Edge Computing da solução
      integrada (nesta versão, leitura de demonstração: ver seção 4).
@@ -59,7 +59,7 @@ LIMIAR_ATENCAO = 30.0   # °C - estado "atenção" (regra do ClimaPonto)
 LIMIAR_CRITICO = 35.0   # °C - estado "crítico"
 JANELA_EXPOSICAO = (11.0, 17.0)  # horas de maior calor nos pontos
 HORA_LIMITE = 7.0                # 7h: pico de passageiros pela manhã
-INTERVALO_SENSOR_MIN = 10        # o ESP32 mede a cada 10 min (resultado da Questão 1)
+INTERVALO_SENSOR_MIN = 10        # o ESP32 mede a cada 10 min (resultado do cálculo de limite)
 
 # Pontos de ônibus monitorados e a estação do INMET usada como referência (tupla de dicionários)
 PONTOS = (
@@ -310,7 +310,7 @@ def dia_mais_quente(dados, estacao):
 
 
 # =============================================================================
-# 2. MODELO: série de Fourier ajustada por mínimos quadrados  (Questão 1b)
+# 2. MODELO: série de Fourier ajustada por mínimos quadrados
 #    T(t) = a0 + a1 cos(πt/12) + b1 sen(πt/12) + a2 cos(πt/6) + b2 sen(πt/6)
 # =============================================================================
 def ajustar_fourier(horas, temps):
@@ -438,7 +438,7 @@ def receber_leituras_esp32(ponto, modelos, quantidade=6):
 
     COMO FUNCIONA NA SOLUÇÃO INTEGRADA
       1. O ESP32 do ponto lê o sensor DHT22 (temperatura e umidade) a cada 10 min;
-         esse intervalo vem do limite da Questão 1 (erro < 3,5 % na taxa de variação).
+         esse intervalo vem do cálculo de limite (erro < 3,5 % na taxa de variação).
       2. Ele classifica a leitura no próprio dispositivo (normal/atencao/critico) e aciona
          LEDs e buzzer mesmo sem internet: a decisão acontece na borda (edge).
       3. Com rede, envia à API do ClimaPonto um JSON no contrato do grupo:
@@ -524,17 +524,17 @@ def painel_sensor(ponto, modelos):
 
 
 # =============================================================================
-# 5. QUESTÃO 1 - VARIÁVEIS, FUNÇÃO E LIMITES
+# 5. MODELO MATEMÁTICO E LIMITES
 # =============================================================================
-def questao1(modelos):
-    titulo("QUESTÃO 1 - MODELO MATEMÁTICO E LIMITES")
-    print("a) Variáveis e grandezas")
+def modelo_e_limites(modelos):
+    titulo("MODELO MATEMÁTICO E LIMITES")
+    print("Variáveis e grandezas")
     print("   t  = hora do dia (h), 0 <= t <= 24 ............ variável independente")
     print("   T  = temperatura do ar (°C) .................. variável dependente")
     print("   T' = taxa de variação (°C/h) | ∫T dt = temperatura acumulada (°C·h)")
     print("   d  = dias desde o início do período | Tm(d) = média diária (°C) - ciclo anual")
 
-    print("\nb) Função ajustada aos dados reais por mínimos quadrados")
+    print("\nFunção ajustada aos dados reais por mínimos quadrados")
     print("   T(t) = a0 + a1 cos(πt/12) + b1 sen(πt/12) + a2 cos(πt/6) + b2 sen(πt/6)")
     print(f"   {'modelo':<32}{'a0':>8}{'a1':>8}{'b1':>8}{'a2':>8}{'b2':>8}{'R²':>8}{'RMSE':>7}")
     for grupo, rotulo in (("perfis", "perfil médio"), ("quentes", "dia mais quente")):
@@ -550,7 +550,7 @@ def questao1(modelos):
     T = modelos["perfis"]["Verão"]["expr"]
     h, D = sp.symbols("h D", positive=True)
     t0 = HORA_LIMITE
-    print(f"\nc) Limites calculados sobre o perfil do verão:\n   T(t) = {sp.sstr(T)}")
+    print(f"\nLimites calculados sobre o perfil do verão:\n   T(t) = {sp.sstr(T)}")
     quociente = (T.subs(t, t0 + h) - T.subs(t, t0)) / h            # taxa média -> instantânea
     L1 = float(sp.limit(quociente, h, 0))
     tabela = [(p, float(quociente.subs(h, p / 60))) for p in (60, 30, 15, 10, 5, 1)]
@@ -568,7 +568,7 @@ def questao1(modelos):
     escala = abs(L1) if abs(L1) > 1e-9 else 1.0
     erro60 = abs(tabela[0][1] - L1) / escala * 100
     erro10 = abs(tabela[3][1] - L1) / escala * 100
-    print("\nd) Interpretação")
+    print("\nInterpretação")
     print(f"   L1: leitura de hora em hora erra {erro60:.1f} % na taxa de aquecimento; a cada 10 min,")
     print(f"       {erro10:.1f} %. -> O sensor do ClimaPonto deve medir pelo menos a cada 10 minutos.")
     print("   L2: o dia termina na mesma temperatura em que começa -> função contínua no ciclo.")
@@ -577,7 +577,7 @@ def questao1(modelos):
 
 
 # =============================================================================
-# 6. QUESTÃO 2 - DERIVADAS
+# 6. DERIVADAS
 # =============================================================================
 def analisar_derivada(expr):
     """T', T'', pontos críticos (T'=0) com teste da 2ª derivada, intervalos e inflexões."""
@@ -598,9 +598,9 @@ def analisar_derivada(expr):
                 resfr=min(inflexoes, key=lambda x: x["taxa"]))
 
 
-def questao2(modelos):
-    titulo("QUESTÃO 2 - DERIVADAS")
-    print("a) Procedimento: d/dt[cos(kt)] = -k sen(kt) e d/dt[sen(kt)] = k cos(kt) (regra da cadeia)")
+def derivadas(modelos):
+    titulo("DERIVADAS - TAXA DE VARIAÇÃO DA TEMPERATURA")
+    print("Procedimento: d/dt[cos(kt)] = -k sen(kt) e d/dt[sen(kt)] = k cos(kt) (regra da cadeia)")
     print("   T'(t) = (π/12)[-a1 sen(πt/12) + b1 cos(πt/12)] + (π/6)[-a2 sen(πt/6) + b2 cos(πt/6)]")
     resultados = {"perfis": {}, "quentes": {}}
     for grupo in ("perfis", "quentes"):
@@ -614,11 +614,11 @@ def questao2(modelos):
                 print(f"   T'(t)  = {sp.sstr(an['d1'])}")
                 print(f"   T''(t) = {sp.sstr(an['d2'])}")
             for a, b, tipo in an["intervalos"]:
-                print(f"   b) {hora_formatada(a)} a {hora_formatada(b)}: {tipo}")
+                print(f"   {hora_formatada(a)} a {hora_formatada(b)}: {tipo}")
             for c in an["criticos"]:
-                print(f"   c) ponto crítico {hora_formatada(c['t'])}: {c['tipo']} = {c['T']:.2f} °C "
+                print(f"   ponto crítico {hora_formatada(c['t'])}: {c['tipo']} = {c['T']:.2f} °C "
                       f"(T'' = {c['d2']:+.3f} °C/h²)")
-            print(f"   d) aquecimento mais rápido {an['aquec']['taxa']:+.3f} °C/h às "
+            print(f"   aquecimento mais rápido {an['aquec']['taxa']:+.3f} °C/h às "
                   f"{hora_formatada(an['aquec']['t'])} | resfriamento mais rápido "
                   f"{an['resfr']['taxa']:+.3f} °C/h às {hora_formatada(an['resfr']['t'])}")
     Ta = modelos["anual"]["expr"]
@@ -634,7 +634,7 @@ def questao2(modelos):
     picos = [max(resultados["perfis"][e]["criticos"], key=lambda c: c["T"])["t"]
              for e in ESTACOES_ANO if resultados["perfis"][e]["criticos"]] or [0.0]
     rapidos = [resultados["perfis"][e]["aquec"]["t"] for e in ESTACOES_ANO]
-    print("\nd) Interpretação: T'(t) é quantos °C por hora o ar ganha (>0) ou perde (<0) naquele")
+    print("\nInterpretação: T'(t) é quantos °C por hora o ar ganha (>0) ou perde (<0) naquele")
     print(f"   instante. O pico de calor ocorre entre {hora_formatada(min(picos))} e "
           f"{hora_formatada(max(picos))}, e o aquecimento é mais rápido")
     print(f"   entre {hora_formatada(min(rapidos))} e {hora_formatada(max(rapidos))}. Pela aproximação "
@@ -644,7 +644,7 @@ def questao2(modelos):
 
 
 # =============================================================================
-# 7. QUESTÃO 3 - INTEGRAIS
+# 7. INTEGRAIS
 # =============================================================================
 def graus_hora(expr, limiar):
     """E = ∫ max(T(t) - limiar, 0) dt em [0, 24]: integra T - limiar só onde T > limiar."""
@@ -672,13 +672,13 @@ def graus_hora_dados_reais(dados, limiar):
     return por_mes, horas
 
 
-def questao3(modelos):
-    titulo("QUESTÃO 3 - INTEGRAIS")
+def integrais(modelos):
+    titulo("INTEGRAIS - CALOR ACUMULADO")
     Tv = modelos["perfis"]["Verão"]["expr"]
-    print(f"a) Integral indefinida (verão): ∫T(t)dt = {sp.sstr(sp.integrate(Tv, t))} + C")
+    print(f"Integral indefinida (verão): ∫T(t)dt = {sp.sstr(sp.integrate(Tv, t))} + C")
     print("   Em [0, 24] os senos e cossenos se anulam: ∫0^24 T dt = 24·a0 (a0 = média do dia)")
     areas = {}
-    print("\nb) Área sob a curva (°C·h) e temperatura média = área / duração")
+    print("\nÁrea sob a curva (°C·h) e temperatura média = área / duração")
     for est in ESTACOES_ANO:
         T = modelos["perfis"][est]["expr"]
         area_dia = float(sp.integrate(T, (t, 0, 24)))
@@ -688,7 +688,7 @@ def questao3(modelos):
         print(f"   {est:<9} ∫0^24 = {area_dia:7.2f} (trapézio {conf:7.2f}) -> média {area_dia / 24:5.2f} °C"
               f" | ∫11^17 = {area_jan:6.2f} -> média 11h-17h {area_jan / 6:5.2f} °C")
 
-    print("\nc) Grandeza acumulada: graus-hora acima de 30 °C, E30 = ∫ max(T - 30, 0) dt (°C·h)")
+    print("\nGrandeza acumulada: graus-hora acima de 30 °C, E30 = ∫ max(T - 30, 0) dt (°C·h)")
     e30 = {}
     for est in ESTACOES_ANO:
         info = modelos["quentes"][est]
@@ -710,7 +710,7 @@ def questao3(modelos):
           f"{sum(por_mes35.values()):.2f} °C·h acima de 35 °C")
     anual = float(sp.integrate(modelos["anual"]["expr"], (d, 0, 365)))
     print(f"   Ciclo anual: ∫0^365 Tm dd = {anual:.1f} °C·dia -> média anual {anual / 365:.2f} °C")
-    print("\nd) Gráficos: abrem na tela e ficam salvos na pasta 'figuras' (título, eixos, unidades, fonte)")
+    print("\nGráficos: abrem na tela e ficam salvos na pasta 'figuras' (título, eixos, unidades, fonte)")
     return dict(areas=areas, e30=e30, por_mes=por_mes, horas=horas, total_ano=total_ano)
 
 
@@ -791,7 +791,7 @@ def graficos_dados(modelos, lim):
     salvar(fig, modelos, "fig02_limiares.png")
 
 
-def graficos_q1(modelos, q1):
+def graficos_modelo(modelos, res_modelo):
     estilo()
     tt = np.linspace(0, 24, 481)
     fig, eixos = plt.subplots(2, 2, figsize=(11, 6.6), sharex=True, sharey=True)
@@ -811,7 +811,7 @@ def graficos_q1(modelos, q1):
     fig.tight_layout()
     salvar(fig, modelos, "fig03_ajuste_funcao.png")
 
-    T, L1, t0 = q1["T"], q1["L1"], HORA_LIMITE
+    T, L1, t0 = res_modelo["T"], res_modelo["L1"], HORA_LIMITE
     f = sp.lambdify(t, T, "numpy")
     perfil = modelos["perfis"]["Verão"]
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(11, 4.2))
@@ -828,8 +828,8 @@ def graficos_q1(modelos, q1):
     ax1.set_xticks(range(0, 25, 3))
     ax1.set(xlabel="Hora do dia, t (h)", ylabel="Temperatura, T (°C)", title=f"Secantes → tangente em t = {t0:.0f}h")
     ax1.legend(fontsize=7.5, loc="upper left")
-    passos = [p for p, _ in q1["tabela"]]
-    ax2.plot(passos, [v for _, v in q1["tabela"]], marker="o", ms=7, color=CORES["Verão"], label="taxa média")
+    passos = [p for p, _ in res_modelo["tabela"]]
+    ax2.plot(passos, [v for _, v in res_modelo["tabela"]], marker="o", ms=7, color=CORES["Verão"], label="taxa média")
     ax2.axhline(L1, color="#0b0b0b", lw=1.2, ls="--", label=f"limite h → 0 = {L1:.3f} °C/h")
     ax2.set_xscale("log")
     ax2.invert_xaxis()
@@ -843,13 +843,13 @@ def graficos_q1(modelos, q1):
     salvar(fig, modelos, "fig04_limite.png")
 
 
-def graficos_q2(modelos, q2):
+def graficos_derivadas(modelos, res_deriv):
     estilo()
     tt = np.linspace(0, 24, 481)
     estilos = {"Primavera": "-", "Verão": "-", "Outono": "--", "Inverno": "-."}
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 7.4), sharex=True)
     for est in ESTACOES_ANO:
-        info, an = modelos["perfis"][est], q2["perfis"][est]
+        info, an = modelos["perfis"][est], res_deriv["perfis"][est]
         ax1.plot(tt, sp.lambdify(t, info["expr"], "numpy")(tt), color=CORES[est], ls=estilos[est], label=est)
         ax2.plot(tt, sp.lambdify(t, an["d1"], "numpy")(tt), color=CORES[est], ls=estilos[est], label=est)
         for c in an["criticos"]:
@@ -873,13 +873,13 @@ def graficos_q2(modelos, q2):
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 6.6), sharex=True, gridspec_kw=dict(height_ratios=[1.6, 1]))
     ax1.scatter(a["x"], a["y"], s=9, color="#86b6ef", label="média diária observada")
     ax1.plot(dd, sp.lambdify(d, a["expr"], "numpy")(dd), color="#2a78d6", label="Tm(d) ajustada")
-    for c in q2["anual"]["criticos"]:
+    for c in res_deriv["anual"]["criticos"]:
         ax1.scatter([c["d"]], [c["Tm"]], s=70, color="#0b0b0b", zorder=5, marker="^" if c["tipo"] == "máximo" else "v")
         ax1.annotate(f"{c['tipo']}: {c['Tm']:.1f} °C ({c['data']:%d/%m})", (c["d"], c["Tm"]),
                      xytext=(6, 8 if c["tipo"] == "máximo" else -14), textcoords="offset points", fontsize=8)
     ax1.set(ylabel="Temperatura média diária (°C)", title="Ciclo anual da temperatura média diária")
     ax1.legend(loc="lower left", fontsize=8.5)
-    ax2.plot(dd, sp.lambdify(d, q2["anual"]["d1"], "numpy")(dd), color="#2a78d6")
+    ax2.plot(dd, sp.lambdify(d, res_deriv["anual"]["d1"], "numpy")(dd), color="#2a78d6")
     ax2.axhline(0, color="#52514e", lw=1)
     inicio = modelos["inicio"]
     ax2.set_xticks([(datetime(ano, mes, 1) - inicio).days for ano, mes in meses_do_periodo(modelos)])
@@ -890,11 +890,11 @@ def graficos_q2(modelos, q2):
     salvar(fig, modelos, "fig06_ciclo_anual.png")
 
 
-def graficos_q3(modelos, q3):
+def graficos_integrais(modelos, res_integ):
     estilo()
     tt = np.linspace(0, 24, 481)
     Tv = sp.lambdify(t, modelos["perfis"]["Verão"]["expr"], "numpy")
-    area_dia, area_jan = q3["areas"]["Verão"]
+    area_dia, area_jan = res_integ["areas"]["Verão"]
     fig, ax = plt.subplots(figsize=(10, 4.4))
     ax.fill_between(tt, 0, Tv(tt), color="#cde2fb", label=f"∫₀²⁴ T dt = {area_dia:.1f} °C·h")
     jj = np.linspace(*JANELA_EXPOSICAO, 200)
@@ -913,7 +913,7 @@ def graficos_q3(modelos, q3):
     for ax, est in zip(eixos.flat, ESTACOES_ANO):
         info = modelos["quentes"][est]
         y = sp.lambdify(t, info["expr"], "numpy")(tt)
-        ax.fill_between(tt, 30, y, where=y > 30, color=COR_ATENCAO, alpha=0.55, label=f"E30 = {q3['e30'][est]:.2f} °C·h")
+        ax.fill_between(tt, 30, y, where=y > 30, color=COR_ATENCAO, alpha=0.55, label=f"E30 = {res_integ['e30'][est]:.2f} °C·h")
         ax.plot(tt, y, color=CORES[est], label="modelo T(t)")
         ax.scatter(info["horas"], info["temps"], s=14, color="#52514e", zorder=3, label="leituras reais")
         limiares(ax)
@@ -931,17 +931,17 @@ def graficos_q3(modelos, q3):
     salvar(fig, modelos, "fig08_graus_hora_dias.png")
 
     meses = meses_do_periodo(modelos)
-    valores = [q3["por_mes"].get(k, 0.0) for k in meses]
+    valores = [res_integ["por_mes"].get(k, 0.0) for k in meses]
     fig, ax = plt.subplots(figsize=(10, 4.2))
     barras = ax.bar([f"{NOMES_MES[m - 1]}/{a % 100:02d}" for a, m in meses], valores,
                     color=[CORES[estacao_do_mes(m)] for _, m in meses], width=0.7, edgecolor="white", linewidth=2)
     for b, v, k in zip(barras, valores, meses):
-        ax.text(b.get_x() + b.get_width() / 2, v + max(valores) * 0.01, f"{v:.0f}\n({q3['horas'].get(k, 0)} h)",
+        ax.text(b.get_x() + b.get_width() / 2, v + max(valores) * 0.01, f"{v:.0f}\n({res_integ['horas'].get(k, 0)} h)",
                 ha="center", va="bottom", fontsize=7.5)
     ax.legend(handles=[Patch(color=CORES[e], label=e) for e in ESTACOES_ANO], ncol=4, loc="upper right", fontsize=8.5)
     ax.set_ylim(0, max(max(valores) * 1.35, 1))
     ax.set(xlabel="Mês (rótulo: °C·h e horas com T ≥ 30 °C)", ylabel="Graus-hora acima de 30 °C (°C·h)",
-           title=f"Figura 9 - Calor acumulado acima de 30 °C: {q3['total_ano']:.0f} °C·h no período")
+           title=f"Figura 9 - Calor acumulado acima de 30 °C: {res_integ['total_ano']:.0f} °C·h no período")
     salvar(fig, modelos, "fig09_graus_hora_mensal.png", y=-0.07)
 
 
@@ -1052,21 +1052,21 @@ def cabecalho(modelos, origem):
     print("  1 - Escolher ponto de ônibus (localidade)")
     print("  2 - Escolher período (últimos 12 meses / período do relatório)")
     print("  3 - Leitura atual do sensor ESP32 e estado do ponto")
-    print("  4 - Questão 1: modelo e limites")
-    print("  5 - Questão 2: derivadas")
-    print("  6 - Questão 3: integrais")
-    print("  7 - Rodar tudo (Q1 + Q2 + Q3) e mostrar os gráficos")
+    print("  4 - Modelo matemático e limites")
+    print("  5 - Derivadas: taxa de variação")
+    print("  6 - Integrais: calor acumulado")
+    print("  7 - Rodar tudo e mostrar os gráficos")
     print("  0 - Sair")
     print("=" * 70)
 
 
 def rodar_tudo(modelos):
     lim = verificar_limiares(modelos)
-    q1, q2, q3 = questao1(modelos), questao2(modelos), questao3(modelos)
+    res_modelo, res_deriv, res_integ = modelo_e_limites(modelos), derivadas(modelos), integrais(modelos)
     graficos_dados(modelos, lim)
-    graficos_q1(modelos, q1)
-    graficos_q2(modelos, q2)
-    graficos_q3(modelos, q3)
+    graficos_modelo(modelos, res_modelo)
+    graficos_derivadas(modelos, res_deriv)
+    graficos_integrais(modelos, res_integ)
     mostrar_graficos(modelos)
 
 
@@ -1100,13 +1100,13 @@ def menu(base, origem, ponto, modelos, modo):
             case "3":
                 painel_sensor(ponto, modelos)
             case "4":
-                graficos_q1(modelos, questao1(modelos))
+                graficos_modelo(modelos, modelo_e_limites(modelos))
                 mostrar_graficos(modelos)
             case "5":
-                graficos_q2(modelos, questao2(modelos))
+                graficos_derivadas(modelos, derivadas(modelos))
                 mostrar_graficos(modelos)
             case "6":
-                graficos_q3(modelos, questao3(modelos))
+                graficos_integrais(modelos, integrais(modelos))
                 mostrar_graficos(modelos)
             case "7":
                 rodar_tudo(modelos)

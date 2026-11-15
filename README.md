@@ -53,14 +53,22 @@
 
 ## Como rodar a modelagem matemática
 
+Requisito: **Python 3.10 ou mais novo**, com internet na primeira execução.
+
 ```bash
 pip install numpy sympy matplotlib
-cd matematica
-python climaponto_modelagem.py          # menu interativo
-python climaponto_modelagem.py --tudo   # roda Q1, Q2 e Q3 direto e mostra os gráficos
+python matematica/climaponto_modelagem.py
 ```
 
-O menu permite escolher o ponto de ônibus (por número, código ou nome; Enter mostra a lista), o período (últimos 12 meses disponíveis ou o período do relatório) e ver a leitura do sensor com o estado e a tendência de aquecimento.
+| No menu | O que faz |
+|---|---|
+| **1** | Escolhe o ponto de ônibus: digite número, código ou nome, ou dê Enter para ver a lista |
+| **2** | Alterna o período: últimos 12 meses ou período do relatório |
+| **3** | Mostra a leitura do sensor ESP32, o estado do ponto e a tendência |
+| **4 a 6** | Modelo e limites, derivadas e integrais |
+| **7** | Roda tudo e abre os gráficos (também salvos em `matematica/figuras`) |
+
+> Os dados são baixados automaticamente do repositório na primeira vez e ficam guardados em `matematica/dados_cache`. Nas próximas vezes, o programa roda até sem internet.
 
 ## Testes
 
