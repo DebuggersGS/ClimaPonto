@@ -8,12 +8,12 @@ import Card from '../ui/Card.jsx'
  */
 export default function InsightsPanel({ insights }) {
   return (
-    <ul className="grid grid-cols-1 gap-4 md:grid-cols-2">
+    <ul className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-1">
       {insights.map((insight) => (
         <li key={insight.id} className="min-w-0">
           <Card className="h-full">
             <h3 className="flex items-start gap-2 text-base font-semibold text-slate-900">
-              <Lightbulb aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-brand-700" />
+              <Lightbulb aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-brand-700 dark:text-brand-200" />
               <span className="min-w-0 break-words">{insight.title}</span>
             </h3>
             <p className="mt-2 break-words text-slate-800">{insight.text}</p>

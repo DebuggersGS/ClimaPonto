@@ -25,14 +25,14 @@ export default function DashboardSummary({ summary }) {
   ]
   return (
     <div className="space-y-4">
-      <AnimatedList className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <AnimatedList className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {metrics.map(({ value, ...metric }) => (
           <AnimatedItem key={metric.label}>
             <MetricCard {...metric} value={String(value)} className="h-full" />
           </AnimatedItem>
         ))}
       </AnimatedList>
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-1 min-[1500px]:grid-cols-2">
         <DistributionCard
           title="Estado ambiental registrado"
           note="Último estado gravado em cada leitura. É independente da conectividade."

@@ -7,11 +7,11 @@ function Chip({ icon: Icon, children, className }) {
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1.5 rounded-full bg-white/70 px-2.5 py-1 text-sm font-medium text-slate-800 ring-1 ring-inset ring-slate-900/10',
+        'inline-flex items-center gap-1.5 rounded-full bg-surface/70 px-2.5 py-1 text-sm font-medium text-slate-800 ring-1 ring-inset ring-slate-900/10',
         className,
       )}
     >
-      <Icon aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-brand-700" />
+      <Icon aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-brand-700 dark:text-brand-200" />
       {children}
     </span>
   )

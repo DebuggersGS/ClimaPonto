@@ -4,9 +4,9 @@ import { OFFLINE_FACTOR, ONLINE_FACTOR, SEND_INTERVAL_MS } from '../../utils/con
 const SEND_INTERVAL_SECONDS = SEND_INTERVAL_MS / 1000
 
 /** Nota visível sobre a regra PROVISÓRIA de conectividade; os números vêm de utils/connectivity.js. */
-export default function ConnectivityRuleNote() {
+export default function ConnectivityRuleNote({ className }) {
   return (
-    <Card variant="inset" role="note" aria-label="Regra provisória de conectividade">
+    <Card variant="inset" className={className} role="note" aria-label="Regra provisória de conectividade">
       <p className="font-medium text-slate-900">Regra provisória de conectividade</p>
       <p className="mt-1">
         O ponto é considerado online até {ONLINE_FACTOR} vezes o intervalo de envio ({ONLINE_FACTOR} ×{' '}

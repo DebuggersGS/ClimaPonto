@@ -25,7 +25,7 @@ export default function DashboardHero({ source, children }) {
             Fonte: {getDataModeInfo(source).label}
           </Badge>
           <h1 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Dashboard</h1>
-          <p className="mt-2 max-w-xl text-base text-slate-200">
+          <p className="mt-2 max-w-xl text-base text-on-ink-muted">
             Calor urbano sob controle: acompanhe temperatura, umidade e conectividade dos pontos de ônibus de São Paulo.
           </p>
         </div>

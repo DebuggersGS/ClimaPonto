@@ -48,7 +48,7 @@ export default function RefreshControl({ lastUpdatedAt, isRefreshing, isStale, e
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-3 lg:justify-end">
-        <p className="text-sm font-medium text-slate-200">{updatedText}</p>
+        <p className="text-sm font-medium text-on-ink-muted">{updatedText}</p>
         <Button variant="secondary" onClick={handleRefresh} disabled={isRefreshing}>
           <IconRefresh className={`h-4 w-4 ${isRefreshing ? 'motion-safe:animate-spin' : ''}`} />
           {isRefreshing ? 'Atualizando…' : 'Atualizar agora'}
@@ -58,7 +58,7 @@ export default function RefreshControl({ lastUpdatedAt, isRefreshing, isStale, e
         </span>
       </div>
       {source === 'mock' && (
-        <p className="text-sm text-slate-300 lg:text-right">
+        <p className="text-sm text-on-ink-muted lg:text-right">
           Não há atualização automática: os pontos demonstrativos locais não têm leituras.
         </p>
       )}

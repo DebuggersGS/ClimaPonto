@@ -11,12 +11,12 @@ export default function StopSelect({ stops, value, onChange, id, label = 'Ponto 
         {label}
       </label>
       <div className="relative">
-        <MapPin aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-700" />
+        <MapPin aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-brand-700 dark:text-brand-200" />
         <select
           id={id}
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          className="min-h-11 w-full appearance-none truncate rounded-full border border-slate-300 bg-white py-2 pl-9 pr-10 text-sm text-slate-900 shadow-card transition-colors hover:border-slate-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+          className="min-h-11 w-full appearance-none truncate rounded-full border border-slate-300 bg-surface py-2 pl-9 pr-10 text-sm text-slate-900 shadow-card transition-colors hover:border-slate-400 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
         >
           <option value="">Selecione um ponto</option>
           {stops.map((stop) => (

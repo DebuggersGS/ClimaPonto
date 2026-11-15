@@ -21,7 +21,7 @@ const FADE = { initial: { opacity: 0, y: 6 }, animate: { opacity: 1, y: 0 }, exi
 
 function SectionTitle({ id, children }) {
   return (
-    <h2 id={id} className="mb-3 text-xl font-semibold text-slate-900">
+    <h2 id={id} className="mb-3 text-2xl font-semibold tracking-tight text-slate-900">
       {children}
     </h2>
   )

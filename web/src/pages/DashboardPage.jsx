@@ -48,26 +48,31 @@ function ReadyContent({ stops, summary, now, source }) {
   const insights = useMemo(() => buildDashboardInsights(summary, now), [summary, now])
   return (
     <>
-      <Section title="Resumo" eyebrow="Visão geral">
-        <DashboardSummary summary={summary} />
-      </Section>
+      <div className="mb-section grid grid-cols-1 gap-x-5 gap-y-8 lg:grid-cols-12">
+        <Section title="Resumo" eyebrow="Visão geral" className="mb-0 min-w-0 lg:col-span-7">
+          <DashboardSummary summary={summary} />
+        </Section>
 
-      <Section title="Última medição" eyebrow="Em destaque">
-        <LatestReadingHighlight latest={summary.latest} now={now} />
-      </Section>
+        <Section title="Última medição" eyebrow="Em destaque" className="mb-0 min-w-0 lg:col-span-5">
+          <LatestReadingHighlight latest={summary.latest} now={now} />
+        </Section>
 
-      <div className="mb-section">
-        <ConnectivityRuleNote />
+        <ConnectivityRuleNote className="col-span-full" />
+
+        <Section title="Evolução recente" eyebrow="Últimas 24 horas" className="mb-0 min-w-0 lg:col-span-8">
+          <RecentEvolutionPanel stops={stops} items={summary.items} latest={summary.latest} />
+        </Section>
+
+        <Section
+          title="Insights"
+          eyebrow="Leitura rápida"
+          description="Comparações calculadas a partir das últimas leituras exibidas."
+          className="mb-0 min-w-0 lg:col-span-4"
+        >
+          <DataSourceBadge source={source} />
+          <InsightsPanel insights={insights} />
+        </Section>
       </div>
-
-      <Section title="Evolução recente" eyebrow="Últimas 24 horas">
-        <RecentEvolutionPanel stops={stops} items={summary.items} latest={summary.latest} />
-      </Section>
-
-      <Section title="Insights" eyebrow="Leitura rápida" description="Comparações calculadas a partir das últimas leituras exibidas.">
-        <DataSourceBadge source={source} />
-        <InsightsPanel insights={insights} />
-      </Section>
 
       <Section title="Pontos monitorados" eyebrow="Por ponto">
         <StopFilterBar filter={filter} dimensions={['environmental', 'connectivity']} />
