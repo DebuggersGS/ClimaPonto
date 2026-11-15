@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { filterStops, getStopFilterOptions, normalizeSearchText } from './stopFilters.js'
+import { filterStops, getStopFilterOptions, normalizeSearchText, resolveActiveFilters, shouldShowFilter } from './stopFilters.js'
 import { summarizeDashboard } from './readings.js'
 
 const NOW = Date.parse('2026-11-12T15:30:00Z')
@@ -117,5 +117,30 @@ describe('getStopFilterOptions', () => {
   it('ignora bairro vazio ou ausente', () => {
     const options = getStopFilterOptions([{ code: 'A', neighborhood: '  ' }, { code: 'B' }], { now: NOW })
     assert.deepEqual(options.neighborhoods, [])
+  })
+})
+
+describe('shouldShowFilter e resolveActiveFilters', () => {
+  const opt = (...values) => values.map((value) => ({ value, label: value, count: 1 }))
+  const options = { neighborhoods: opt('Sé', 'Itaim'), environmental: opt('normal'), connectivity: opt('online') }
+
+  it('mostra o filtro só com 2 ou mais valores', () => {
+    assert.equal(shouldShowFilter('neighborhood', options), true)
+    assert.equal(shouldShowFilter('environmental', options), false)
+    assert.equal(shouldShowFilter('connectivity', options, {}), false)
+  })
+
+  it('mantém visível o filtro com valor ativo presente nas opções', () => {
+    assert.equal(shouldShowFilter('connectivity', options, { connectivity: 'online' }), true)
+  })
+
+  it('não mostra filtro cujo valor ativo não existe mais', () => {
+    assert.equal(shouldShowFilter('connectivity', options, { connectivity: 'offline' }), false)
+  })
+
+  it('resolveActiveFilters descarta valores ausentes e preserva os demais', () => {
+    const input = { text: 'sé', neighborhood: 'se', environmental: 'critical', connectivity: 'online' }
+    assert.deepEqual(resolveActiveFilters(input, options), { text: 'sé', neighborhood: 'se', environmental: '', connectivity: 'online' })
+    assert.equal(input.environmental, 'critical')
   })
 })

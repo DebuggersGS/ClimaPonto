@@ -1,4 +1,5 @@
 import { useId } from 'react'
+import { shouldShowFilter } from '../../utils/stopFilters.js'
 import Button from './Button.jsx'
 import SegmentedControl from './SegmentedControl.jsx'
 import TextField from './TextField.jsx'
@@ -39,13 +40,13 @@ function NeighborhoodSelect({ options, value, onChange }) {
 
 /**
  * Barra de busca e filtros de pontos. Cada filtro só aparece quando há ao menos
- * 2 valores distintos nos dados; só oferece valores presentes, com contagem.
+ * 2 valores distintos nos dados (ou houver valor ativo; ver shouldShowFilter); só oferece valores presentes, com contagem.
  * O total ("Mostrando X de Y pontos") fica numa região aria-live.
  * @param {{ filter: ReturnType<import('../../hooks/useStopFilters.js').useStopFilters>, dimensions: Array<'neighborhood'|'environmental'|'connectivity'> }} props
  */
 export default function StopFilterBar({ filter, dimensions }) {
   const { filters, setFilter, clear, options, results, total, hasActiveFilters } = filter
-  const visible = dimensions.filter((name) => options[name === 'neighborhood' ? 'neighborhoods' : name].length >= 2)
+  const visible = dimensions.filter((name) => shouldShowFilter(name, options, filters))
 
   return (
     <div className="mb-4 space-y-3">

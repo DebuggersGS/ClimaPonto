@@ -1,5 +1,5 @@
 import { useCallback, useMemo, useState } from 'react'
-import { filterStops, getStopFilterOptions } from '../utils/stopFilters.js'
+import { filterStops, getStopFilterOptions, resolveActiveFilters } from '../utils/stopFilters.js'
 
 const EMPTY_FILTERS = { text: '', neighborhood: '', environmental: '', connectivity: '' }
 
@@ -12,12 +12,14 @@ const EMPTY_FILTERS = { text: '', neighborhood: '', environmental: '', connectiv
  * @param {{ now?: Date|number, sendIntervalMs?: number }} [options]
  */
 export function useStopFilters(items, { now, sendIntervalMs } = {}) {
-  const [filters, setFilters] = useState(EMPTY_FILTERS)
+  const [selected, setFilters] = useState(EMPTY_FILTERS)
 
   const setFilter = useCallback((name, value) => setFilters((current) => ({ ...current, [name]: value })), [])
   const clear = useCallback(() => setFilters(EMPTY_FILTERS), [])
 
   const options = useMemo(() => getStopFilterOptions(items, { now, sendIntervalMs }), [items, now, sendIntervalMs])
+  // Valor selecionado que sumiu das opções deixa de filtrar (derivado, sem efeito).
+  const filters = useMemo(() => resolveActiveFilters(selected, options), [selected, options])
   const results = useMemo(() => filterStops(items, filters, { now, sendIntervalMs }), [items, filters, now, sendIntervalMs])
   const hasActiveFilters = Object.values(filters).some((value) => value.trim() !== '')
 

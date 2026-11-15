@@ -119,3 +119,38 @@ export function getStopFilterOptions(items, { now, sendIntervalMs } = {}) {
     connectivity: fixedOrderOptions(CONNECTIVITY_ORDER, connectivityCounts, CONNECTIVITY_LABELS),
   }
 }
+
+const OPTION_KEYS = { neighborhood: 'neighborhoods', environmental: 'environmental', connectivity: 'connectivity' }
+
+function hasOption(options, name, value) {
+  if (!value) return false
+  const wanted = normalizeSearchText(value)
+  return (options?.[OPTION_KEYS[name]] ?? []).some((option) => normalizeSearchText(option.value) === wanted)
+}
+
+/**
+ * Filtro efetivo: descarta valores selecionados que deixaram de existir nas opções
+ * (ex.: conectividade muda com o tempo), para não filtrar sem controle correspondente.
+ * @param {StopFilters} filters
+ * @param {ReturnType<typeof getStopFilterOptions>} options
+ * @returns {StopFilters} novo objeto
+ */
+export function resolveActiveFilters(filters, options) {
+  const resolved = { ...filters }
+  for (const name of Object.keys(OPTION_KEYS)) {
+    if (resolved[name] && !hasOption(options, name, resolved[name])) resolved[name] = ''
+  }
+  return resolved
+}
+
+/**
+ * Um filtro só aparece com ao menos 2 valores distintos nos dados, ou enquanto
+ * seu valor selecionado estiver ativo (o usuário precisa poder desfazê-lo).
+ * @param {'neighborhood'|'environmental'|'connectivity'} name
+ * @param {ReturnType<typeof getStopFilterOptions>} options
+ * @param {StopFilters} [filters]
+ */
+export function shouldShowFilter(name, options, filters = {}) {
+  const count = (options?.[OPTION_KEYS[name]] ?? []).length
+  return count >= 2 || hasOption(options, name, filters[name])
+}
