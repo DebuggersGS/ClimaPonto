@@ -4,7 +4,7 @@ Prazo: 19/11/2026 às 23h55. Itens externos ao repositório ficam desmarcados at
 
 ## Front-end Design
 
-- [ ] ZIP da entrega (gerado em `release/` por `git archive`; conferir `MANIFEST.txt` e `SHA256SUMS`)
+- [ ] ZIP da entrega (gerado em `release/` por `git archive` de um commit X, excluindo `release/`; conferir `MANIFEST.txt` e `SHA256SUMS`)
 - [ ] Repositório GitHub privado
 - [ ] Permissão write para o primeiro professor
 - [ ] Permissão write para o segundo professor
@@ -15,7 +15,7 @@ Prazo: 19/11/2026 às 23h55. Itens externos ao repositório ficam desmarcados at
 
 ## Web Development
 
-- [ ] ZIP da entrega (gerado em `release/` por `git archive`; conferir `MANIFEST.txt` e `SHA256SUMS`)
+- [ ] ZIP da entrega (gerado em `release/` por `git archive` de um commit X, excluindo `release/`; conferir `MANIFEST.txt` e `SHA256SUMS`)
 - [ ] Repositório GitHub privado
 - [ ] Permissão write para o primeiro professor
 - [ ] Permissão write para o segundo professor

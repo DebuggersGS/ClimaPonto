@@ -84,8 +84,8 @@ function MobileMenu() {
         <Icon aria-hidden="true" className="h-4 w-4" />
         Menu
       </Button>
-      <div id="menu-movel" hidden={!open} className="absolute inset-x-0 top-full max-h-[calc(100dvh-4rem)] overflow-y-auto px-4 pb-3 pt-2 sm:px-6">
-        {open && <MainNav listRef={listRef} onNavigate={() => setOpen(false)} className="mx-auto max-w-sm sm:mx-0" />}
+      <div id="menu-movel" hidden={!open} className="absolute inset-x-0 top-full max-h-[calc(100dvh-4rem)] overflow-y-auto border-b border-slate-200 bg-surface px-4 pb-3 pt-2 shadow-card sm:px-6">
+        {open && <MainNav solid listRef={listRef} onNavigate={() => setOpen(false)} className="mx-auto max-w-sm sm:mx-0" />}
       </div>
     </div>
   )

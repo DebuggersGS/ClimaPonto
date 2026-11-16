@@ -7,15 +7,15 @@ import { getNavItems } from './navItems.js'
  * Navegação principal, a mesma lista na barra lateral (desktop) e no menu móvel.
  * O NavLink define aria-current="page" no item ativo; o ativo também ganha fundo, peso e uma marca à esquerda,
  * então o estado nunca depende só de cor. Com `collapsed` só o ícone aparece; o nome fica no DOM (sr-only) e no title.
- * @param {{ id?: string, collapsed?: boolean, onNavigate?: () => void, className?: string, listRef?: import('react').Ref<HTMLUListElement> }} props
+ * @param {{ id?: string, collapsed?: boolean, solid?: boolean, onNavigate?: () => void, className?: string, listRef?: import('react').Ref<HTMLUListElement> }} props
  */
-export default function MainNav({ id, collapsed = false, onNavigate, className, listRef }) {
+export default function MainNav({ id, collapsed = false, solid = false, onNavigate, className, listRef }) {
   const { isAdmin } = useAuth()
   const items = getNavItems(isAdmin)
 
   return (
     <nav id={id} aria-label="Navegação principal" className={cn('max-w-full', className)}>
-      <ul ref={listRef} className="glass-control flex w-full flex-col gap-1 rounded-3xl p-1.5">
+      <ul ref={listRef} className={cn('flex w-full flex-col gap-1 rounded-3xl p-1.5', solid ? 'border border-slate-200 bg-surface shadow-card' : 'glass-control')}>
         {items.map((item) => (
           <li key={item.to}>
             <NavLink

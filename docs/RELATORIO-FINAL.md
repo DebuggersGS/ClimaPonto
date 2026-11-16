@@ -2,7 +2,7 @@
 
 Status: LOCAL_RELEASE_READY_WITH_BLOCKERS
 
-Pendências humanas e externas: veja [BLOCKERS.md](../BLOCKERS.md). Os totais de testes E2E por navegador vêm do gate do harness (seção 5); o que foi de fato executado neste ambiente está nas seções 4 e 5.
+Pendências humanas e externas: veja [BLOCKERS.md](../BLOCKERS.md). Os totais de testes E2E por navegador são do gate do harness (seção 5).
 
 ## 1. Base, commits e pacote
 
@@ -11,8 +11,8 @@ Pendências humanas e externas: veja [BLOCKERS.md](../BLOCKERS.md). Os totais de
 | Branch base | `harness/G-20261116-a1dfae` |
 | HEAD base | `b61d184af3ca677ef32cdb5d6f0b5b8c2de05009` |
 | Branch de trabalho | `harness/G-20261116-0865c5` |
-| Commit do código verificado (T101) | `66b7019` (148 commits em `git rev-list --count HEAD`); os commits seguintes só alteram documentos, `release/MANIFEST.txt` e `release/SHA256SUMS` |
-| Pacote | `release/ClimaPonto-GS-2026.2.zip` (fora do Git), gerado por `git archive` do último commit antes do commit do manifesto. O commit de origem é a primeira linha de `release/MANIFEST.txt`; o hash do ZIP está em `release/SHA256SUMS`. O HEAD final difere do commit do ZIP só por esses dois arquivos. |
+| Commit do código verificado (T101) | `66b7019` (148 commits em `git rev-list --count HEAD`). Commits posteriores alteram `web/src`: `7f6f311` (navegação que não se aplica ao tamanho da tela deixa de ser renderizada) e a correção do menu móvel opaco (T103), além de documentos, `release/MANIFEST.txt` e `release/SHA256SUMS` |
+| Pacote | `release/ClimaPonto-GS-2026.2.zip` (fora do Git), gerado por `git archive` de um commit X (excluindo `release/`). X é a primeira linha de `release/MANIFEST.txt`; o hash do ZIP está em `release/SHA256SUMS`. O HEAD final pode diferir de X apenas pelos commits que registram manifesto e SHA256. |
 
 Inventário medido em `web/src` e `web/e2e` (contagem dos arquivos no commit de código):
 
@@ -73,10 +73,10 @@ Nenhum requisito foi classificado como NÃO ATENDE.
 
 ## 5. Testes E2E e verificação visual
 
-- **Não foram executados pelo agente**: o sandbox não tem navegador (Chromium/Firefox/Playwright indisponíveis e sem rede). Por isso, **não há total de aprovados/pulados por navegador para o commit desta tarefa**; o gate E2E do harness (Chromium e Firefox, modo mock) os produz. Não se afirma aprovação.
-- Última execução real conhecida, anterior à T101 (HEAD `b78e7ea`, registrada em `AI.md`): 472 aprovados, 0 inesperados, 0 flaky, 32 pulados (Chromium 252 aprovados / 0 pulados; Firefox 220 aprovados / 32 pulados, o axe-core é pulado no Firefox em páginas com gráficos).
-- A T101 alterou specs existentes (caminhos e rótulos) e acrescentou casos em `navegacao.spec.mjs` (barra lateral recolhida/expandida com `aria-expanded`, persistência, teclado, menu móvel em 375 px, acesso a cada seção, axe e screenshots em claro/escuro); os `test.skip` condicionados ao Firefox (axe-core) continuam, com motivo registrado, e os novos casos de axe seguem o mesmo padrão.
-- **Screenshots antes/depois (AC9): não capturados.** Sem navegador no sandbox, não foi possível gerar capturas reais em 1366 e 375 px, claro e escuro, nem corrigir problemas visuais a partir delas. As capturas `nav-lateral-*`, `nav-lateral-recolhida-*` e `nav-movel-aberta-*` são geradas pelo gate E2E (`snap()`) na galeria do harness; ninguém as revisou ainda. Caminhos externos ao ZIP: a galeria de artefatos do objetivo no estado do harness. A conferência estética em 375, 768 e 1366 px, nos dois temas, é pendência humana.
+- **Não foram executados pelo agente** (o sandbox não tem navegador). O gate de navegador do harness rodou no HEAD `a2e7c19`: E2E Chromium + Firefox com 510 aprovados, 40 pulados (todos no Firefox, axe-core, exceção documentada nos próprios `test.skip`), 0 falhas, 0 flaky e 138 screenshots geradas. No mesmo HEAD: lint, build, `stops-crud` (9/9) e `release-docs` (10/10) aprovados; revisão de segurança aprovada.
+- Execução anterior à T101 (HEAD `b78e7ea`, em `AI.md`): 472 aprovados, 0 falhas, 0 flaky, 32 pulados.
+- **Correção posterior:** o menu móvel opaco (T103) é posterior a `a2e7c19`. Seu resultado ainda não foi medido e será revalidado pelo gate seguinte.
+- **Screenshots antes/depois:** as 138 capturas do gate (incluindo `nav-lateral-*`, `nav-lateral-recolhida-*` e `nav-movel-aberta-*`) ficam na galeria de artefatos do objetivo, fora do ZIP. Comparação antes/depois e conferência estética em 375, 768 e 1366 px, nos dois temas, seguem como pendência humana.
 
 ## 6. Dados mock x real
 
@@ -94,4 +94,4 @@ Os alertas da interface (`stopAlerts.js`, `AlertsPanel`) são calculados no clie
 - Pendências externas (GitHub privado e permissões, deploy, envio no Teams, CRUD remoto com usuário de teste): [BLOCKERS.md](../BLOCKERS.md).
 - Mapa esquemático SVG (pontos remotos sem coordenadas); consulta de histórico limitada a 500 registros; axe-core pulado no Firefox em páginas com gráficos; sem testes de componentes React; sem Lighthouse; sem imagens de referência aprovadas (`toHaveScreenshot`).
 - Barra lateral só a partir de 1280 px: entre 1024 e 1279 px vale o menu móvel, para não espremer o mapa e a ficha.
-- O E2E novo e os adaptados nunca rodaram contra esta interface; falhas de seletor ou de layout só aparecerão no gate.
+- A correção do menu móvel (T103) ainda não passou pelo gate de navegador; será revalidada no gate seguinte.
