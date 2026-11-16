@@ -1,4 +1,4 @@
-# commit 24890b692136f133eeef3423c9a03e1416d52273
+# commit 7f6f311d7b3b7e216508ab674f0c17e8e42b12ba
 .gitignore
 AI.md
 BLOCKERS.md
@@ -142,6 +142,7 @@ web/src/hooks/useCommandPalette.js
 web/src/hooks/useDataMode.js
 web/src/hooks/useDocumentTitle.js
 web/src/hooks/useFavoriteStops.js
+web/src/hooks/useIsWideScreen.js
 web/src/hooks/useLatestReadings.js
 web/src/hooks/useNow.js
 web/src/hooks/useOnlineStatus.js
