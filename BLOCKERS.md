@@ -17,7 +17,7 @@ Status da release: LOCAL_RELEASE_READY_WITH_BLOCKERS. Os itens abaixo dependem d
 ## 3. Envios separados no Teams
 
 - Front-end Design e Web Development são entregas distintas: enviar ZIP, link do GitHub e URL de deploy em cada uma, até 19/11/2026 às 23h55.
-- O ZIP, `release/MANIFEST.txt` e `release/SHA256SUMS` são gerados pela T4.
+- O ZIP (`release/`, fora do Git), `MANIFEST.txt` e `SHA256SUMS` foram gerados; o ZIP vem do commit indicado na primeira linha do manifesto.
 
 ## 4. CRUD remoto com usuário de teste
 
@@ -31,5 +31,5 @@ Status da release: LOCAL_RELEASE_READY_WITH_BLOCKERS. Os itens abaixo dependem d
 ## 6. Outros
 
 - Definir com a equipe o que é "CitizenTech" (termo ausente no repositório).
-- Aceite visual humano: a UX desta release teve só ícones na navegação, sem inspeção renderizada nem screenshots.
+- Aceite visual humano: a nova navegação (barra lateral e menu móvel) não foi vista renderizada neste ambiente (sem navegador); conferir em 375, 768 e 1366 px, claro e escuro, e rodar o gate E2E.
 - Lighthouse e Core Web Vitals não foram medidos.

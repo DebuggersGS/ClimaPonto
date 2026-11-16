@@ -344,6 +344,14 @@ Não foram testados leitores de tela, navegadores além do Chrome, nem dispositi
 - Totais de testes e E2E: relatório de verificação do harness. Nenhuma escrita remota, push, deploy ou envio foi feito. Lighthouse não medido.
 - O código gerado por IA permanece sujeito à revisão da equipe.
 
+### Correção da release — T101 (16/11/2026, objetivo G-20261116-0865c5)
+
+- **Origem:** achados da revisão de código (rodada 1): reorganização real da interface (AC2), screenshots (AC9) e relatório com resultados reais (AC12).
+- **Feito:** barra lateral retrátil e menu móvel, seções Análises, Relatórios e Laboratório (rotas antigas preservadas), metodologia recolhida em `<details>`, ajuste dos specs E2E existentes (nomes e caminhos) e novos casos em `navegacao.spec.mjs`, teste unitário `navItems.test.js`, documentos atualizados. Commits `0894f0e`, `e5327c7`, `66b7019` e os de documentação e pacote.
+- **Executado de fato:** `npm --prefix web run lint` (0 erros, 2 avisos preexistentes), `npm --prefix web run build` e `node --test "src/**/*.test.js"` (399/399).
+- **Não executado:** E2E (sem navegador no sandbox) e capturas de tela antes/depois; Lighthouse. Nenhuma captura foi inventada: a revisão visual fica para o gate do harness e para a equipe.
+- O código gerado por IA permanece sujeito à revisão da equipe.
+
 ## Princípios adotados
 
 - O código gerado por IA é revisado pela equipe antes de ser aprovado.

@@ -187,9 +187,9 @@ GLOBAL-SOLUTION/
         │   ├── charts/           # SeriesChart (Recharts), ChartTooltip
         │   ├── dashboard/        # DashboardHero, DashboardSummary, StopGrid, StopStatusCard, ...
         │   ├── history/          # ReadingsEvolution, ReadingsSummary, ReadingsTable, PeriodFilter, ...
-        │   ├── layout/           # AppLayout, Header, MainNav
+        │   ├── layout/           # AppLayout, Header (menu móvel), Sidebar, MainNav, navItems
         │   └── ui/               # Button, Card, Badge, Section, MetricCard, EmptyState, Skeleton, ...
-        ├── pages/                # Dashboard, Pontos, Histórico, 404, AdminLogin, AdminStops
+        ├── pages/                # Dashboard, Pontos, Histórico (também Análises e Relatórios), Laboratório, 404, AdminLogin, AdminStops
         ├── hooks/                # useAuth, useAdminStops, useStops, useLatestReadings, useReadingsHistory, useNow, useDataMode, ...
         ├── services/             # dataSource (fonte única), dataSourceFactory, mockReadingsApi, readingsApi, stopsApi, supabaseClient, authService, errors
         ├── utils/                # dataMode, chartSeries, statusTones, cn, stopValidation, formatters, connectivity, readings, historyPeriods
@@ -215,12 +215,12 @@ Detalhes em [docs/data-contract.md](docs/data-contract.md), [docs/architecture-d
 
 ## Release local (G-20261116-0865c5)
 
-Status: LOCAL_RELEASE_READY_WITH_BLOCKERS. Ainda não há URL de deploy. Documentos da release: [docs/RELATORIO-FINAL.md](docs/RELATORIO-FINAL.md), [docs/MATRIZ-FIAP.md](docs/MATRIZ-FIAP.md), [docs/ARQUITETURA-E-DECISOES.md](docs/ARQUITETURA-E-DECISOES.md), [docs/INTEGRACAO-GS.md](docs/INTEGRACAO-GS.md), [docs/CHECKLIST-SUBMISSAO.md](docs/CHECKLIST-SUBMISSAO.md) e [BLOCKERS.md](BLOCKERS.md). Limitações conhecidas: escrita remota no Supabase não reverificada nesta release (o cliente é coberto por `web/src/services/stopsApi.test.js`, com cliente falso); reorganização ampla de UX não realizada (só ícones na navegação); Lighthouse não medido; sem endpoint de ingestão; o CSV do Histórico e os alertas são calculados no cliente. Segurança: só chave publishable no front-end; RLS é a autoridade ([docs/security-review.md](docs/security-review.md)).
+Status: LOCAL_RELEASE_READY_WITH_BLOCKERS. Ainda não há URL de deploy. Documentos da release: [docs/RELATORIO-FINAL.md](docs/RELATORIO-FINAL.md), [docs/MATRIZ-FIAP.md](docs/MATRIZ-FIAP.md), [docs/ARQUITETURA-E-DECISOES.md](docs/ARQUITETURA-E-DECISOES.md), [docs/INTEGRACAO-GS.md](docs/INTEGRACAO-GS.md), [docs/CHECKLIST-SUBMISSAO.md](docs/CHECKLIST-SUBMISSAO.md) e [BLOCKERS.md](BLOCKERS.md). Limitações conhecidas: escrita remota no Supabase não reverificada nesta release (o cliente é coberto por `web/src/services/stopsApi.test.js`, com cliente falso); a nova navegação não foi conferida renderizada neste ambiente (sem navegador) e os E2E novos aguardam o gate do harness; Lighthouse não medido; sem endpoint de ingestão; o CSV do Histórico e os alertas são calculados no cliente. Segurança: só chave publishable no front-end; RLS é a autoridade ([docs/security-review.md](docs/security-review.md)).
 
 ## O que já funciona
 
-- Ícones decorativos na navegação principal (release G-20261116-0865c5) e teste do cliente de pontos com Supabase falso (`stopsApi.test.js`, 9 testes).
-- Interface responsiva com Dashboard, Pontos, Histórico e página 404.
+- **Navegação reorganizada (release G-20261116-0865c5, T101):** barra lateral retrátil no desktop (≥ 1280 px, `aria-expanded`, preferência lembrada) e menu móvel acessível por teclado; seções Visão geral (`/`), Explorar (`/pontos`), Análises (`/analises`), Histórico (`/historico`), Laboratório (`/laboratorio`), Relatórios (`/relatorios`) e Administração (só admin). Rotas antigas preservadas; metodologia recolhida em `<details>`. Verificado: lint, build e `node --test` 399/399; E2E escritos/adaptados, ainda sem execução (aguardam o gate). Detalhes em [docs/ARQUITETURA-E-DECISOES.md](docs/ARQUITETURA-E-DECISOES.md). Teste do cliente de pontos com Supabase falso: `stopsApi.test.js`, 9 testes.
+- Interface responsiva com as seções acima e página 404.
 - Banco Supabase com tabelas, restrições, índices, RLS e 3 pontos demonstrativos.
 - Listagem pública de pontos ativos, lida do Supabase ou do dataset mock conforme `VITE_DATA_MODE`, com o modo efetivo sempre sinalizado.
 - **Design system (3C):** tokens em `styles/index.css`, `cn()` (clsx + tailwind-merge), variantes com `cva`, ícones lucide-react e animações com `motion` (`MotionConfig reducedMotion="user"`).
@@ -263,7 +263,7 @@ Status: LOCAL_RELEASE_READY_WITH_BLOCKERS. Ainda não há URL de deploy. Documen
 - axe-core no Firefox está pulado (com motivo registrado no teste) nas páginas com gráficos: o Firefox derruba a página durante a análise no runner de testes; essas páginas são verificadas no Chromium.
 - "Page crashed" intermitente do Firefox (axe do login escuro e medição no Dashboard): ocorreu em execuções intermediárias e passou na final; causa raiz não identificada.
 - Sugestões de refatoração (revisão de código): extrair um componente `Select` em `components/ui` (hoje repetido em 3 lugares) e unificar o nome `neighborhood`/`neighborhoods` em `getStopFilterOptions`.
-- Confirmar em captura a 375 px o item "Gerenciar" visível na navegação (T104).
+- Conferir em captura (375, 768 e 1366 px, claro e escuro) a nova barra lateral e o menu móvel; capturas não foram feitas na T101 por falta de navegador no sandbox.
 - **Fase 4:** o gate opcional `supabase-visitor` só roda com `web/.env.local` (não executado na recuperação de 16/11/2026).
 - Sem teste automatizado para a regressão do aviso "Sua sessão expirou" após recusa de conta sem papel admin (não há teste de componentes; `web/e2e` fora do escopo da T104).
 - **Enunciado oficial da FIAP** não está no repositório: o checklist segue a lista do objetivo. **"CitizenTech"** não está definido em nenhum documento do repositório, e uma **API pública de terceiros** (se o enunciado exigir) não foi implementada: decisões de produto da equipe. Ver `docs/requisitos-fiap-frontend.md`.
