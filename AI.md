@@ -321,7 +321,7 @@ Não foram testados leitores de tela, navegadores além do Chrome, nem dispositi
 - **T3:** `/pontos` com mapa esquemático SVG, lista, ficha do ponto, favoritos e laboratório de cenários mock.
 - **T4:** Histórico ampliado, `AlertsPanel`, aviso de offline e Command Palette.
 - **T5 (documentação), execuções reais na worktree:** `npm run lint` sem erros e 2 avisos `set-state-in-effect` preexistentes; `npm run build` concluído; `node --test` nos 26 arquivos `*.test.js` de `src`: 368 aprovados, 0 falhas. O sandbox negou rede a `registry.npmjs.org`, sem efeito.
-- **E2E:** especs escritos em `web/e2e` (`mapa`, `favoritos`, `alertas`, `palette`, `laboratorio`, `ficha-ponto`, `pontos`, `historico-perfis`, `qualidade`, `conexao`), **não executados localmente**; resultados virão do gate (pendente de verificação).
+- **E2E:** especs escritos em `web/e2e` (`mapa`, `favoritos`, `alertas`, `palette`, `laboratorio`, `ficha-ponto`, `pontos`, `historico-perfis`, `qualidade`, `conexao`), não executados localmente na época; depois executados pelo gate do harness em 16/11/2026 (HEAD `b78e7ea`), ver a seção de recuperação da Fase 4.
 - O código gerado por IA permanece sujeito à revisão da equipe.
 
 ### Recuperação da Fase 4 — validação da branch (16/11/2026, objetivo G-20261116-a1dfae)
@@ -330,7 +330,9 @@ Não foram testados leitores de tela, navegadores além do Chrome, nem dispositi
 - **Anotação `console-esperado`:** existe só em `web/e2e/conexao.spec.mjs`, nos testes que usam `setOffline(true)`, com a descrição `ERR_INTERNET_DISCONNECTED` (commit `aab7de9`).
 - **Teste novo** `web/src/utils/e2eConsoleAnnotations.test.js` (commit `3b6c8b9`): verifica que nenhum outro spec contém o marcador, que há ao menos uma anotação em `conexao.spec.mjs`, que toda anotação tem a descrição específica, que ela vem logo antes de `await setOffline(true)` e depois de `page.goto` e `await expect(`, que todo teste com `setOffline(true)` tem exatamente uma anotação e que testes sem `setOffline` não têm; inclui verificações negativas da validação de descrição (curinga, vazia, genérica, ausente, instrução seguinte incorreta).
 - **Execução real** (a partir de `web/`): `node --test src/utils/e2eConsoleAnnotations.test.js` → 11 testes, 11 aprovados, 0 falhas, 0 pulados.
-- **Gates:** lint, build e e2e (Chromium e Firefox, modo mock) são executados pelo harness; os resultados constam no relatório do objetivo, não neste registro. O gate opcional `supabase-visitor` depende de `web/.env.local`.
+- **Gates reais** (harness, 16/11/2026, HEAD `b78e7ea`): lint ok (0 erros, 2 avisos preexistentes `set-state-in-effect`); build ok; `supabase-visitor` pulado (opcional, sem `web/.env.local`); e2e modo mock: 472 aprovados, 0 inesperados, 0 flaky, 32 pulados, 124 screenshots; por navegador, Chromium 252 aprovados / 0 pulados e Firefox 220 aprovados / 32 pulados (axe-core pulado no Firefox por travamento da página, condicional preexistente); teste de escopo 11/11.
+- **Correções:** nenhuma correção de código foi necessária.
+- **Conclusão:** os cenários offline passaram no Chromium e no Firefox com a anotação `ERR_INTERNET_DISCONNECTED`, sem padrão genérico nem de navegador específico.
 - O código gerado por IA permanece sujeito à revisão da equipe.
 
 ## Princípios adotados
