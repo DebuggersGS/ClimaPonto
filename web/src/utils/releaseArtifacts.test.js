@@ -34,6 +34,33 @@ test('relatório final traz commit, branch, status e classificações', () => {
   ]) assert.ok(t.includes(s), `RELATORIO-FINAL sem: ${s}`)
 })
 
+test('relatório final registra gates, matriz antes→depois e limites da verificação visual', () => {
+  const t = ler('docs/RELATORIO-FINAL.md')
+  for (const s of [
+    'Matriz antes → depois',
+    'npm --prefix web run lint',
+    'npm --prefix web run build',
+    'kB',
+    'node --test',
+    'Não foram executados pelo agente',
+    'Screenshots antes/depois',
+    'release/MANIFEST.txt',
+    'release/SHA256SUMS',
+  ]) assert.ok(t.includes(s), `RELATORIO-FINAL sem: ${s}`)
+  for (const rota of ['/analises', '/relatorios', '/laboratorio', '/pontos', '/historico']) {
+    assert.ok(t.includes(`\`${rota}\``), `RELATORIO-FINAL sem a rota ${rota}`)
+  }
+})
+
+test('documentos finais não trazem textos de etapas intermediárias', () => {
+  for (const d of ['docs/RELATORIO-FINAL.md', 'docs/CHECKLIST-SUBMISSAO.md', 'BLOCKERS.md']) {
+    const t = ler(d)
+    for (const velho of ['não existem nesta tarefa', 'gerado pela T4', 'gerados pela T4', 'este documento não os repete']) {
+      assert.ok(!t.includes(velho), `${d} contém texto desatualizado: ${velho}`)
+    }
+  }
+})
+
 test('matriz e checklist cobrem as duas disciplinas', () => {
   const m = ler('docs/MATRIZ-FIAP.md')
   const c = ler('docs/CHECKLIST-SUBMISSAO.md')
