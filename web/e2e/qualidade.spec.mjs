@@ -6,13 +6,15 @@ const PAGES = [
   ['dashboard', '/', 'Pontos monitorados'],
   ['historico', '/historico?ponto=MOCK-01&periodo=24h', 'Leituras'],
   ['pontos', '/pontos?vista=lista', null],
+  ['analises', '/analises?ponto=MOCK-01&periodo=24h', 'Análises do período'],
+  ['relatorios', '/relatorios?ponto=MOCK-01&periodo=24h', 'Exportar'],
   // sem gráficos: região indefinida = basta o h1 (a 404 não tem região nomeada)
   ['nao-encontrada', '/rota-que-nao-existe', undefined],
 ]
 
 async function ready(page, region) {
   await expect(page.getByRole('heading', { level: 1 })).toBeVisible()
-  if (region === undefined) await expect(page.getByRole('link', { name: 'Voltar para o Dashboard' })).toBeVisible()
+  if (region === undefined) await expect(page.getByRole('link', { name: 'Voltar para a Visão geral' })).toBeVisible()
   else if (region) await expect(page.getByRole('region', { name: region, exact: true })).toBeVisible()
   else await expect(page.getByRole('link', { name: 'Ver histórico' }).first()).toBeVisible()
   // medições (axe/contraste, layout, screenshots) só depois das animações de entrada
@@ -53,11 +55,12 @@ for (const colorScheme of ['light', 'dark']) {
 }
 
 test('teclado: atalho para o conteúdo primeiro, navegação alcançável e foco visível', async ({ page }) => {
+  await page.setViewportSize({ width: 1366, height: 900 })
   await page.goto('/')
   await ready(page, 'Pontos monitorados')
-  const ordem = await keyboardWalk(page, 12)
+  const ordem = await keyboardWalk(page, 16)
   expect(ordem[0].name).toBe('Pular para o conteúdo')
-  for (const n of ['Dashboard', 'Pontos', 'Histórico']) expect(ordem.some((x) => x.name === n)).toBe(true)
+  for (const n of ['Visão geral', 'Explorar', 'Análises', 'Histórico', 'Laboratório', 'Relatórios']) expect(ordem.some((x) => x.name === n)).toBe(true)
   expect(ordem.every((x) => x.visible && x.outline)).toBe(true)
   // Enter no atalho leva ao conteúdo principal: o próximo Tab já está dentro de <main>
   await page.goto('/')

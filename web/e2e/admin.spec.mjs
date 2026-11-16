@@ -59,23 +59,24 @@ test.describe('acesso e login demonstrativo', () => {
     await preencherLogin(page, LEITOR)
     await expect(page.getByRole('alert').filter({ hasText: 'Esta conta não tem acesso administrativo.' })).toBeVisible()
     await expect(page.getByRole('button', { name: 'Sair' })).toHaveCount(0)
-    await expect(page.getByRole('link', { name: 'Gerenciar' })).toHaveCount(0)
+    await expect(page.getByRole('link', { name: 'Administração' })).toHaveCount(0)
     await expect(page.getByLabel('E-mail')).toBeVisible()
   })
 
   test('admin entra na gestão de pontos, com aviso de demonstração e navegação ativa', async ({ page }) => {
+    await page.setViewportSize({ width: 1366, height: 900 })
     await loginAdmin(page)
     await expect(page).toHaveURL(/\/admin\/pontos$/)
     await expect(page.getByText('Modo demonstração: cadastro, edição, desativação e exclusão valem só na memória desta aba.', { exact: false })).toBeVisible()
     await expect(contagem(page, '8 de 8 pontos')).toBeVisible()
-    await expect(page.getByRole('navigation', { name: 'Navegação principal' }).getByRole('link', { name: 'Gerenciar' })).toHaveAttribute('aria-current', 'page')
+    await expect(page.getByRole('navigation', { name: 'Navegação principal' }).getByRole('link', { name: 'Administração' })).toHaveAttribute('aria-current', 'page')
   })
 
   test('Sair encerra a sessão e a área administrativa volta a pedir login', async ({ page }) => {
     await loginAdmin(page)
     await page.getByRole('button', { name: 'Sair' }).click()
     await expect(page.getByRole('button', { name: 'Sair' })).toHaveCount(0)
-    await expect(page.getByRole('link', { name: 'Gerenciar' })).toHaveCount(0)
+    await expect(page.getByRole('link', { name: 'Administração' })).toHaveCount(0)
     await page.getByRole('link', { name: 'Área administrativa' }).click()
     await expect(page.getByLabel('E-mail')).toBeVisible()
     await expect(page.getByRole('button', { name: 'Entrar' })).toBeVisible()

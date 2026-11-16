@@ -5,8 +5,9 @@ const laboratorio = (page) => page.locator('details').filter({ hasText: 'Laborat
 const cenarios = (page) => laboratorio(page).getByRole('listitem')
 
 async function abrir(page) {
-  await page.goto('/pontos')
-  await expect(page.getByRole('figure', { name: 'Mapa esquemático dos pontos de ônibus' })).toBeVisible()
+  await page.goto('/laboratorio')
+  await expect(page.getByRole('heading', { level: 1, name: 'Laboratório' })).toBeVisible()
+  await expect(laboratorio(page)).toBeVisible()
 }
 
 test('recolhido por padrão; ao abrir lista os 8 cenários com a conectividade calculada', async ({ page }) => {
@@ -32,7 +33,7 @@ test('recolhido por padrão; ao abrir lista os 8 cenários com a conectividade c
 })
 
 test('não aparece quando a página está em erro', async ({ page }) => {
-  await page.goto('/pontos?mock=erro')
+  await page.goto('/laboratorio?mock=erro')
   await expect(page.getByRole('alert')).toContainText('Não foi possível carregar os pontos')
   await expect(laboratorio(page)).toHaveCount(0)
 })

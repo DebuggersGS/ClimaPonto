@@ -422,8 +422,16 @@ test.describe('movimento reduzido: aplicar e limpar filtros', () => {
 test.describe('mobile 375 px', () => {
   test.use({ viewport: { width: 375, height: 812 } })
 
-  /** Cada item da navegação: inteiramente visível na janela e com alvo de pelo menos 44 px. */
+  const menu = (page) => page.getByRole('button', { name: 'Menu', exact: true })
+  /** Em 375 px a navegação vive no menu móvel: abre-o (se ainda fechado) antes de agir sobre os links. */
+  async function abrirMenu(page) {
+    if ((await menu(page).getAttribute('aria-expanded')) !== 'true') await menu(page).click()
+    await expect(page.getByRole('navigation', { name: 'Navegação principal' })).toBeVisible()
+  }
+
+  /** Cada item da navegação (menu aberto): inteiramente visível na janela e com alvo de pelo menos 44 px. */
   async function verificarNavegacao(page, esperados, rotulo) {
+    await abrirMenu(page)
     const nav = page.getByRole('navigation', { name: 'Navegação principal' })
     const links = nav.getByRole('link')
     await expect(links).toHaveText(esperados)
@@ -441,9 +449,17 @@ test.describe('mobile 375 px', () => {
     expect(await horizontalOverflow(page), `${rotulo}: rolagem lateral`).toEqual([])
     const doc = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
     expect(doc, `${rotulo}: documento maior que a janela`).toBeLessThanOrEqual(0)
+    await menu(page).click()
+    await expect(nav).toBeHidden()
   }
 
-  const PUBLICOS = ['Dashboard', 'Pontos', 'Histórico']
+  /** Vai a uma seção pelo menu móvel (que fecha ao navegar). */
+  async function irPara(page, nome) {
+    await abrirMenu(page)
+    await page.getByRole('navigation', { name: 'Navegação principal' }).getByRole('link', { name: nome, exact: true }).click()
+  }
+
+  const PUBLICOS = ['Visão geral', 'Explorar', 'Análises', 'Histórico', 'Laboratório', 'Relatórios']
 
   test('visitante: navegação, filtros e estado vazio sem rolagem lateral (Dashboard e Pontos)', async ({ page }) => {
     await abrirDashboard(page)
@@ -493,8 +509,8 @@ test.describe('mobile 375 px', () => {
     expect(await horizontalOverflow(page)).toEqual([])
   })
 
-  test('admin mock: navegação com "Gerenciar" inteiramente visível em Dashboard, Pontos, Histórico e Gerenciar', async ({ page }) => {
-    const TODOS = [...PUBLICOS, 'Gerenciar']
+  test('admin mock: navegação com "Administração" inteiramente visível em Visão geral, Explorar, Histórico e Administração', async ({ page }) => {
+    const TODOS = [...PUBLICOS, 'Administração']
     await page.goto('/admin/login')
     await page.getByLabel('E-mail').fill(ADMIN.email)
     await page.getByLabel('Senha').fill(ADMIN.senha)
@@ -505,9 +521,10 @@ test.describe('mobile 375 px', () => {
 
     // a sessão é só memória: a navegação depois do login é sempre por cliques
     const nav = page.getByRole('navigation', { name: 'Navegação principal' })
-    await nav.getByRole('link', { name: 'Dashboard', exact: true }).click()
+    await irPara(page, 'Visão geral')
     await expect(cardsDash(page)).toHaveCount(8)
-    await expect(nav.getByRole('link', { name: 'Dashboard', exact: true })).toHaveAttribute('aria-current', 'page')
+    await abrirMenu(page)
+    await expect(nav.getByRole('link', { name: 'Visão geral', exact: true })).toHaveAttribute('aria-current', 'page')
     await settle(page)
     await verificarNavegacao(page, TODOS, 'Dashboard (admin)')
     await busca(page).fill('zzz-inexistente')
@@ -515,15 +532,15 @@ test.describe('mobile 375 px', () => {
     await settle(page)
     await verificarNavegacao(page, TODOS, 'Dashboard sem resultados (admin)')
 
-    await nav.getByRole('link', { name: 'Pontos', exact: true }).click()
-    await expect(page.getByRole('heading', { level: 1, name: 'Pontos' })).toBeVisible()
+    await irPara(page, 'Explorar')
+    await expect(page.getByRole('heading', { level: 1, name: 'Explorar pontos' })).toBeVisible()
     await page.getByRole('button', { name: 'Lista', exact: true }).click()
     await expect(itensPontos(page).first()).toBeVisible()
     await page.getByRole('combobox', { name: 'Bairro' }).selectOption({ label: 'Lapa (1)' })
     await settle(page)
     await verificarNavegacao(page, TODOS, 'Pontos com filtros (admin)')
 
-    await nav.getByRole('link', { name: 'Histórico', exact: true }).click()
+    await irPara(page, 'Histórico')
     await expect(page.getByRole('heading', { level: 1, name: 'Histórico' })).toBeVisible()
     await settle(page)
     await verificarNavegacao(page, TODOS, 'Histórico (admin)')

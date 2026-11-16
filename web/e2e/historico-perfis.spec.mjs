@@ -1,10 +1,10 @@
-// Histórico: perfis por horário e dia da semana, linha do tempo, qualidade e relatório (modo mock).
+// Análises (e exportação em Relatórios): perfis por horário e dia da semana, linha do tempo, qualidade e relatório (modo mock).
 import { test, expect, snap, settle, horizontalOverflow, axeViolations } from 'harness-e2e'
 
 const DESKTOP = { width: 1366, height: 900 }
 const MOBILE = { width: 375, height: 812 }
-const URL_24H = '/historico?ponto=MOCK-01&periodo=24h'
-const URL_7D = '/historico?ponto=MOCK-01&periodo=7d'
+const URL_24H = '/analises?ponto=MOCK-01&periodo=24h'
+const URL_7D = '/analises?ponto=MOCK-01&periodo=7d'
 const SECOES = ['Por horário do dia', 'Por dia da semana', 'Linha do tempo', 'Qualidade das medições']
 const secao = (page, nome) => page.getByRole('button', { name: nome, exact: true })
 
@@ -55,8 +55,9 @@ test('qualidade das medições: válidas, descartadas, completude e regra provis
   await expect(page.getByText(/Regra provisória/)).toBeVisible()
 })
 
-test('relatório CSV: download com código e período no nome', async ({ page }) => {
-  await abrir(page, URL_24H)
+test('relatório CSV: download com código e período no nome (página Relatórios)', async ({ page }) => {
+  await page.goto('/relatorios?ponto=MOCK-01&periodo=24h')
+  await expect(page.getByRole('heading', { level: 1, name: 'Relatórios' })).toBeVisible()
   const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Exportar relatório (CSV)' }).click()])
   expect(download.suggestedFilename()).toBe('climaponto-resumo-mock-01-24h.csv')
   const chunks = []
@@ -67,7 +68,7 @@ test('relatório CSV: download com código e período no nome', async ({ page })
 })
 
 test('ponto sem leituras não oferece relatório', async ({ page }) => {
-  await page.goto('/historico?ponto=MOCK-04&periodo=24h')
+  await page.goto('/relatorios?ponto=MOCK-04&periodo=24h')
   await expect(page.getByRole('main')).toContainText('Nenhuma leitura no período')
   await expect(page.getByRole('button', { name: 'Exportar relatório (CSV)' })).toHaveCount(0)
 })
