@@ -1,4 +1,4 @@
-# commit 51e617fc2c998a8c3e906f1f6a7e96c481d35a96
+# commit 24890b692136f133eeef3423c9a03e1416d52273
 .gitignore
 AI.md
 BLOCKERS.md
@@ -66,7 +66,6 @@ web/src/components/charts/SeriesChart.jsx
 web/src/components/charts/Sparkline.jsx
 web/src/components/charts/chartFormat.js
 web/src/components/dashboard/AlertsPanel.jsx
-web/src/components/dashboard/ConnectivityRuleNote.jsx
 web/src/components/dashboard/DashboardHero.jsx
 web/src/components/dashboard/DashboardStates.jsx
 web/src/components/dashboard/DashboardSummary.jsx
@@ -95,7 +94,11 @@ web/src/components/history/StopSelect.jsx
 web/src/components/history/TemporalProfile.jsx
 web/src/components/layout/AppLayout.jsx
 web/src/components/layout/Header.jsx
+web/src/components/layout/Logo.jsx
 web/src/components/layout/MainNav.jsx
+web/src/components/layout/Sidebar.jsx
+web/src/components/layout/navItems.js
+web/src/components/layout/navItems.test.js
 web/src/components/palette/CommandPalette.jsx
 web/src/components/stops/FavoriteButton.jsx
 web/src/components/stops/SensorLab.jsx
@@ -114,6 +117,7 @@ web/src/components/ui/DemoNotice.jsx
 web/src/components/ui/EmptyState.jsx
 web/src/components/ui/EnvironmentalStatusBadge.jsx
 web/src/components/ui/FeedbackMessage.jsx
+web/src/components/ui/MethodologyNote.jsx
 web/src/components/ui/MetricCard.jsx
 web/src/components/ui/NoResultsState.jsx
 web/src/components/ui/PageHeader.jsx
@@ -142,6 +146,7 @@ web/src/hooks/useLatestReadings.js
 web/src/hooks/useNow.js
 web/src/hooks/useOnlineStatus.js
 web/src/hooks/useReadingsHistory.js
+web/src/hooks/useSidebarCollapsed.js
 web/src/hooks/useStopComparison.js
 web/src/hooks/useStopFilters.js
 web/src/hooks/useStops.js
@@ -150,6 +155,7 @@ web/src/pages/AdminLoginPage.jsx
 web/src/pages/AdminStopsPage.jsx
 web/src/pages/DashboardPage.jsx
 web/src/pages/HistoryPage.jsx
+web/src/pages/LabPage.jsx
 web/src/pages/NotFoundPage.jsx
 web/src/pages/StopsPage.jsx
 web/src/services/adminAuth.js
