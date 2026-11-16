@@ -329,3 +329,4 @@ Não foram testados leitores de tela, navegadores além do Chrome, nem dispositi
 - O código gerado por IA é revisado pela equipe antes de ser aprovado.
 - Este registro descreve apenas ações que realmente aconteceram; nenhum prompt ou teste é inventado.
 - Dados exibidos pela aplicação nesta fase são demonstrativos e identificados como tal na interface.
+- Aviso de conexão (useOnlineStatus): navigator.onLine deixou de decidir sozinho; passa a haver sonda HEAD à própria origem a cada 2 s e nos eventos online/offline/foco. Lint e build executados; o spec e2e não pôde ser rodado localmente (runner do harness indisponível no sandbox).
