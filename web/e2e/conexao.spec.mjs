@@ -15,6 +15,7 @@ test('sem aviso quando online', async ({ page }) => {
 test('aviso textual aparece offline e some ao reconectar', async ({ page, context }) => {
   await page.goto('/historico')
   await expect(page.getByRole('heading', { level: 1, name: 'Histórico' })).toBeVisible()
+  test.info().annotations.push({ type: "console-esperado", description: "ERR_INTERNET_DISCONNECTED" })
   await context.setOffline(true)
   await expect(page.getByRole('status').filter({ hasText: AVISO })).toBeVisible()
   await context.setOffline(false)
@@ -24,6 +25,7 @@ test('aviso textual aparece offline e some ao reconectar', async ({ page, contex
 test('offline: dados já carregados continuam visíveis junto do aviso', async ({ page, context }) => {
   await page.goto('/')
   await expect(page.getByRole('region', { name: 'Pontos monitorados' })).toBeVisible()
+  test.info().annotations.push({ type: "console-esperado", description: "ERR_INTERNET_DISCONNECTED" })
   await context.setOffline(true)
   await expect(page.getByText(AVISO)).toBeVisible()
   await expect(page.getByRole('region', { name: 'Pontos monitorados' })).toBeVisible()
@@ -37,6 +39,7 @@ for (const [vpNome, vp] of [['desktop', { width: 1366, height: 900 }], ['mobile'
       await page.emulateMedia({ colorScheme: scheme, reducedMotion: 'reduce' })
       await page.goto('/historico')
       await expect(page.getByRole('heading', { level: 1, name: 'Histórico' })).toBeVisible()
+      test.info().annotations.push({ type: "console-esperado", description: "ERR_INTERNET_DISCONNECTED" })
       await context.setOffline(true)
       await expect(page.getByText(AVISO)).toBeVisible()
       await settle(page)
@@ -51,6 +54,7 @@ test('375 px offline: sem rolagem horizontal', async ({ page, context }) => {
   await page.setViewportSize(MOBILE)
   await page.goto('/historico')
   await expect(page.getByRole('heading', { level: 1, name: 'Histórico' })).toBeVisible()
+  test.info().annotations.push({ type: "console-esperado", description: "ERR_INTERNET_DISCONNECTED" })
   await context.setOffline(true)
   await expect(page.getByText(AVISO)).toBeVisible()
   expect(await horizontalOverflow(page)).toEqual([])
