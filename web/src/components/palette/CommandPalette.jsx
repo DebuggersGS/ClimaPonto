@@ -4,12 +4,9 @@ import { FileText, MapPin } from 'lucide-react'
 import { useStops } from '../../hooks/useStops.js'
 import { buildCommandResults } from '../../utils/commandSearch.js'
 import { cn } from '../../utils/cn.js'
+import { PUBLIC_NAV_ITEMS } from '../layout/navItems.js'
 
-const PAGES = [
-  { to: '/', label: 'Dashboard' },
-  { to: '/pontos', label: 'Pontos' },
-  { to: '/historico', label: 'Histórico' },
-]
+const PAGES = PUBLIC_NAV_ITEMS.map(({ to, label }) => ({ to, label }))
 
 /**
  * Command Palette: diálogo nativo com campo de busca (combobox) e lista de

@@ -1,5 +1,6 @@
-import { Link, useNavigate } from 'react-router'
-import { Bus, Search, ThermometerSun } from 'lucide-react'
+import { useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router'
+import { Menu, Search, X } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth.js'
 import { useDataMode } from '../../hooks/useDataMode.js'
 import { getDataModeTone } from '../../utils/statusTones.js'
@@ -7,6 +8,7 @@ import Badge from '../ui/Badge.jsx'
 import Button from '../ui/Button.jsx'
 import CommandPalette from '../palette/CommandPalette.jsx'
 import { useCommandPalette } from '../../hooks/useCommandPalette.js'
+import Logo from './Logo.jsx'
 import MainNav from './MainNav.jsx'
 
 function UserMenu() {
@@ -46,18 +48,45 @@ function DataModeIndicator() {
   )
 }
 
-function Logo() {
+/**
+ * Menu móvel (abaixo de xl): botão com aria-expanded que abre a mesma navegação principal.
+ * Ao abrir, o foco vai ao primeiro item; Esc fecha e devolve o foco ao botão; escolher um item fecha o menu.
+ */
+function MobileMenu() {
+  const [open, setOpen] = useState(false)
+  const buttonRef = useRef(null)
+  const listRef = useRef(null)
+
+  useEffect(() => {
+    if (!open) return undefined
+    listRef.current?.querySelector('a')?.focus()
+    function onKeyDown(event) {
+      if (event.key !== 'Escape') return
+      setOpen(false)
+      buttonRef.current?.focus()
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [open])
+
+  const Icon = open ? X : Menu
   return (
-    <Link to="/" className="flex items-center gap-2.5 rounded-full pr-2 focus-visible:outline-2 focus-visible:outline-brand-600">
-      <span
-        aria-hidden="true"
-        className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-linear-to-br from-brand-600 to-accent-500 text-white shadow-glow"
+    <div className="xl:hidden">
+      <Button
+        ref={buttonRef}
+        variant="secondary"
+        size="sm"
+        aria-expanded={open}
+        aria-controls="menu-movel"
+        onClick={() => setOpen((value) => !value)}
       >
-        <Bus className="h-5 w-5" />
-        <ThermometerSun className="absolute -right-1 -top-1 h-4 w-4 rounded-full bg-ink p-0.5 text-amber-300" />
-      </span>
-      <span className="text-lg font-semibold tracking-tight text-slate-900">ClimaPonto</span>
-    </Link>
+        <Icon aria-hidden="true" className="h-4 w-4" />
+        Menu
+      </Button>
+      <div id="menu-movel" hidden={!open} className="absolute inset-x-0 top-full max-h-[calc(100dvh-4rem)] overflow-y-auto px-4 pb-3 pt-2 sm:px-6">
+        {open && <MainNav listRef={listRef} onNavigate={() => setOpen(false)} className="mx-auto max-w-sm sm:mx-0" />}
+      </div>
+    </div>
   )
 }
 
@@ -65,9 +94,11 @@ export default function Header() {
   const palette = useCommandPalette()
   return (
     <header className="surface-glass sticky top-0 z-40 rounded-none border-x-0 border-t-0">
-      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2.5 sm:px-6 lg:px-8">
-        <Logo />
-        <MainNav className="order-last w-full sm:order-none sm:w-auto" />
+      <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2.5 sm:px-6 xl:justify-end xl:px-8">
+        <div className="flex items-center gap-3 xl:hidden">
+          <MobileMenu />
+          <Logo />
+        </div>
         <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
           <Button variant="secondary" size="sm" onClick={palette.open} aria-haspopup="dialog">
             <Search aria-hidden="true" className="h-4 w-4" />
