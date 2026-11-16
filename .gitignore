@@ -28,3 +28,8 @@ desktop.ini
 # Plataformas de deploy (configurações locais)
 .vercel/
 .netlify/
+
+# Pacote de entrega e relatórios de teste
+release/*.zip
+test-results/
+playwright-report/
