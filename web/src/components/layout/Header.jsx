@@ -8,6 +8,7 @@ import Badge from '../ui/Badge.jsx'
 import Button from '../ui/Button.jsx'
 import CommandPalette from '../palette/CommandPalette.jsx'
 import { useCommandPalette } from '../../hooks/useCommandPalette.js'
+import { useIsWideScreen } from '../../hooks/useIsWideScreen.js'
 import Logo from './Logo.jsx'
 import MainNav from './MainNav.jsx'
 
@@ -71,7 +72,7 @@ function MobileMenu() {
 
   const Icon = open ? X : Menu
   return (
-    <div className="xl:hidden">
+    <div>
       <Button
         ref={buttonRef}
         variant="secondary"
@@ -92,13 +93,16 @@ function MobileMenu() {
 
 export default function Header() {
   const palette = useCommandPalette()
+  const wide = useIsWideScreen()
   return (
     <header className="surface-glass sticky top-0 z-40 rounded-none border-x-0 border-t-0">
       <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2.5 sm:px-6 xl:justify-end xl:px-8">
-        <div className="flex items-center gap-3 xl:hidden">
-          <MobileMenu />
-          <Logo />
-        </div>
+        {!wide && (
+          <div className="flex items-center gap-3">
+            <MobileMenu />
+            <Logo />
+          </div>
+        )}
         <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
           <Button variant="secondary" size="sm" onClick={palette.open} aria-haspopup="dialog">
             <Search aria-hidden="true" className="h-4 w-4" />

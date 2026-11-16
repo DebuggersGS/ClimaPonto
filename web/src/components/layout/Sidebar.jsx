@@ -4,7 +4,7 @@ import Logo from './Logo.jsx'
 import MainNav from './MainNav.jsx'
 
 /**
- * Barra lateral do desktop (a partir de xl; abaixo disso vale o menu móvel do cabeçalho).
+ * Barra lateral do desktop (renderizada só a partir de 1280 px; abaixo disso vale o menu móvel do cabeçalho).
  * O botão de recolher mantém um rótulo fixo e expõe o estado em aria-expanded.
  * @param {{ collapsed: boolean, onToggle: () => void }} props
  */
@@ -14,7 +14,7 @@ export default function Sidebar({ collapsed, onToggle }) {
     <div
       data-sidebar={collapsed ? 'collapsed' : 'expanded'}
       className={cn(
-        'sticky top-0 hidden h-screen shrink-0 flex-col gap-4 overflow-y-auto border-r border-slate-900/10 bg-surface p-3 transition-[width] duration-200 motion-reduce:transition-none xl:flex',
+        'sticky top-0 flex h-screen shrink-0 flex-col gap-4 overflow-y-auto border-r border-slate-900/10 bg-surface p-3 transition-[width] duration-200 motion-reduce:transition-none',
         collapsed ? 'w-20' : 'w-64',
       )}
     >

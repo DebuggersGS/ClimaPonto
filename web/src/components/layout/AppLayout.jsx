@@ -3,12 +3,14 @@ import { WifiOff } from 'lucide-react'
 import { useOnlineStatus } from '../../hooks/useOnlineStatus.js'
 import DemoNotice from '../ui/DemoNotice.jsx'
 import { useSidebarCollapsed } from '../../hooks/useSidebarCollapsed.js'
+import { useIsWideScreen } from '../../hooks/useIsWideScreen.js'
 import Header from './Header.jsx'
 import Sidebar from './Sidebar.jsx'
 
 export default function AppLayout() {
   const online = useOnlineStatus()
   const sidebar = useSidebarCollapsed()
+  const wide = useIsWideScreen()
   return (
     <div className="min-h-screen xl:flex">
       <a
@@ -18,7 +20,7 @@ export default function AppLayout() {
         Pular para o conteúdo
       </a>
 
-      <Sidebar collapsed={sidebar.collapsed} onToggle={sidebar.toggle} />
+      {wide && <Sidebar collapsed={sidebar.collapsed} onToggle={sidebar.toggle} />}
 
       <div className="flex min-h-screen min-w-0 flex-1 flex-col">
         <Header />
