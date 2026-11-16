@@ -324,6 +324,15 @@ Não foram testados leitores de tela, navegadores além do Chrome, nem dispositi
 - **E2E:** especs escritos em `web/e2e` (`mapa`, `favoritos`, `alertas`, `palette`, `laboratorio`, `ficha-ponto`, `pontos`, `historico-perfis`, `qualidade`, `conexao`), **não executados localmente**; resultados virão do gate (pendente de verificação).
 - O código gerado por IA permanece sujeito à revisão da equipe.
 
+### Recuperação da Fase 4 — validação da branch (16/11/2026, objetivo G-20261116-a1dfae)
+
+- **Origem:** branch `harness/G-20261115-b9e99d`, cujo último commit é `aab7de9` (`git merge-base` com a branch da recuperação devolve `aab7de9`).
+- **Anotação `console-esperado`:** existe só em `web/e2e/conexao.spec.mjs`, nos testes que usam `setOffline(true)`, com a descrição `ERR_INTERNET_DISCONNECTED` (commit `aab7de9`).
+- **Teste novo** `web/src/utils/e2eConsoleAnnotations.test.js` (commit `3b6c8b9`): verifica que nenhum outro spec contém o marcador, que há ao menos uma anotação em `conexao.spec.mjs`, que toda anotação tem a descrição específica, que ela vem logo antes de `await setOffline(true)` e depois de `page.goto` e `await expect(`, que todo teste com `setOffline(true)` tem exatamente uma anotação e que testes sem `setOffline` não têm; inclui verificações negativas da validação de descrição (curinga, vazia, genérica, ausente, instrução seguinte incorreta).
+- **Execução real** (a partir de `web/`): `node --test src/utils/e2eConsoleAnnotations.test.js` → 11 testes, 11 aprovados, 0 falhas, 0 pulados.
+- **Gates:** lint, build e e2e (Chromium e Firefox, modo mock) são executados pelo harness; os resultados constam no relatório do objetivo, não neste registro. O gate opcional `supabase-visitor` depende de `web/.env.local`.
+- O código gerado por IA permanece sujeito à revisão da equipe.
+
 ## Princípios adotados
 
 - O código gerado por IA é revisado pela equipe antes de ser aprovado.
