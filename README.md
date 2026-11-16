@@ -213,8 +213,13 @@ GLOBAL-SOLUTION/
 
 Detalhes em [docs/data-contract.md](docs/data-contract.md), [docs/architecture-decisions.md](docs/architecture-decisions.md), [docs/security-review.md](docs/security-review.md), [docs/deploy.md](docs/deploy.md) e [docs/etapa-3-proposta.md](docs/etapa-3-proposta.md). A revisão de segurança também traz o passo a passo para rodar os testes SQL em um Supabase **local** (Docker).
 
+## Release local (G-20261116-0865c5)
+
+Status: LOCAL_RELEASE_READY_WITH_BLOCKERS. Ainda não há URL de deploy. Documentos da release: [docs/RELATORIO-FINAL.md](docs/RELATORIO-FINAL.md), [docs/MATRIZ-FIAP.md](docs/MATRIZ-FIAP.md), [docs/ARQUITETURA-E-DECISOES.md](docs/ARQUITETURA-E-DECISOES.md), [docs/INTEGRACAO-GS.md](docs/INTEGRACAO-GS.md), [docs/CHECKLIST-SUBMISSAO.md](docs/CHECKLIST-SUBMISSAO.md) e [BLOCKERS.md](BLOCKERS.md). Limitações conhecidas: escrita remota no Supabase não reverificada nesta release (o cliente é coberto por `web/src/services/stopsApi.test.js`, com cliente falso); reorganização ampla de UX não realizada (só ícones na navegação); Lighthouse não medido; sem endpoint de ingestão; o CSV do Histórico e os alertas são calculados no cliente. Segurança: só chave publishable no front-end; RLS é a autoridade ([docs/security-review.md](docs/security-review.md)).
+
 ## O que já funciona
 
+- Ícones decorativos na navegação principal (release G-20261116-0865c5) e teste do cliente de pontos com Supabase falso (`stopsApi.test.js`, 9 testes).
 - Interface responsiva com Dashboard, Pontos, Histórico e página 404.
 - Banco Supabase com tabelas, restrições, índices, RLS e 3 pontos demonstrativos.
 - Listagem pública de pontos ativos, lida do Supabase ou do dataset mock conforme `VITE_DATA_MODE`, com o modo efetivo sempre sinalizado.
@@ -241,6 +246,8 @@ Detalhes em [docs/data-contract.md](docs/data-contract.md), [docs/architecture-d
 - **Fase 3 (Insights, comparador e exploração do Histórico):** Insights em Bento compacto com a metodologia ("Como foi calculado") recolhida por padrão; comparador de dois pontos no Dashboard (recolhido, mesma origem e período); Histórico com filtro de origem na URL (`origem`), resumo por dia recolhido e exportação CSV. Testes E2E escritos (`web/e2e/insights.spec.mjs`, `web/e2e/historico-exploracao.spec.mjs`; `filtros.spec.mjs` ajustado para abrir a metodologia antes de ler o texto), com screenshots anexados em 1366 e 375 px, claro e escuro. **Ainda não executados** pelo gate nesta tarefa (os navegadores E2E não estavam disponíveis ao agente); lint e build passam.
 
 ## Pendente
+
+- **Release:** GitHub privado com permissão write dos professores, deploy na Vercel, envios separados no Teams, verificação do CRUD remoto com usuário de teste e materiais dos colegas; detalhes em [BLOCKERS.md](BLOCKERS.md).
 
 - **Desativar o cadastro público** no painel do Supabase (*Authentication › Sign In / Providers*): hoje está ligado.
 - Criar a(s) conta(s) administrativa(s) definitiva(s) da equipe pelo painel (passos na seção *Administradores*).

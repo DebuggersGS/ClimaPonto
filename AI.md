@@ -335,6 +335,15 @@ Não foram testados leitores de tela, navegadores além do Chrome, nem dispositi
 - **Conclusão:** os cenários offline passaram no Chromium e no Firefox com a anotação `ERR_INTERNET_DISCONNECTED`, sem padrão genérico nem de navegador específico.
 - O código gerado por IA permanece sujeito à revisão da equipe.
 
+### Release local — objetivo G-20261116-0865c5 (16/11/2026)
+
+- **Como foi feito:** execução pelo harness, com agentes Claude orquestrados por tarefas. Os trailers dos commits registram coautoria Claude Sonnet 5.5 no commit da T1; não se afirma modelo para os demais.
+- **T1 (`271b1c3`):** criou `web/src/services/stopsApi.test.js`, 9 testes `node:test` com cliente Supabase falso, sem rede. Reexecutado na T3: 9 aprovados, 0 falhas. Não comprova escrita no Supabase remoto.
+- **T2 (`b060943`):** ícones lucide-react decorativos na navegação principal (`MainNav.jsx`). Sem inspeção renderizada nem screenshots; reorganização ampla de UX não realizada por limite de orçamento.
+- **T3 (documentação):** criou `docs/RELATORIO-FINAL.md`, `docs/MATRIZ-FIAP.md`, `docs/ARQUITETURA-E-DECISOES.md`, `docs/INTEGRACAO-GS.md`, `docs/CHECKLIST-SUBMISSAO.md` e `BLOCKERS.md`, e atualizou `README.md`. Execuções reais: `npm run lint` (saída 0, 2 avisos preexistentes) e `npm run build` (concluído).
+- Totais de testes e E2E: relatório de verificação do harness. Nenhuma escrita remota, push, deploy ou envio foi feito. Lighthouse não medido.
+- O código gerado por IA permanece sujeito à revisão da equipe.
+
 ## Princípios adotados
 
 - O código gerado por IA é revisado pela equipe antes de ser aprovado.
