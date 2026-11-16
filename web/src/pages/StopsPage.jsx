@@ -58,7 +58,7 @@ function StopsContent({ onRetry }) {
 }
 
 export default function StopsPage() {
-  useDocumentTitle('Pontos')
+  useDocumentTitle('Explorar')
   // Remontar o conteúdo refaz as consultas (useStops não expõe recarga aqui).
   const [attempt, setAttempt] = useState(0)
 
@@ -66,8 +66,8 @@ export default function StopsPage() {
     <>
       <PageHeader
         eyebrow="Monitoramento"
-        title="Pontos"
-        description="Mapa esquemático e lista dos pontos de ônibus acompanhados pelo ClimaPonto, com ficha e acesso ao histórico de cada um."
+        title="Explorar pontos"
+        description="Mapa esquemático e lista dos pontos de ônibus acompanhados pelo ClimaPonto, com ficha, favoritos e acesso ao histórico de cada um."
       />
       <StopsContent key={attempt} onRetry={() => setAttempt((n) => n + 1)} />
     </>

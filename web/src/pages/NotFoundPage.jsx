@@ -18,7 +18,7 @@ export default function NotFoundPage() {
             to="/"
             className="inline-flex min-h-10 items-center rounded-full bg-linear-to-b from-brand-600 to-brand-700 px-4 py-2 text-sm font-medium text-white shadow-card hover:from-brand-700 hover:to-brand-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
           >
-            Voltar para o Dashboard
+            Voltar para a Visão geral
           </Link>
         }
       />

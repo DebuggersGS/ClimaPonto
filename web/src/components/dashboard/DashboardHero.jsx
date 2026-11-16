@@ -10,7 +10,7 @@ const GLOW = {
 }
 
 /**
- * Hero escuro do Dashboard: único h1 da página, frase do produto, indicador do
+ * Hero escuro da Visão geral: único h1 da página, frase do produto, indicador do
  * modo de dados e, em `children`, o controle de atualização.
  * @param {{ source: string, children?: import('react').ReactNode }} props
  */
@@ -24,7 +24,7 @@ export default function DashboardHero({ source, children }) {
           <Badge tone={tone.tone} icon={tone.icon} size="sm">
             Fonte: {getDataModeInfo(source).label}
           </Badge>
-          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Dashboard</h1>
+          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Visão geral</h1>
           <p className="mt-2 max-w-xl text-base text-on-ink-muted">
             Calor urbano sob controle: acompanhe temperatura, umidade e conectividade dos pontos de ônibus de São Paulo.
           </p>

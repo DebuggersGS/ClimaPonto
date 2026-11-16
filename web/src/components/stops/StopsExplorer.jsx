@@ -1,12 +1,9 @@
-import { useMemo } from 'react'
 import { useSearchParams } from 'react-router'
 import { useStopFilters } from '../../hooks/useStopFilters.js'
-import { getSensorLabScenarios } from '../../services/sensorLab.js'
 import { cn } from '../../utils/cn.js'
 import NoResultsState from '../ui/NoResultsState.jsx'
 import SegmentedControl from '../ui/SegmentedControl.jsx'
 import StopFilterBar from '../ui/StopFilterBar.jsx'
-import SensorLab from './SensorLab.jsx'
 import { StopPanel, StopSheet } from './StopDetail.jsx'
 import StopList from './StopList.jsx'
 import StopMap from './StopMap.jsx'
@@ -26,7 +23,6 @@ export default function StopsExplorer({ stops, items, now, favorites }) {
   const [params, setParams] = useSearchParams()
   const isDesktop = useIsDesktop()
   const filter = useStopFilters(items, { now, favorites: favorites.favorites })
-  const scenarios = useMemo(() => getSensorLabScenarios(), [])
 
   const view = params.get('vista') === 'lista' ? 'lista' : 'mapa'
   const selectedCode = params.get('ponto')
@@ -74,7 +70,6 @@ export default function StopsExplorer({ stops, items, now, favorites }) {
         {selected && isDesktop && <StopPanel {...detailProps} />}
       </div>
       {selected && !isDesktop && <StopSheet {...detailProps} />}
-      <SensorLab scenarios={scenarios} items={items} />
     </>
   )
 }

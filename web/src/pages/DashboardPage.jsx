@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import ConnectivityRuleNote from '../components/dashboard/ConnectivityRuleNote.jsx'
 import { getDashboardPhase } from '../components/dashboard/dashboardPhase.js'
 import DashboardHero from '../components/dashboard/DashboardHero.jsx'
 import {
@@ -17,6 +16,7 @@ import StopGrid from '../components/dashboard/StopGrid.jsx'
 import AlertsPanel from '../components/dashboard/AlertsPanel.jsx'
 import InsightsPanel from '../components/dashboard/InsightsPanel.jsx'
 import StopComparison from '../components/dashboard/StopComparison.jsx'
+import MethodologyNote from '../components/ui/MethodologyNote.jsx'
 import DataSourceBadge from '../components/ui/DataSourceBadge.jsx'
 import NoResultsState from '../components/ui/NoResultsState.jsx'
 import StopFilterBar from '../components/ui/StopFilterBar.jsx'
@@ -62,7 +62,7 @@ function ReadyContent({ stops, summary, now, source }) {
           <LatestReadingHighlight latest={summary.latest} now={now} />
         </Section>
 
-        <ConnectivityRuleNote className="col-span-full" />
+        <MethodologyNote className="col-span-full" />
 
         <Section title="Evolução recente" eyebrow="Últimas 24 horas" className="mb-0 min-w-0 lg:col-span-8">
           <RecentEvolutionPanel stops={stops} items={summary.items} latest={summary.latest} />
@@ -93,7 +93,7 @@ function ReadyContent({ stops, summary, now, source }) {
 }
 
 export default function DashboardPage() {
-  useDocumentTitle('Dashboard')
+  useDocumentTitle('Visão geral')
   const { stops, isLoading, error, source } = useStops()
   const reducedMotion = useReducedMotion()
   const {

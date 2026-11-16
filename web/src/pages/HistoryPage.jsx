@@ -1,6 +1,6 @@
 import { useId } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
-import { useSearchParams } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 import HistoryHeader from '../components/history/HistoryHeader.jsx'
 import PeriodFilter from '../components/history/PeriodFilter.jsx'
 import ReadingsEvolution from '../components/history/ReadingsEvolution.jsx'
@@ -18,6 +18,7 @@ import Button from '../components/ui/Button.jsx'
 import Card from '../components/ui/Card.jsx'
 import EmptyState from '../components/ui/EmptyState.jsx'
 import FeedbackMessage from '../components/ui/FeedbackMessage.jsx'
+import MethodologyNote from '../components/ui/MethodologyNote.jsx'
 import PageHeader from '../components/ui/PageHeader.jsx'
 import Skeleton from '../components/ui/Skeleton.jsx'
 import { useDocumentTitle } from '../hooks/useDocumentTitle.js'
@@ -26,6 +27,28 @@ import { useStops } from '../hooks/useStops.js'
 import { ALL_ORIGINS, buildOriginOptions, filterByOrigin, parseOriginId } from '../utils/historyExploration.js'
 import { getReadingSourceInfo } from '../utils/readings.js'
 import { HISTORY_LIMIT, HISTORY_PERIODS, parsePeriodId } from '../utils/historyPeriods.js'
+
+/**
+ * Três visões sobre as mesmas leituras (mesmos filtros e parâmetros de URL):
+ * Histórico (leituras e evolução), Análises (perfis, linha do tempo e qualidade) e Relatórios (exportações).
+ */
+const VIEWS = {
+  historico: {
+    title: 'Histórico',
+    description: 'Registro das leituras de temperatura e umidade ao longo do tempo.',
+    emptyHint: 'Escolha um ponto monitorado para ver o histórico de leituras.',
+  },
+  analises: {
+    title: 'Análises',
+    description: 'Perfis por horário e dia da semana, linha do tempo e qualidade das medições de um ponto.',
+    emptyHint: 'Escolha um ponto monitorado para analisar o período.',
+  },
+  relatorios: {
+    title: 'Relatórios',
+    description: 'Exporte as leituras de um ponto em CSV ou gere o relatório-resumo do período.',
+    emptyHint: 'Escolha um ponto monitorado para exportar leituras e relatórios.',
+  },
+}
 
 const FADE = { initial: { opacity: 0, y: 6 }, animate: { opacity: 1, y: 0 }, exit: { opacity: 0 }, transition: { duration: 0.2 } }
 
@@ -46,9 +69,18 @@ function LoadingState() {
   )
 }
 
-function ResultsContent({ stop, period, periodId, originId, readings, truncated, discardedCount }) {
+function ExportActions({ readings, stop, periodId, originId }) {
   return (
-    <div className="space-y-6">
+    <div className="flex flex-wrap items-center gap-2">
+      <ExportCsvButton readings={readings} stop={stop} periodId={periodId} originId={originId} />
+      <ExportReportButton readings={readings} stop={stop} periodId={periodId} />
+    </div>
+  )
+}
+
+function Notices({ truncated, discardedCount }) {
+  return (
+    <>
       {truncated && (
         <FeedbackMessage tone="info" className="mb-0">
           Exibindo as {HISTORY_LIMIT} leituras mais recentes do período; leituras mais antigas foram omitidas.
@@ -61,28 +93,38 @@ function ResultsContent({ stop, period, periodId, originId, readings, truncated,
             : `${discardedCount} leituras recebidas foram descartadas por estarem inválidas.`}
         </FeedbackMessage>
       )}
+    </>
+  )
+}
+
+function AnalysisContent({ readings, periodId, truncated, discardedCount }) {
+  return (
+    <section aria-labelledby="analysis-heading" className="space-y-3">
+      <SectionTitle id="analysis-heading">Análises do período</SectionTitle>
+      <CollapsibleSection title="Por horário do dia">
+        <TemporalProfile readings={readings} kind="hour" periodId={periodId} />
+      </CollapsibleSection>
+      <CollapsibleSection title="Por dia da semana">
+        <TemporalProfile readings={readings} kind="weekday" periodId={periodId} />
+      </CollapsibleSection>
+      <CollapsibleSection title="Linha do tempo">
+        <ReadingsTimeline readings={readings} />
+      </CollapsibleSection>
+      <CollapsibleSection title="Qualidade das medições">
+        <ReadingQuality readings={readings} periodId={periodId} discardedCount={discardedCount} truncated={truncated} />
+      </CollapsibleSection>
+      <MethodologyNote />
+    </section>
+  )
+}
+
+function ReadingsContent({ stop, period, periodId, originId, readings }) {
+  return (
+    <>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <DailySummary readings={readings} />
-        <div className="flex flex-wrap items-center gap-2">
-          <ExportCsvButton readings={readings} stop={stop} periodId={periodId} originId={originId} />
-          <ExportReportButton readings={readings} stop={stop} periodId={periodId} />
-        </div>
+        <ExportActions readings={readings} stop={stop} periodId={periodId} originId={originId} />
       </div>
-      <section aria-labelledby="analysis-heading" className="space-y-3">
-        <SectionTitle id="analysis-heading">Análises do período</SectionTitle>
-        <CollapsibleSection title="Por horário do dia">
-          <TemporalProfile readings={readings} kind="hour" periodId={periodId} />
-        </CollapsibleSection>
-        <CollapsibleSection title="Por dia da semana">
-          <TemporalProfile readings={readings} kind="weekday" periodId={periodId} />
-        </CollapsibleSection>
-        <CollapsibleSection title="Linha do tempo">
-          <ReadingsTimeline readings={readings} />
-        </CollapsibleSection>
-        <CollapsibleSection title="Qualidade das medições">
-          <ReadingQuality readings={readings} periodId={periodId} discardedCount={discardedCount} truncated={truncated} />
-        </CollapsibleSection>
-      </section>
       <section aria-labelledby="evolution-heading">
         <SectionTitle id="evolution-heading">Evolução</SectionTitle>
         <ReadingsEvolution readings={readings} periodId={periodId} headingLevel={3} />
@@ -91,12 +133,72 @@ function ResultsContent({ stop, period, periodId, originId, readings, truncated,
         <SectionTitle id="table-heading">Leituras</SectionTitle>
         <ReadingsTable readings={readings} caption={`Leituras de ${stop.name} (${stop.code}) — ${period.label.toLowerCase()}`} />
       </section>
+    </>
+  )
+}
+
+function ReportsContent({ stop, periodId, originId, readings }) {
+  return (
+    <>
+      <DailySummary readings={readings} />
+      <section aria-labelledby="export-heading" className="space-y-3">
+        <SectionTitle id="export-heading">Exportar</SectionTitle>
+        <p className="max-w-2xl text-sm text-slate-700">
+          O CSV de leituras traz cada leitura do período e da origem escolhidos; o relatório-resumo traz as estatísticas
+          do período. Ambos usam só as leituras carregadas para {stop.name} ({stop.code}).
+        </p>
+        <ExportActions readings={readings} stop={stop} periodId={periodId} originId={originId} />
+      </section>
+      <MethodologyNote />
+    </>
+  )
+}
+
+function ResultsContent({ view, ...props }) {
+  const { readings, truncated, discardedCount, periodId } = props
+  return (
+    <div className="space-y-6">
+      <Notices truncated={truncated} discardedCount={discardedCount} />
+      {view === 'analises' && (
+        <>
+          <DailySummary readings={readings} />
+          <AnalysisContent readings={readings} periodId={periodId} truncated={truncated} discardedCount={discardedCount} />
+        </>
+      )}
+      {view === 'relatorios' && <ReportsContent {...props} />}
+      {view === 'historico' && <ReadingsContent {...props} />}
     </div>
   )
 }
 
-export default function HistoryPage() {
-  useDocumentTitle('Histórico')
+/** Atalhos entre as visões, preservando ponto, período e origem escolhidos. */
+function ViewLinks({ view, search }) {
+  const links = [
+    ['historico', '/historico', 'Ver leituras'],
+    ['analises', '/analises', 'Ver análises'],
+    ['relatorios', '/relatorios', 'Ver relatórios'],
+  ].filter(([id]) => id !== view)
+  return (
+    <>
+      {links.map(([id, to, label]) => (
+        <Link
+          key={id}
+          to={`${to}${search}`}
+          className="inline-flex min-h-10 items-center rounded-full px-3 text-sm font-medium text-brand-700 underline underline-offset-2 hover:text-brand-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 dark:text-brand-200"
+        >
+          {label}
+        </Link>
+      ))}
+    </>
+  )
+}
+
+/**
+ * @param {{ view?: 'historico'|'analises'|'relatorios' }} props
+ */
+export default function HistoryPage({ view = 'historico' }) {
+  const config = VIEWS[view]
+  useDocumentTitle(config.title)
   const selectId = useId()
   const reducedMotion = useReducedMotion()
   const [searchParams, setSearchParams] = useSearchParams()
@@ -157,7 +259,7 @@ export default function HistoryPage() {
     )
   } else if (!code) {
     contentKey = 'no-stop'
-    content = <EmptyState variant="info" title="Selecione um ponto" message="Escolha um ponto monitorado para ver o histórico de leituras." />
+    content = <EmptyState variant="info" title="Selecione um ponto" message={config.emptyHint} />
   } else if (notFound) {
     contentKey = 'not-found'
     content = (
@@ -211,6 +313,7 @@ export default function HistoryPage() {
     contentKey = `results-${stop.code}-${periodId}-${originId}`
     content = (
       <ResultsContent
+        view={view}
         stop={stop}
         period={period}
         periodId={periodId}
@@ -225,8 +328,9 @@ export default function HistoryPage() {
   return (
     <>
       <PageHeader
-        title="Histórico"
-        description="Registro das leituras de temperatura e umidade ao longo do tempo."
+        title={config.title}
+        description={config.description}
+        actions={<ViewLinks view={view} search={searchParams.toString() ? `?${searchParams.toString()}` : ''} />}
       />
 
       <HistoryHeader stop={stop} period={period} source={source} />
