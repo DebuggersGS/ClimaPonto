@@ -1,5 +1,10 @@
 // Command Palette: atalho, botão, busca, navegação por teclado e foco (modo mock).
 import { test, expect, snap, settle, horizontalOverflow, axeViolations } from 'harness-e2e'
+import { CONSOLE_MAPA, mapaSemRede } from './suporte-mapa.mjs'
+
+// Explorar abre o mapa, que tenta o OpenFreeMap: no gate sem rede a tentativa é abortada (fallback determinístico).
+test.use({ allowConsole: CONSOLE_MAPA })
+test.beforeEach(async ({ page }) => mapaSemRede(page))
 
 const DESKTOP = { width: 1366, height: 900 }
 const MOBILE = { width: 375, height: 812 }

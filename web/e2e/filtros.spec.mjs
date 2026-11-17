@@ -5,6 +5,11 @@
 // MOCK-07 Itaim Bibi (histórico longo), MOCK-08 Lapa (teste/demonstrativo). Os valores numéricos de
 // temperatura e umidade dependem do instante e por isso não são afirmados aqui.
 import { test, expect, settle, horizontalOverflow, axeViolations } from 'harness-e2e'
+import { CONSOLE_MAPA, mapaSemRede } from './suporte-mapa.mjs'
+
+// Explorar abre o mapa, que tenta o OpenFreeMap: no gate sem rede a tentativa é abortada (fallback determinístico).
+test.use({ allowConsole: CONSOLE_MAPA })
+test.beforeEach(async ({ page }) => mapaSemRede(page))
 
 const ADMIN = { email: 'admin.demo@climaponto.example', senha: 'demo-admin-2026' }
 
@@ -26,6 +31,14 @@ async function abrirDashboard(page) {
   await expect(cardsDash(page)).toHaveCount(8)
   // Evolução recente carrega as leituras depois do resto; só então o texto fixo é estável.
   await expect(page.getByText('Carregando leituras…')).toHaveCount(0)
+}
+
+/** "Bairro" e "Somente favoritos" vivem no Popover "Mais filtros": abre-o se estiver fechado. */
+const campoBairro = (page) => page.getByRole('combobox', { name: 'Bairro' })
+async function abrirMais(page) {
+  if (!(await campoBairro(page).isVisible())) await page.getByRole('button', { name: /^Mais filtros/ }).click()
+  await expect(campoBairro(page)).toBeVisible()
+  return campoBairro(page)
 }
 
 async function abrirPontos(page) {
@@ -204,15 +217,17 @@ test.describe('Pontos: busca e bairro', () => {
 
   test('busca, bairro, estado ambiental, conectividade e somente favoritos', async ({ page }) => {
     await expect(busca(page)).toBeVisible()
-    await expect(page.getByRole('combobox', { name: 'Bairro' })).toBeVisible()
     await expect(grupoEstado(page)).toHaveCount(1)
     await expect(grupoConect(page)).toHaveCount(1)
+    // Bairro e Somente favoritos ficam no Popover "Mais filtros", não na linha principal
+    await expect(campoBairro(page)).toHaveCount(0)
+    await expect(await abrirMais(page)).toBeVisible()
     await expect(page.getByRole('button', { name: 'Somente favoritos' })).toHaveAttribute('aria-pressed', 'false')
     await expect(contagem(page)).toHaveText('Mostrando 8 de 8 pontos')
   })
 
   test('select Bairro lista "Todos os bairros" e cada bairro com contagem', async ({ page }) => {
-    const bairro = page.getByRole('combobox', { name: 'Bairro' })
+    const bairro = await abrirMais(page)
     const opcoes = await bairro.locator('option').allTextContents()
     expect(opcoes[0]).toBe('Todos os bairros')
     expect(opcoes).toHaveLength(9)
@@ -235,13 +250,13 @@ test.describe('Pontos: busca e bairro', () => {
     await expect(itensPontos(page).first()).toContainText('MOCK-06')
 
     await busca(page).fill('')
-    await page.getByRole('combobox', { name: 'Bairro' }).selectOption({ label: 'Pinheiros (1)' })
+    await (await abrirMais(page)).selectOption({ label: 'Pinheiros (1)' })
     await busca(page).fill('paulista')
     await expect(vazio(page)).toBeVisible()
   })
 
   test('estado vazio e Limpar filtros restauram a lista', async ({ page }) => {
-    await page.getByRole('combobox', { name: 'Bairro' }).selectOption({ label: 'Lapa (1)' })
+    await (await abrirMais(page)).selectOption({ label: 'Lapa (1)' })
     await busca(page).fill('zzz-inexistente')
     await expect(vazio(page)).toBeVisible()
     await expect(contagem(page)).toHaveText('Mostrando 0 de 8 pontos')
@@ -250,7 +265,7 @@ test.describe('Pontos: busca e bairro', () => {
     await limpar(page).last().click()
     await expect(vazio(page)).toHaveCount(0)
     await expect(busca(page)).toHaveValue('')
-    await expect(page.getByRole('combobox', { name: 'Bairro' })).toHaveValue('')
+    await expect(await abrirMais(page)).toHaveValue('')
     await expect(itensPontos(page)).toHaveCount(8)
     await expect(contagem(page)).toHaveText('Mostrando 8 de 8 pontos')
   })
@@ -296,8 +311,11 @@ test('teclado (Pontos): busca e bairro operáveis sem mouse', async ({ page }) =
   await busca(page).focus()
   await page.keyboard.type('sapopemba')
   await expect(itensPontos(page)).toHaveCount(1)
-  await page.keyboard.press('Tab')
-  await expect(page.getByRole('combobox', { name: 'Bairro' })).toBeFocused()
+  // "Mais filtros" abre por teclado e o campo Bairro fica operável dentro do painel
+  await page.getByRole('button', { name: /^Mais filtros/ }).focus()
+  await page.keyboard.press('Enter')
+  await campoBairro(page).focus()
+  await expect(campoBairro(page)).toBeFocused()
   await limpar(page).first().focus()
   await expect(limpar(page).first()).toBeFocused()
   await page.keyboard.press('Enter')
@@ -341,7 +359,7 @@ for (const colorScheme of ['light', 'dark']) {
   test(`axe-core: Pontos com filtros aplicados (tema ${colorScheme})`, async ({ page }, testInfo) => {
     await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' })
     await abrirPontos(page)
-    await page.getByRole('combobox', { name: 'Bairro' }).selectOption({ label: 'Pinheiros (1)' })
+    await (await abrirMais(page)).selectOption({ label: 'Pinheiros (1)' })
     await expect(itensPontos(page)).toHaveCount(1)
     await settle(page)
     const v = await axeViolations(page)
@@ -405,7 +423,7 @@ test.describe('movimento reduzido: aplicar e limpar filtros', () => {
 
   test('Pontos: aplicar filtros, estado vazio e limpar', async ({ page }) => {
     await abrirPontos(page)
-    await page.getByRole('combobox', { name: 'Bairro' }).selectOption({ label: 'Lapa (1)' })
+    await (await abrirMais(page)).selectOption({ label: 'Lapa (1)' })
     await expect(itensPontos(page)).toHaveCount(1)
     await semMovimento(page, 'Pontos: bairro')
     await busca(page).fill('zzz-inexistente')
@@ -423,9 +441,9 @@ test.describe('mobile 375 px', () => {
   test.use({ viewport: { width: 375, height: 812 } })
 
   const menu = (page) => page.getByRole('button', { name: 'Menu', exact: true })
-  /** Em 375 px a navegação vive no menu móvel: abre-o (se ainda fechado) antes de agir sobre os links. */
+  /** Em 375 px a navegação vive no drawer "Menu" (dialog modal): abre-o (se ainda fechado) antes de agir sobre os links. */
   async function abrirMenu(page) {
-    if ((await menu(page).getAttribute('aria-expanded')) !== 'true') await menu(page).click()
+    if (!(await page.getByRole('dialog').isVisible())) await menu(page).click()
     await expect(page.getByRole('navigation', { name: 'Navegação principal' })).toBeVisible()
   }
 
@@ -449,7 +467,8 @@ test.describe('mobile 375 px', () => {
     expect(await horizontalOverflow(page), `${rotulo}: rolagem lateral`).toEqual([])
     const doc = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
     expect(doc, `${rotulo}: documento maior que a janela`).toBeLessThanOrEqual(0)
-    await menu(page).click()
+    // o drawer é modal: o botão "Menu" fica inerte, então o fechamento é por Esc
+    await page.keyboard.press('Escape')
     await expect(nav).toBeHidden()
   }
 
@@ -478,7 +497,7 @@ test.describe('mobile 375 px', () => {
     await abrirPontos(page)
     await settle(page)
     await verificarNavegacao(page, PUBLICOS, 'Pontos')
-    await page.getByRole('combobox', { name: 'Bairro' }).selectOption({ label: 'Itaim Bibi (1)' })
+    await (await abrirMais(page)).selectOption({ label: 'Itaim Bibi (1)' })
     await expect(itensPontos(page)).toHaveCount(1)
     await settle(page)
     await verificarNavegacao(page, PUBLICOS, 'Pontos com filtros')
@@ -536,7 +555,7 @@ test.describe('mobile 375 px', () => {
     await expect(page.getByRole('heading', { level: 1, name: 'Explorar pontos' })).toBeVisible()
     await page.getByRole('button', { name: 'Lista', exact: true }).click()
     await expect(itensPontos(page).first()).toBeVisible()
-    await page.getByRole('combobox', { name: 'Bairro' }).selectOption({ label: 'Lapa (1)' })
+    await (await abrirMais(page)).selectOption({ label: 'Lapa (1)' })
     await settle(page)
     await verificarNavegacao(page, TODOS, 'Pontos com filtros (admin)')
 

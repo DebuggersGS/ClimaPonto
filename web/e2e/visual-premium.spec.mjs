@@ -194,17 +194,20 @@ for (const [nome, rota, pronto] of [
 }
 
 test.describe('Vidro', () => {
-  test('cabeçalho e navegação principal usam backdrop-filter', async ({ page }) => {
+  test('cabeçalho usa backdrop-filter e a barra lateral, que se sobrepõe ao conteúdo no hover, é opaca', async ({ page }) => {
     await aguardarDashboard(page)
     const r = await page.evaluate(() => {
       const v = (el) => {
         const cs = getComputedStyle(el)
         return cs.backdropFilter || cs.webkitBackdropFilter || 'none'
       }
-      return { header: v(document.querySelector('header')), nav: v(document.querySelector('nav[aria-label="Navegação principal"] ul')) }
+      // A barra lateral (aside) cobre o conteúdo ao expandir: o fundo opaco garante a leitura (alfa 1).
+      const fundo = getComputedStyle(document.querySelector('aside[data-sidebar]')).backgroundColor
+      const alfa = fundo.match(/\/\s*([\d.]+)\s*\)|,\s*([\d.]+)\)\s*$/)
+      return { header: v(document.querySelector('header')), alfaSidebar: alfa ? Number(alfa[1] ?? alfa[2]) : 1 }
     })
     expect(r.header).not.toBe('none')
-    expect(r.nav).not.toBe('none')
+    expect(r.alfaSidebar).toBe(1)
   })
 
   test('o seletor de período do Histórico usa backdrop-filter', async ({ page }) => {

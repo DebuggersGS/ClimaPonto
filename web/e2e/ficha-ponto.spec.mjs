@@ -1,17 +1,20 @@
 // Ficha do ponto: recolhida por padrão, painel lateral (1366 px), bottom sheet (375 px), link direto e a11y (modo mock).
 import { test, expect, snap, settle, horizontalOverflow, axeViolations } from 'harness-e2e'
+import { CONSOLE_MAPA, abrirExplorarSemMapa, botaoDoPonto, listaDoMapa } from './suporte-mapa.mjs'
+
+test.use({ allowConsole: CONSOLE_MAPA })
 
 const DESKTOP = { width: 1366, height: 900 }
 const MOBILE = { width: 375, height: 812 }
 
-const mapa = (page) => page.getByRole('figure', { name: 'Mapa esquemático dos pontos de ônibus' })
-const marcador = (page, codigo) => mapa(page).getByRole('button', { name: new RegExp(codigo) })
+// Sem rede o mapa cai na lista de reserva; o botão de cada ponto faz o papel do marcador.
+const marcador = (page, codigo) => botaoDoPonto(page, codigo)
 const painel = (page, nome) => page.getByRole('complementary', { name: nome })
 const folha = (page, nome) => page.getByRole('dialog', { name: nome })
 
 async function abrir(page, url = '/pontos') {
-  await page.goto(url)
-  await expect(mapa(page).getByRole('button')).toHaveCount(8)
+  await abrirExplorarSemMapa(page, url)
+  await expect(listaDoMapa(page).getByRole('button')).toHaveCount(8)
 }
 
 test.describe('desktop (1366 px): painel lateral', () => {
@@ -35,7 +38,7 @@ test.describe('desktop (1366 px): painel lateral', () => {
     await expect(p).toContainText('Simulação — não é medição real')
     await expect(p.getByRole('link', { name: 'Ver histórico' })).toHaveAttribute('href', /ponto=MOCK-02/)
     const a = await p.boundingBox()
-    const b = await mapa(page).boundingBox()
+    const b = await listaDoMapa(page).boundingBox()
     expect(a.x).toBeGreaterThanOrEqual(b.x + b.width - 1)
     await p.getByRole('button', { name: 'Fechar' }).click()
     await expect(page.getByRole('complementary')).toHaveCount(0)
@@ -53,21 +56,21 @@ test.describe('desktop (1366 px): painel lateral', () => {
   })
 
   test('link direto abre a ficha; MOCK-04 mostra "Sem dados" e nenhum valor; MOCK-08 é demonstrativo', async ({ page }) => {
-    await page.goto('/pontos?ponto=MOCK-04')
+    await abrirExplorarSemMapa(page, '/pontos?ponto=MOCK-04')
     const p = painel(page, /./)
     await expect(p).toBeVisible()
     await expect(p).toContainText('Sem dados')
     await expect(p).not.toContainText('°C')
-    await page.goto('/pontos?ponto=MOCK-08')
+    await abrirExplorarSemMapa(page, '/pontos?ponto=MOCK-08')
     await expect(painel(page, /./)).toContainText('Demonstrativo')
     await expect(painel(page, /./)).toContainText('Teste — visível só para administradores')
   })
 
   test('código inexistente é ignorado, sem erro', async ({ page }) => {
-    await page.goto('/pontos?ponto=NAO-EXISTE')
-    await expect(mapa(page).getByRole('button')).toHaveCount(8)
+    await abrir(page, '/pontos?ponto=NAO-EXISTE')
     await expect(page.getByRole('complementary')).toHaveCount(0)
-    await expect(page.getByRole('alert')).toHaveCount(0)
+    // o único alerta é o aviso do mapa abortado, não um erro da ficha
+    await expect(page.getByRole('alert')).toHaveCount(1)
   })
 
   for (const colorScheme of ['light', 'dark']) {
