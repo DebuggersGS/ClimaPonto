@@ -7,31 +7,15 @@
 
 Aplicação em Python, executada no terminal, que **recebe as leituras de temperatura e umidade dos pontos de ônibus**, classifica o calor em *normal*, *atenção* ou *crítico* e transforma esses dados em informação útil: painel do estado atual, consultas, estatísticas, ranking dos pontos mais quentes e tendência de aquecimento.
 
-As leituras vêm do **sensor ESP32 do ClimaPonto**, consultadas na **API da plataforma FIWARE**, ou podem ser digitadas. Tudo é guardado em **arquivos JSON**.
-
----
-
-## Ficha da CitizenTech
-
-| Campo | Resposta |
-|---|---|
-| **Nome da CitizenTech** | ClimaPonto |
-| **Cidade e bairro** | São Paulo/SP. Ponto piloto **P001** na região de Santana (Zona Norte) |
-| **Cidadão beneficiado** | Passageiros que esperam ônibus expostos ao calor, principalmente idosos e trabalhadores |
-| **Problema, em uma frase** | Quem espera ônibus em São Paulo fica exposto ao calor sem nenhuma informação sobre a temperatura naquele ponto |
-| **Como funciona** | Um ESP32 com sensor DHT22 no ponto mede temperatura e umidade, classifica o calor e alerta no local. As leituras vão para a plataforma FIWARE, de onde esta aplicação em Python as busca para gerar painel, estatísticas e tendência de aquecimento |
-| **O que cada parte faz** | Ver [Solução integrada](#2-solução-integrada) |
-| **Link do repositório** | https://github.com/DebuggersGS/ClimaPonto-Python |
-| **Indicador de impacto** | Horas em *atenção* e em *crítico* por ponto e graus-hora acima de 30 °C (calor acumulado a que o passageiro fica exposto). Referência medida: 331 °C·h no ano em Santana (dados INMET, análise de Differentiated Problem Solving) |
-| **ODS conectados** | **3 Saúde e Bem-Estar** (meta 3.d: alerta precoce de riscos à saúde) · **11 Cidades e Comunidades Sustentáveis** (meta 11.2: transporte público seguro e acessível) · **13 Ação Contra a Mudança do Clima** (meta 13.1: adaptação a riscos climáticos). Detalhes em [Contribuição para os ODS](#3-contribuição-para-os-ods) |
+Repositório: https://github.com/DebuggersGS/ClimaPonto-Python
 
 ---
 
 ## Sumário
 
-1. [O problema e o objetivo da aplicação](#1-o-problema-e-o-objetivo-da-aplicação)
+1. [O projeto ClimaPonto](#1-o-projeto-climaponto)
 2. [Solução integrada](#2-solução-integrada)
-3. [Contribuição para os ODS](#3-contribuição-para-os-ods)
+3. [Impacto e contribuição para os ODS](#3-impacto-e-contribuição-para-os-ods)
 4. [Requisitos e execução](#4-requisitos-e-execução)
 5. [Funcionalidades](#5-funcionalidades)
 6. [Dados e integração com o FIWARE](#6-dados-e-integração-com-o-fiware)
@@ -46,15 +30,27 @@ As leituras vêm do **sensor ESP32 do ClimaPonto**, consultadas na **API da plat
 
 ---
 
-## 1. O problema e o objetivo da aplicação
+## 1. O projeto ClimaPonto
 
-Em dias quentes, o passageiro que espera o ônibus fica exposto ao sol e ao calor do asfalto sem saber se a situação naquele ponto é comum ou perigosa. O ClimaPonto instala um sensor no ponto e avisa quando o calor passa de **30 °C (atenção)** e de **35 °C (crítico)**.
+**O problema.** Em São Paulo, quem espera ônibus fica exposto ao sol e ao calor do asfalto sem nenhuma informação sobre a temperatura naquele ponto. Não dá para saber se o calor do momento é comum ou se já é motivo para procurar sombra e água.
 
-Esta aplicação é a **central de operação** desses dados. Ela responde a perguntas que o sensor sozinho não responde:
+**Quem é beneficiado.** Os passageiros que esperam nos pontos, principalmente **idosos e trabalhadores** que passam muito tempo na rua e são os mais afetados pelo calor.
+
+**Onde.** O ponto piloto é o **P001, na região de Santana (Zona Norte de São Paulo)**. A aplicação também já traz cadastrados os pontos de Interlagos (Zona Sul) e Barueri (Grande São Paulo), as outras regiões estudadas pelo grupo.
+
+**Como funciona.** Um **ESP32 com sensor DHT22**, instalado no ponto, mede temperatura e umidade, classifica o calor e alerta no próprio local com LEDs, buzzer e display, mesmo sem internet. Quando há rede, as leituras seguem para a plataforma **FIWARE**, na nuvem. É de lá que **esta aplicação** busca os dados para mostrar o estado de cada ponto e analisá-los.
+
+| Estado | Temperatura | O que significa para o passageiro |
+|---|---|---|
+| Normal | abaixo de 30 °C | Espera sem alerta |
+| Atenção | de 30 °C a 34,9 °C | Calor: procurar sombra e se hidratar |
+| Crítico | 35 °C ou mais | Calor forte: evitar esperar no sol |
+
+**O que esta aplicação faz.** Ela é a **central de operação** dos dados do ClimaPonto e responde a perguntas que o sensor sozinho não responde:
 
 - Qual é o estado de cada ponto agora?
 - Qual ponto é o mais quente? Em que período do dia?
-- O ponto está esquentando? Em quanto tempo chega a 30 °C ou 35 °C?
+- O ponto está esquentando? Em quanto tempo chega a 30 °C ou a 35 °C?
 
 ## 2. Solução integrada
 
@@ -75,7 +71,11 @@ Esta aplicação é a **central de operação** desses dados. Ela responde a per
 
 Os limites de 30 °C e 35 °C são **os mesmos** no ESP32, nesta aplicação e no site. São limites de demonstração definidos pelo grupo, não índices oficiais ou clínicos.
 
-## 3. Contribuição para os ODS
+## 3. Impacto e contribuição para os ODS
+
+**Indicador de impacto.** O ClimaPonto acompanha, por ponto, as **horas em atenção e em crítico** e os **graus-hora acima de 30 °C**, que medem quanto calor se acumulou e por quanto tempo o passageiro ficou exposto. Como referência, a análise matemática do grupo (Differentiated Problem Solving), feita com dados do INMET, mediu **331 °C·h acima de 30 °C em um ano em Santana**, metade em um único mês. Nesta aplicação, a opção 5 (estatísticas) mostra quantas leituras de cada ponto ficaram em normal, atenção e crítico.
+
+O projeto está conectado a três Objetivos de Desenvolvimento Sustentável da ONU:
 
 | ODS | Meta | Como esta aplicação contribui |
 |---|---|---|
