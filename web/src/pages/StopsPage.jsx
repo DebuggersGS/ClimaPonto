@@ -52,7 +52,7 @@ function StopsContent({ onRetry }) {
         <EmptyState title="Nenhum ponto cadastrado" message="Quando houver pontos ativos, eles aparecerão aqui." />
       )}
 
-      {ready && <StopsExplorer stops={stops} items={items} now={now} favorites={favorites} />}
+      {ready && <StopsExplorer items={items} now={now} source={source} favorites={favorites} />}
     </>
   )
 }
@@ -67,7 +67,7 @@ export default function StopsPage() {
       <PageHeader
         eyebrow="Monitoramento"
         title="Explorar pontos"
-        description="Mapa esquemático e lista dos pontos de ônibus acompanhados pelo ClimaPonto, com ficha, favoritos e acesso ao histórico de cada um."
+        description="Mapa e lista dos pontos de ônibus acompanhados pelo ClimaPonto, com ficha, favoritos e acesso ao histórico de cada um."
       />
       <StopsContent key={attempt} onRetry={() => setAttempt((n) => n + 1)} />
     </>
