@@ -11,6 +11,7 @@ import StopsPage from './pages/StopsPage.jsx'
 // com gráficos (Dashboard e Histórico), que concentram o Recharts fora do bundle inicial.
 const DashboardPage = lazy(() => import('./pages/DashboardPage.jsx'))
 const HistoryPage = lazy(() => import('./pages/HistoryPage.jsx'))
+const StopDetailPage = lazy(() => import('./pages/StopDetailPage.jsx'))
 const LabPage = lazy(() => import('./pages/LabPage.jsx'))
 const AdminLoginPage = lazy(() => import('./pages/AdminLoginPage.jsx'))
 const AdminStopsPage = lazy(() => import('./pages/AdminStopsPage.jsx'))
@@ -24,6 +25,7 @@ export default function App() {
           <Route element={<AppLayout />}>
             <Route index element={<DashboardPage />} />
             <Route path="pontos" element={<StopsPage />} />
+            <Route path="pontos/:id" element={<StopDetailPage />} />
             <Route path="historico" element={<HistoryPage />} />
             <Route path="analises" element={<HistoryPage view="analises" />} />
             <Route path="relatorios" element={<HistoryPage view="relatorios" />} />
