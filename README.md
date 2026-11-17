@@ -61,13 +61,13 @@ Repositório: https://github.com/DebuggersGS/ClimaPonto-Python
                                       (histórico)
 ```
 
-| Parte | Disciplina | O que faz | Responsável |
-|---|---|---|---|
-| Sensor no ponto (Wokwi) e FIWARE | Edge Computing & Computer Systems | Mede, classifica, alerta no ponto e envia as leituras | Vinícius |
-| **Central de Leituras (este repositório)** | **Computational Thinking with Python** | **Busca as leituras na API do FIWARE, guarda, consulta e analisa** | **Guilherme** |
-| Modelagem matemática | Differentiated Problem Solving | Define o intervalo de leitura de 10 min, os horários críticos e a tendência | Guilherme |
-| Aplicação web | Front-end Design · Web Development | Mostra os dados ao cidadão e gerencia os pontos | Enrico |
-| Experiência e apresentação | Software & Total Experience Design · Storytelling | Pesquisa com usuários, protótipos e pitch | Vinícius |
+| Parte | Disciplina | O que faz |
+|---|---|---|
+| Sensor no ponto (Wokwi) e FIWARE | Edge Computing & Computer Systems | Mede, classifica, alerta no ponto e envia as leituras |
+| **Central de Leituras (este repositório)** | **Computational Thinking with Python** | **Busca as leituras na API do FIWARE, guarda, consulta e analisa** |
+| Modelagem matemática | Differentiated Problem Solving | Define o intervalo de leitura de 10 min, os horários críticos e a tendência |
+| Aplicação web | Front-end Design · Web Development | Mostra os dados ao cidadão e gerencia os pontos |
+| Experiência e apresentação | Software & Total Experience Design · Storytelling | Pesquisa com usuários, protótipos e pitch |
 
 Os limites de 30 °C e 35 °C são **os mesmos** no ESP32, nesta aplicação e no site. São limites de demonstração definidos pelo grupo, não índices oficiais ou clínicos.
 
@@ -429,7 +429,7 @@ O P001 mostra 24,4 °C agora, mas está em **Atenção**: a temperatura caiu de 
 
 ## 12. Testes realizados
 
-**Testes com o sensor real (FIWARE do grupo, Wokwi do Vinícius)**
+**Testes com o sensor real (FIWARE e Wokwi do grupo)**
 
 | Data | O que foi testado | Resultado |
 |---|---|---|
