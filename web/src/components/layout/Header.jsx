@@ -1,11 +1,14 @@
-import { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router'
-import { Menu, Search, X } from 'lucide-react'
+import { useState } from 'react'
+import { Link, useNavigate } from 'react-router'
+import { Menu, Search } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth.js'
 import { useDataMode } from '../../hooks/useDataMode.js'
 import { getDataModeTone } from '../../utils/statusTones.js'
 import Badge from '../ui/Badge.jsx'
 import Button from '../ui/Button.jsx'
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from '../ui/Sheet.jsx'
+import DataScenarioSelector from '../data/DataScenarioSelector.jsx'
+import DemonstrativeBadge from '../data/DemonstrativeBadge.jsx'
 import CommandPalette from '../palette/CommandPalette.jsx'
 import { useCommandPalette } from '../../hooks/useCommandPalette.js'
 import { useIsWideScreen } from '../../hooks/useIsWideScreen.js'
@@ -50,44 +53,28 @@ function DataModeIndicator() {
 }
 
 /**
- * Menu móvel (abaixo de xl): botão com aria-expanded que abre a mesma navegação principal.
- * Ao abrir, o foco vai ao primeiro item; Esc fecha e devolve o foco ao botão; escolher um item fecha o menu.
+ * Menu do toque (abaixo de xl): botão explícito "Menu" que abre a navegação em um drawer (Sheet).
+ * Foco preso, Esc e botão "Fechar" fecham; escolher uma seção fecha o drawer e devolve o foco ao botão.
  */
 function MobileMenu() {
   const [open, setOpen] = useState(false)
-  const buttonRef = useRef(null)
-  const listRef = useRef(null)
-
-  useEffect(() => {
-    if (!open) return undefined
-    listRef.current?.querySelector('a')?.focus()
-    function onKeyDown(event) {
-      if (event.key !== 'Escape') return
-      setOpen(false)
-      buttonRef.current?.focus()
-    }
-    document.addEventListener('keydown', onKeyDown)
-    return () => document.removeEventListener('keydown', onKeyDown)
-  }, [open])
-
-  const Icon = open ? X : Menu
   return (
-    <div>
-      <Button
-        ref={buttonRef}
-        variant="secondary"
-        size="sm"
-        aria-expanded={open}
-        aria-controls="menu-movel"
-        onClick={() => setOpen((value) => !value)}
-      >
-        <Icon aria-hidden="true" className="h-4 w-4" />
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger render={<Button variant="secondary" size="sm" aria-controls="menu-movel" />}>
+        <Menu aria-hidden="true" className="h-4 w-4" />
         Menu
-      </Button>
-      <div id="menu-movel" hidden={!open} className="absolute inset-x-0 top-full max-h-[calc(100dvh-4rem)] overflow-y-auto border-b border-slate-200 bg-surface px-4 pb-3 pt-2 shadow-card sm:px-6">
-        {open && <MainNav solid listRef={listRef} onNavigate={() => setOpen(false)} className="mx-auto max-w-sm sm:mx-0" />}
-      </div>
-    </div>
+      </SheetTrigger>
+      <SheetContent side="left" id="menu-movel" aria-label="Menu principal">
+        <SheetTitle>Menu</SheetTitle>
+        <MainNav onNavigate={() => setOpen(false)} />
+        <div className="mt-auto flex flex-col gap-2 border-t border-slate-900/10 pt-3">
+          <DataScenarioSelector />
+          <Link to="/relatorios" onClick={() => setOpen(false)} className="flex min-h-11 items-center rounded-2xl px-3 text-sm font-medium text-slate-700 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600">
+            Fontes e metodologia
+          </Link>
+        </div>
+      </SheetContent>
+    </Sheet>
   )
 }
 
@@ -109,6 +96,7 @@ export default function Header() {
             Busca rápida
             <span className="sr-only"> (Ctrl+K)</span>
           </Button>
+          <DemonstrativeBadge />
           <DataModeIndicator />
           <UserMenu />
         </div>

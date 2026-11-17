@@ -20,7 +20,12 @@ export default function AppLayout() {
         Pular para o conteúdo
       </a>
 
-      {wide && <Sidebar collapsed={sidebar.collapsed} onToggle={sidebar.toggle} />}
+      {wide && <Sidebar
+          pinned={sidebar.pinned}
+          onTogglePinned={sidebar.togglePinned}
+          openGroup={sidebar.openGroup}
+          onOpenGroupChange={sidebar.setOpenGroup}
+        />}
 
       <div className="flex min-h-screen min-w-0 flex-1 flex-col">
         <Header />
