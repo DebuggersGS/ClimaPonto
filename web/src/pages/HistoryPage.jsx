@@ -337,7 +337,7 @@ export default function HistoryPage({ view = 'historico' }) {
 
       {/* Fixa só a partir de sm: no celular a topbar quebra em várias linhas e cobriria o filtro. */}
       <Card variant="glass" className="z-30 mb-6 sm:sticky sm:top-20" aria-label="Filtros do histórico">
-        <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-end sm:justify-between">
+        <div role="group" aria-label="Ponto, origem e período" className="flex flex-col gap-x-6 gap-y-4 sm:flex-row sm:flex-wrap sm:items-end">
           <div className="sm:w-md sm:max-w-full">
             <StopSelect stops={stops} value={stop?.code ?? ''} onChange={(value) => updateParams({ ponto: value })} id={selectId} />
           </div>
@@ -348,6 +348,11 @@ export default function HistoryPage({ view = 'historico' }) {
             id={`${selectId}-origem`}
           />
           <PeriodFilter value={periodId} onChange={(value) => updateParams({ periodo: value })} />
+          {(originId !== ALL_ORIGINS || searchParams.get('periodo')) && (
+            <Button variant="secondary" onClick={() => updateParams({ origem: '', periodo: '' })}>
+              Limpar filtros
+            </Button>
+          )}
         </div>
       </Card>
 

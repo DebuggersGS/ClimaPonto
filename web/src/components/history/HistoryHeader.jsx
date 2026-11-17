@@ -1,4 +1,5 @@
-import { Clock, Database, Sparkles } from 'lucide-react'
+import { Link } from 'react-router'
+import { ArrowUpRight, Clock, Database, Sparkles } from 'lucide-react'
 import { getDataModeInfo } from '../../utils/dataMode.js'
 import Badge from '../ui/Badge.jsx'
 import { cn } from '../../utils/cn.js'
@@ -37,6 +38,13 @@ export default function HistoryHeader({ stop, period, source }) {
               Ponto demonstrativo
             </Badge>
           )}
+          <Link
+            to={`/pontos/${encodeURIComponent(stop.code)}`}
+            className="inline-flex min-h-10 items-center gap-1 rounded-md px-1 text-sm font-medium text-brand-700 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-600 dark:text-brand-200"
+          >
+            Abrir ponto
+            <ArrowUpRight aria-hidden="true" className="h-4 w-4" />
+          </Link>
         </p>
       )}
       <ul className="flex flex-wrap gap-2" aria-label="Contexto da consulta">
