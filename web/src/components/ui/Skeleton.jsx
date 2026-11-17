@@ -8,18 +8,20 @@ const shape = cva('skeleton-shimmer rounded-lg', {
       metric: 'h-9 w-24',
       chart: 'h-56 w-full rounded-card',
       table: 'h-10 w-full',
+      circle: 'h-10 w-10 rounded-full',
+      block: 'h-24 w-full rounded-card',
     },
   },
   defaultVariants: { shape: 'text' },
 })
 
-const DEFAULT_ROWS = { text: 3, metric: 1, chart: 1, table: 5 }
+const DEFAULT_ROWS = { text: 3, metric: 1, chart: 1, table: 5, circle: 1, block: 1 }
 
 /**
  * Carregamento com shimmer. O contêiner é role="status" com texto só para
  * leitores de tela; as formas são decorativas. Com movimento reduzido o
  * shimmer é desligado via CSS.
- * @param {{ shape?: 'text'|'metric'|'chart'|'table', rows?: number, label?: string, className?: string }} props
+ * @param {{ shape?: 'text'|'metric'|'chart'|'table'|'circle'|'block', rows?: number, label?: string, className?: string }} props
  */
 export default function Skeleton({ shape: kind = 'text', rows, label = 'Carregando…', className }) {
   const count = rows ?? DEFAULT_ROWS[kind] ?? 1

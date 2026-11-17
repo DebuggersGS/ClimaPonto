@@ -36,6 +36,11 @@
   --radius-card: 1.25rem;
   --radius-card-lg: 1.5rem;
   --radius-pill: 9999px;
+  --radius-field: 0.875rem;
+  --radius-sheet: 1.5rem;
+
+  /* Altura de campo (busca, selects): confortável ao toque */
+  --spacing-field: 2.75rem;
 
   /* Sombras em camadas */
   --shadow-xs: 0 1px 2px rgb(11 18 32 / 0.05);
@@ -181,6 +186,28 @@
     background-image: linear-gradient(90deg, transparent 0%, rgb(255 255 255 / 0.75) 50%, transparent 100%);
     background-size: 200% 100%;
     animation: var(--animate-shimmer);
+  }
+
+  /* Sobreposições (tooltip, popover, paleta): entrada e saída por data-attributes do Base UI */
+  .overlay-motion {
+    transition:
+      opacity var(--duration-fast) var(--ease-out-soft),
+      transform var(--duration-fast) var(--ease-out-soft);
+  }
+  .overlay-motion[data-starting-style],
+  .overlay-motion[data-ending-style] {
+    opacity: 0;
+    transform: scale(0.97);
+  }
+  .overlay-backdrop {
+    transition: opacity var(--duration-base) var(--ease-out-soft);
+  }
+  .overlay-backdrop[data-starting-style],
+  .overlay-backdrop[data-ending-style] {
+    opacity: 0;
+  }
+  .sheet-panel {
+    transition: transform var(--duration-base) var(--ease-out-soft);
   }
 
   .metric-flash {

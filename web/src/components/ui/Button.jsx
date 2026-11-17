@@ -19,6 +19,8 @@ const button = cva(
         sm: 'min-h-10 rounded-full px-3.5 py-1.5 text-sm',
         md: 'min-h-10 rounded-full px-4 py-2 text-sm',
         lg: 'min-h-12 rounded-full px-6 py-2.5 text-base',
+        // Só ícone: alvo de toque quadrado de 40 px; exige aria-label.
+        icon: 'h-10 w-10 rounded-full p-0',
       },
     },
     defaultVariants: { variant: 'primary', size: 'md' },
@@ -28,7 +30,7 @@ const button = cva(
 /**
  * Botão padrão. Altura mínima de 40 px para toque; `loading` mostra spinner,
  * bloqueia o clique e marca aria-busy (o rótulo continua visível).
- * @param {{ variant?: 'primary'|'secondary'|'danger'|'ghost'|'subtle', size?: 'sm'|'md'|'lg', loading?: boolean }} props
+ * @param {{ variant?: 'primary'|'secondary'|'danger'|'ghost'|'subtle', size?: 'sm'|'md'|'lg'|'icon', loading?: boolean }} props
  */
 export default function Button({
   variant,
