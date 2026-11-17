@@ -91,7 +91,7 @@ Cada análise responde a uma pergunta em linguagem simples, com tabelas e um res
 3. **`pip` não é reconhecido** ou aparece `ModuleNotFoundError` (por exemplo, `No module named 'numpy'`): instale as bibliotecas pelo mesmo Python que vai rodar o programa, com `python -m pip install numpy sympy matplotlib` (ou `py -m pip install numpy sympy matplotlib`).
 4. **Botão Run do VS Code dá `[Errno 22] Invalid argument`** e o caminho aparece com aspas duplicadas (`'"c:/Users/.../climaponto_modelagem.py"'`): isso acontece quando o terminal padrão do VS Code é o **Git Bash** e o caminho da pasta tem espaços. Há duas saídas:
    - **Opção A, rodar pelo comando:** use os comandos do item 1 no próprio terminal.
-   - **Opção B, trocar o terminal padrão para PowerShell** (resolve o botão Run de vez; o programa roda normalmente no PowerShell):
+   - **Opção B, trocar o terminal padrão para PowerShell** (resolve o botão Run de vez; o programa roda normalmente no PowerShell, inclusive os gráficos):
      1. Pressione `Ctrl+Shift+P` e digite **Terminal: Select Default Profile**. Também dá para clicar na setinha ao lado do **+** do terminal e escolher **Select Default Profile**.
      2. Escolha **PowerShell**.
      3. Feche os terminais abertos no ícone da lixeira.
