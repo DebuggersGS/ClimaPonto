@@ -7,6 +7,7 @@ import ConfirmDialog from '../components/ui/ConfirmDialog.jsx'
 import EmptyState from '../components/ui/EmptyState.jsx'
 import FeedbackMessage from '../components/ui/FeedbackMessage.jsx'
 import PageHeader from '../components/ui/PageHeader.jsx'
+import SearchField from '../components/ui/SearchField.jsx'
 import Skeleton from '../components/ui/Skeleton.jsx'
 import { useAdminStops } from '../hooks/useAdminStops.js'
 import { useDataMode } from '../hooks/useDataMode.js'
@@ -48,6 +49,13 @@ export default function AdminStopsPage() {
       return matchesSearch(stop, term)
     })
   }, [stops, search, statusFilter])
+
+  const hasFilters = search !== '' || statusFilter !== 'all'
+
+  function clearFilters() {
+    setSearch('')
+    setStatusFilter('all')
+  }
 
   function openCreate() {
     setFeedback(null)
@@ -146,7 +154,11 @@ export default function AdminStopsPage() {
 
   return (
     <>
-      <PageHeader title="Gerenciar pontos" description="Cadastre, edite, desative ou exclua os pontos monitorados." />
+      <PageHeader
+        title="Gerenciar pontos"
+        description="Cadastre, edite, desative ou exclua os pontos monitorados."
+        actions={!form ? <Button onClick={openCreate}>Novo ponto</Button> : null}
+      />
 
       {isMock && (
         <FeedbackMessage tone="info">
@@ -171,20 +183,15 @@ export default function AdminStopsPage() {
           />
         </Card>
       ) : (
-        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end">
-          <div className="flex-1">
-            <label htmlFor="stop-search" className="mb-1 block text-sm font-medium text-slate-800">
-              Pesquisar
-            </label>
-            <input
-              id="stop-search"
-              type="search"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Código, nome ou bairro"
-              className="block min-h-10 w-full rounded-md border border-slate-300 bg-surface px-3 py-2 text-sm shadow-sm focus-visible:outline-2 focus-visible:outline-brand-600"
-            />
-          </div>
+        <div role="group" aria-label="Busca e filtros dos pontos" className="mb-6 flex flex-col gap-x-4 gap-y-3 sm:flex-row sm:items-end">
+          <SearchField
+            className="min-w-0 flex-1"
+            label="Pesquisar pontos"
+            hideLabel={false}
+            value={search}
+            onValueChange={setSearch}
+            placeholder="Código, nome ou bairro"
+          />
           <div>
             <label htmlFor="stop-status" className="mb-1 block text-sm font-medium text-slate-800">
               Situação
@@ -193,7 +200,7 @@ export default function AdminStopsPage() {
               id="stop-status"
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="block min-h-10 w-full rounded-md border border-slate-300 bg-surface px-3 py-2 text-sm shadow-sm focus-visible:outline-2 focus-visible:outline-brand-600 sm:w-40"
+              className="block h-field w-full rounded-pill border border-slate-300 bg-surface px-4 text-sm shadow-xs focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600 sm:w-44"
             >
               {STATUS_FILTERS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -202,7 +209,11 @@ export default function AdminStopsPage() {
               ))}
             </select>
           </div>
-          <Button onClick={openCreate}>Novo ponto</Button>
+          {hasFilters && (
+            <Button variant="secondary" onClick={clearFilters}>
+              Limpar filtros
+            </Button>
+          )}
         </div>
       )}
 

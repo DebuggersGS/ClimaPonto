@@ -7,7 +7,7 @@ export default function AdminStopCard({ stop, busy, onEdit, onToggleActive, onDe
   return (
     <article
       aria-labelledby={`stop-${stop.id}-name`}
-      className={`flex h-full flex-col rounded-card p-5 ring-1 ${stop.active ? 'bg-surface shadow-card ring-slate-900/5' : 'bg-slate-50 outline-1 -outline-offset-1 outline-dashed outline-slate-300 ring-slate-900/5'}`}
+      className={`flex h-full flex-col rounded-card p-5 ring-1 transition-[transform,box-shadow] duration-250 ease-out-soft motion-safe:hover:-translate-y-0.5 hover:shadow-elevated ${stop.active ? 'bg-surface shadow-card ring-slate-900/5' : 'bg-slate-50 outline-1 -outline-offset-1 outline-dashed outline-slate-300 ring-slate-900/5'}`}
     >
       <div className="flex flex-col gap-2">
         <div className="min-w-0">
