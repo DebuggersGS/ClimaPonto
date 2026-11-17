@@ -110,7 +110,7 @@ python -m unittest discover -s testes -v
 | Integrante | RM |
 |---|---|
 | Enrico Vieira de Almeida Vidal | 569217 |
-| Guilherme de Rosa Peres | 569193 |
+| Guilherme De Rosa Peres | 569193 |
 | Vinícius Fuentes Cavalcanti | 570818 |
 
 ## Uso de inteligência artificial

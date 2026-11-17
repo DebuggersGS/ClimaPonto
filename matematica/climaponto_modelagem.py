@@ -6,7 +6,7 @@
 =============================================================================
  Equipe Debuggers
    Enrico Vieira de Almeida Vidal - RM 569217
-   Guilherme de Rosa Peres        - RM 569193
+   Guilherme De Rosa Peres        - RM 569193
    Vinícius Fuentes Cavalcanti    - RM 570818
 
  O que este programa faz
