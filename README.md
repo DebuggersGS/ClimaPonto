@@ -21,7 +21,7 @@
 | **Papel de cada componente** | ver tabela abaixo |
 | **Repositório** | https://github.com/DebuggersGS/ClimaPonto-DPS |
 | **Indicador de impacto** | Graus-hora acima de 30 °C por ponto (calor acumulado a que o passageiro fica exposto) e horas com alerta informado. Referência medida: 331 °C·h no ano em Santana (nov/2025 a out/2026, dados INMET) |
-| **ODS** | 3 Saúde e Bem-Estar · 11 Cidades e Comunidades Sustentáveis · 13 Ação Contra a Mudança do Clima |
+| **ODS** | **3 Saúde e Bem-Estar** (meta 3.d: alerta precoce de riscos à saúde, com o aviso de calor no ponto) · **11 Cidades e Comunidades Sustentáveis** (meta 11.2: transporte público seguro e acessível, protegendo quem espera o ônibus) · **13 Ação Contra a Mudança do Clima** (meta 13.1: adaptação ao calor, medindo o calor acumulado e os meses mais críticos) |
 
 ## Solução integrada
 
@@ -34,13 +34,13 @@
 [INMET - dados históricos oficiais] ──(robô mensal)── dados/inmet_sp.json
 ```
 
-| Componente | Disciplina | Responsável |
-|---|---|---|
-| Sensor ESP32 (Wokwi): leitura, classificação local, sinais | Edge Computing & Computer Systems | Vinícius |
-| Painel web com CRUD de pontos | Front-end Design · Web Development | Enrico |
-| Programa de operação (cadastro e consulta de leituras) | Computational Thinking with Python | Guilherme |
-| **Modelagem matemática (limites, derivadas, integrais)** | **Differentiated Problem Solving** | **Guilherme** |
-| UX, requisitos, protótipos e pitch | Software & Total Experience Design · Storytelling | Vinícius |
+| Componente | Disciplina |
+|---|---|
+| Sensor ESP32 (Wokwi): leitura, classificação local, sinais | Edge Computing & Computer Systems |
+| Painel web com CRUD de pontos | Front-end Design · Web Development |
+| Programa de operação (cadastro e consulta de leituras) | Computational Thinking with Python |
+| **Modelagem matemática (limites, derivadas, integrais)** | **Differentiated Problem Solving** |
+| UX, requisitos, protótipos e pitch | Software & Total Experience Design · Storytelling |
 
 Este repositório contém a parte de **Differentiated Problem Solving** (pasta `matematica/`). As demais partes ficam nos repositórios de cada disciplina, na organização DebuggersGS.
 
@@ -75,6 +75,27 @@ python matematica/climaponto_modelagem.py
 Cada análise responde a uma pergunta em linguagem simples, com tabelas e um resumo final, abre os gráficos e depois pergunta se você quer salvá-los em `matematica/figuras`. As fórmulas e o passo a passo ficam no relatório.
 
 > Os dados são baixados automaticamente do repositório na primeira vez e ficam guardados em `matematica/dados_cache`. Nas próximas vezes, o programa roda até sem internet.
+
+### Se o programa não rodar (Windows)
+
+1. **Rode a partir da pasta principal do repositório** (a que tem as pastas `matematica/` e `dados/`):
+
+   | Terminal | Comandos |
+   |---|---|
+   | PowerShell ou Prompt de Comando | `cd "C:\Users\SEU_USUARIO\Downloads\ClimaPonto-DPS"` e depois `python matematica/climaponto_modelagem.py` |
+   | Git Bash | `cd "/c/Users/SEU_USUARIO/Downloads/ClimaPonto-DPS"` e depois `python matematica/climaponto_modelagem.py` |
+
+   As aspas no `cd` são necessárias quando o caminho tem espaços.
+
+2. **`python` não é reconhecido:** use o inicializador do Windows, `py matematica/climaponto_modelagem.py`. Se também não funcionar, reinstale o Python marcando a opção *Add python.exe to PATH*.
+3. **`pip` não é reconhecido** ou aparece `ModuleNotFoundError` (por exemplo, `No module named 'numpy'`): instale as bibliotecas pelo mesmo Python que vai rodar o programa, com `python -m pip install numpy sympy matplotlib` (ou `py -m pip install numpy sympy matplotlib`).
+4. **Botão Run do VS Code dá `[Errno 22] Invalid argument`** e o caminho aparece com aspas duplicadas (`'"c:/Users/.../climaponto_modelagem.py"'`): isso acontece quando o terminal padrão do VS Code é o **Git Bash** e o caminho da pasta tem espaços. Há duas saídas:
+   - **Opção A, rodar pelo comando:** use os comandos do item 1 no próprio terminal.
+   - **Opção B, trocar o terminal padrão para PowerShell** (resolve o botão Run de vez; o programa roda normalmente no PowerShell):
+     1. Pressione `Ctrl+Shift+P` e digite **Terminal: Select Default Profile**. Também dá para clicar na setinha ao lado do **+** do terminal e escolher **Select Default Profile**.
+     2. Escolha **PowerShell**.
+     3. Feche os terminais abertos no ícone da lixeira.
+     4. Abra o arquivo `matematica/climaponto_modelagem.py` e clique em **Run**.
 
 ## Testes
 
