@@ -89,7 +89,7 @@ Os prompts estão organizados nas etapas em que o trabalho foi feito.
 | Funcionalidade | Decisão | Apoio da IA |
 |---|---|---|
 | Menu com 7 opções e `match/case` | Proposta aprovada e ajustada pelo grupo | Sugestão do menu e escrita do código |
-| Busca das leituras reais do ESP32 na API do FIWARE (opção 2) | Grupo | Análise do código do ESP32 (mensagem `t|h|m|s` enviada por MQTT), identificação do caminho IoT Agent → Orion → STH-Comet e escrita das consultas com `requests` |
+| Busca das leituras reais do ESP32 na API do FIWARE (opção 2) | Grupo | Análise do código do ESP32 (mensagem `t\|h\|m\|s` enviada por MQTT), identificação do caminho IoT Agent → Orion → STH-Comet e escrita das consultas com `requests` |
 | Verificação do servidor ao abrir e uso das leituras salvas quando ele está desligado | Grupo | Escrita da verificação e das mensagens |
 | Armazenamento apenas das 6 leituras mais recentes do sensor por ponto | Grupo | Escrita da substituição das leituras antigas, preservando as digitadas |
 | Aplicação dos conteúdos do semestre (buscas, ordenação, matriz, `*args`/`**kwargs`, arquivo de texto) | Grupo | Sugestão de onde cada conteúdo tem utilidade real |

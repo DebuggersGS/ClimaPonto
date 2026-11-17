@@ -182,7 +182,7 @@ ClimaPonto-Python/
 | Caminho (`fiware-servicepath`) | `/` |
 | Dispositivo no IoT Agent | `climaponto-p001` |
 | Entidade no Orion | `urn:ngsi-ld:ClimaPonto:P001`, tipo `ClimaPontoMonitor` |
-| Mensagem do ESP32 (UltraLight, a cada 2 s) | `t|temperatura|h|umidade|m|média móvel|s|estado` |
+| Mensagem do ESP32 (UltraLight, a cada 2 s) | `t\|temperatura\|h\|umidade\|m\|média móvel\|s\|estado` |
 
 O servidor fica na nuvem e só é ligado nos testes do grupo, e o **IP muda a cada vez que ele é ligado**. Por isso só o IP fica salvo (`dados/config_fiware.json`) e a opção 2 permite informar um novo.
 
