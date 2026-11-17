@@ -51,12 +51,15 @@ function numberCell(value) {
 
 /**
  * Gera o CSV das leituras exibidas.
- * @param {object[]} readings leituras normalizadas
+ * @param {object[]} readings leituras normalizadas (as mesmas do gráfico e da tabela)
  * @param {{ code: string, name: string }} stop
+ * @param {{ periodId?: string }} [options] com `periodId`, acrescenta a coluna final `periodo`
+ *   (a origem já é coluna fixa); sem ele o formato original é mantido
  * @returns {string|null} null quando não há leituras
  */
-export function buildReadingsCsv(readings, stop) {
+export function buildReadingsCsv(readings, stop, { periodId } = {}) {
   if (!readings || readings.length === 0) return null
+  const withPeriod = typeof periodId === 'string' && periodId !== ''
   const rows = readings.map((reading) =>
     [
       escapeCsvCell(stop.code),
@@ -67,9 +70,10 @@ export function buildReadingsCsv(readings, stop) {
       numberCell(reading.humidityPct),
       escapeCsvCell(ENVIRONMENTAL_STATUS_LABELS[reading.environmentalStatus] ?? ENVIRONMENTAL_STATUS_LABELS.unclassified),
       escapeCsvCell(getReadingSourceInfo(reading.source).label),
+      ...(withPeriod ? [escapeCsvCell(periodId)] : []),
     ].join(','),
   )
-  const headerLine = HEADER.join(',')
+  const headerLine = (withPeriod ? [...HEADER, 'periodo'] : HEADER).join(',')
   return [headerLine, ...rows].join('\r\n') + '\r\n'
 }
 

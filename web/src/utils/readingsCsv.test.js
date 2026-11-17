@@ -47,6 +47,18 @@ describe('buildReadingsCsv', () => {
   it('devolve null para lista vazia', () => {
     assert.equal(buildReadingsCsv([], stop), null)
   })
+
+  it('acrescenta a coluna periodo só quando o período é informado', () => {
+    const lines = buildReadingsCsv([reading()], stop, { periodId: '7d' }).split('\r\n')
+    assert.ok(lines[0].endsWith(',origem,periodo'))
+    assert.ok(lines[1].endsWith(',Atenção,Simulação,7d'))
+    assert.ok(!buildReadingsCsv([reading()], stop, {}).split('\r\n')[0].includes('periodo'))
+  })
+
+  it('neutraliza fórmula também na coluna periodo', () => {
+    const lines = buildReadingsCsv([reading()], stop, { periodId: '=1+1' }).split('\r\n')
+    assert.ok(lines[1].endsWith(",'=1+1"))
+  })
 })
 
 describe('escapeCsvCell', () => {
