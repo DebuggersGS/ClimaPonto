@@ -47,12 +47,24 @@ describe('buildCommandResults', () => {
     assert.deepEqual(ids(withPage), ['pontos', '/pontos'])
   })
 
-  it('resultado de ponto leva à ficha por ?ponto= e traz descrição', () => {
+  it('resultado de ponto leva à rota do ponto e traz descrição', () => {
     const [result] = buildCommandResults('MOCK-02', { pages, stops })
     assert.equal(result.kind, 'stop')
-    assert.equal(result.to, '/pontos?ponto=MOCK-02')
+    assert.equal(result.to, '/pontos/MOCK-02')
     assert.equal(result.description, 'MOCK-02 · Sé')
     assert.equal(buildCommandResults('pontos', { pages, stops })[0].to, '/pontos')
+  })
+
+  it('ações entram depois das páginas e antes dos pontos, e casam pelo rótulo', () => {
+    const actions = [
+      { id: 'ir-ao-mapa', label: 'Ir ao mapa', to: '/pontos' },
+      { id: 'limpar-filtros', label: 'Limpar filtros' },
+    ]
+    assert.deepEqual(ids(buildCommandResults('', { pages, actions, stops })).slice(2, 5), ['/historico', 'ir-ao-mapa', 'limpar-filtros'])
+    const [hit] = buildCommandResults('LIMPAR', { pages, actions, stops })
+    assert.deepEqual([hit.kind, hit.id, hit.description, hit.to], ['action', 'limpar-filtros', 'Ação', ''])
+    assert.deepEqual(ids(buildCommandResults('mapa', { pages, actions, stops })), ['ir-ao-mapa'])
+    assert.deepEqual(buildCommandResults('x', { actions: [null, { id: 'a' }] }), [])
   })
 
   it('ordem determinística: independe da ordem de entrada', () => {

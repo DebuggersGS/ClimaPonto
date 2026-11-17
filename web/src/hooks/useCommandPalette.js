@@ -10,7 +10,7 @@ function isEditable(element) {
 /**
  * Estado de abertura da Command Palette e atalho Ctrl+K / Meta+K.
  * O atalho é ignorado quando o foco está num campo editável e quando outro
- * diálogo modal já está aberto.
+ * diálogo (nativo ou Base UI, inclusive a própria paleta e o drawer) já está aberto.
  * @returns {{ isOpen: boolean, open: () => void, close: () => void }}
  */
 export function useCommandPalette() {
@@ -21,7 +21,7 @@ export function useCommandPalette() {
   useEffect(() => {
     function handleKeyDown(event) {
       if (event.key.toLowerCase() !== 'k' || !(event.ctrlKey || event.metaKey) || event.altKey) return
-      if (isEditable(document.activeElement) || document.querySelector('dialog[open]')) return
+      if (isEditable(document.activeElement) || document.querySelector('dialog[open], [role="dialog"]')) return
       event.preventDefault()
       setIsOpen(true)
     }

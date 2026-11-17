@@ -1,29 +1,40 @@
 import { useCallback, useState } from 'react'
+import {
+  readSidebarOpenGroup,
+  readSidebarPinned,
+  writeSidebarOpenGroup,
+  writeSidebarPinned,
+} from '../utils/sidebarState.js'
 
-const STORAGE_KEY = 'climaponto:sidebar-recolhida'
-
-function readStored() {
+function getStorage() {
   try {
-    return window.localStorage.getItem(STORAGE_KEY) === '1'
+    return window.localStorage
   } catch {
-    // Armazenamento bloqueado (modo privado, política do navegador): usa o padrão expandido.
-    return false
+    // Armazenamento bloqueado (modo privado, política do navegador): a preferência vale só nesta visita.
+    return null
   }
 }
 
-/** Estado recolhido/expandido da barra lateral, lembrado entre visitas (preferência de interface, sem dados pessoais). */
+/**
+ * Preferências persistidas da barra lateral: fixada (pin) e grupo aberto.
+ * A leitura e a escrita seguras ficam em utils/sidebarState.js.
+ * @returns {{ pinned: boolean, togglePinned: () => void, openGroup: string|null, setOpenGroup: (id: string|null) => void }}
+ */
 export function useSidebarCollapsed() {
-  const [collapsed, setCollapsed] = useState(readStored)
-  const toggle = useCallback(() => {
-    setCollapsed((current) => {
-      const next = !current
-      try {
-        window.localStorage.setItem(STORAGE_KEY, next ? '1' : '0')
-      } catch {
-        // Sem persistência: a preferência vale só nesta visita.
-      }
-      return next
+  const [pinned, setPinned] = useState(() => readSidebarPinned(getStorage(), false))
+  const [openGroup, setOpenGroupState] = useState(() => readSidebarOpenGroup(getStorage()))
+
+  const togglePinned = useCallback(() => {
+    setPinned((current) => {
+      writeSidebarPinned(getStorage(), !current)
+      return !current
     })
   }, [])
-  return { collapsed, toggle }
+
+  const setOpenGroup = useCallback((id) => {
+    setOpenGroupState(id)
+    writeSidebarOpenGroup(getStorage(), id)
+  }, [])
+
+  return { pinned, togglePinned, openGroup, setOpenGroup }
 }
