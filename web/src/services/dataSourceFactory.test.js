@@ -3,6 +3,7 @@ import { describe, it } from 'node:test'
 import {
   MOCK_DEFAULT_LATENCY_MS,
   MOCK_SLOW_LATENCY_MS,
+  DEMO_READ_ONLY_MESSAGE,
   UNCONFIGURED_MESSAGE,
   createDataSource,
   parseMockOptions,
@@ -228,5 +229,148 @@ describe('createDataSource: autenticação', () => {
 
   it('NOT_ADMIN_MESSAGE é a mensagem de conta sem acesso administrativo', () => {
     assert.equal(NOT_ADMIN_MESSAGE, 'Esta conta não tem acesso administrativo.')
+  })
+})
+
+describe('createDataSource: conjunto de dados (observado x demonstrativo)', () => {
+  const demo = () => ({ search: '?dados=demonstracao' })
+  const observado = () => ({ search: '?dados=observado', stored: 'demonstrativo' })
+  const novoPonto = {
+    code: 'NOVO-01', name: 'Ponto novo', neighborhood: 'Centro', description: null,
+    latitude: null, longitude: null, isDemo: true, active: true,
+  }
+
+  it('build supabase sem escolha usa só o Supabase (observado)', async () => {
+    const client = createFakeClient()
+    const source = createDataSource({ requestedMode: 'supabase', supabaseConfigured: true, client, getScenarioInput: () => ({}) })
+    assert.equal(source.dataScenario.scenario, 'observado')
+    assert.equal(source.dataScenario.canSwitch, true)
+    assert.equal(source.dataMode, 'supabase')
+    assert.equal(source.buildMode, 'supabase')
+    await assert.rejects(source.stopsApi.listStops(), { kind: 'network' })
+    assert.deepEqual(client.calls, ['stops'])
+  })
+
+  it('URL observado vence a preferência demonstrativa e continua no Supabase', async () => {
+    const client = createFakeClient()
+    const source = createDataSource({ requestedMode: 'auto', supabaseConfigured: true, client, getScenarioInput: observado })
+    assert.equal(source.dataScenario.scenario, 'observado')
+    await assert.rejects(source.readingsApi.fetchLatestReadings(), { kind: 'network' })
+    assert.deepEqual(client.calls, ['stop_latest_readings'])
+  })
+
+  it('build supabase com demonstrativo lê o mock local sem tocar o cliente', async () => {
+    const client = createFakeClient()
+    const source = createDataSource({ requestedMode: 'supabase', supabaseConfigured: true, client, getScenarioInput: demo })
+    assert.equal(source.dataScenario.scenario, 'demonstrativo')
+    assert.equal(source.dataMode, 'mock')
+    assert.equal(source.buildMode, 'supabase')
+    assert.equal((await source.stopsApi.listStops()).length, 8)
+    assert.equal((await source.readingsApi.fetchLatestReadings()).source, 'mock')
+    assert.equal((await source.readingsApi.fetchReadingHistory({ stopId: 'x', periodId: '24h' }).catch((e) => e.kind)), 'validation')
+    assert.equal(typeof (await source.stopsApi.countStopReadings('x')), 'number')
+    assert.deepEqual(client.calls, [])
+  })
+
+  it('preferência local demonstrativo vale sem parâmetro na URL', async () => {
+    const source = createDataSource({
+      requestedMode: 'supabase', supabaseConfigured: true, client: createFakeClient(),
+      getScenarioInput: () => ({ search: '', stored: 'demonstrativo' }),
+    })
+    assert.equal(source.dataScenario.scenario, 'demonstrativo')
+    assert.equal(source.dataScenario.source, 'preference')
+  })
+
+  it('no demonstrativo do build supabase, toda escrita de pontos é recusada com AppError explícito', async () => {
+    const client = createFakeClient()
+    const source = createDataSource({ requestedMode: 'supabase', supabaseConfigured: true, client, getScenarioInput: demo })
+    const antes = (await source.stopsApi.listStops()).length
+    const escritas = [
+      () => source.stopsApi.createStop(novoPonto),
+      () => source.stopsApi.updateStop('s1', novoPonto),
+      () => source.stopsApi.setStopActive('s1', false),
+      () => source.stopsApi.deleteStop('s1'),
+    ]
+    for (const escrita of escritas) {
+      await assert.rejects(escrita(), (err) => {
+        assert.ok(err instanceof AppError)
+        assert.equal(err.kind, 'permission')
+        assert.equal(err.message, DEMO_READ_ONLY_MESSAGE)
+        return true
+      })
+    }
+    assert.equal((await source.stopsApi.listStops()).length, antes)
+    assert.deepEqual(client.calls, [])
+  })
+
+  it('no build mock as escritas em memória continuam funcionando (só o supabase demonstrativo é somente leitura)', async () => {
+    const source = createDataSource({ requestedMode: 'mock', supabaseConfigured: true, client: createFakeClient(), getScenarioInput: observado })
+    assert.equal(source.dataScenario.scenario, 'demonstrativo')
+    assert.equal(source.dataScenario.canSwitch, false)
+    assert.equal(source.buildMode, 'mock')
+    await source.stopsApi.createStop(novoPonto)
+  })
+
+  it('build unconfigured ignora ?dados=demonstracao: continua rejeitando, sem mock', async () => {
+    let lida = false
+    const source = createDataSource({
+      requestedMode: 'supabase', supabaseConfigured: false, client: null,
+      getScenarioInput: () => { lida = true; return { search: '?dados=demonstracao', stored: 'demonstrativo' } },
+    })
+    assert.equal(lida, false)
+    assert.equal(source.dataScenario.scenario, 'observado')
+    assert.equal(source.dataScenario.canSwitch, false)
+    assert.equal(source.dataMode, 'unconfigured')
+    await assert.rejects(source.stopsApi.listStops(), { message: UNCONFIGURED_MESSAGE })
+    await assert.rejects(source.readingsApi.fetchLatestReadings(), { message: UNCONFIGURED_MESSAGE })
+  })
+
+  it('getScenarioInput só é lido no build supabase', () => {
+    for (const [requestedMode, supabaseConfigured] of [['mock', true], ['mock', false], ['auto', false], ['supabase', false]]) {
+      let lida = false
+      createDataSource({
+        requestedMode, supabaseConfigured, client: null,
+        getScenarioInput: () => { lida = true; return {} },
+      })
+      assert.equal(lida, false, `${requestedMode}/${supabaseConfigured}`)
+    }
+  })
+
+  it('?mock=erro vale no demonstrativo do build supabase e não afeta a autenticação', async () => {
+    const client = createFakeAuthClient()
+    const source = createDataSource({
+      requestedMode: 'supabase', supabaseConfigured: true, client,
+      getScenarioInput: demo, getSearch: () => '?mock=erro',
+    })
+    await assert.rejects(source.readingsApi.fetchLatestReadings(), { kind: 'network' })
+    assert.equal(source.authApi.isDemo, false)
+  })
+
+  it('a autenticação é sempre a do Supabase, nos dois conjuntos do build supabase', async () => {
+    for (const getScenarioInput of [demo, observado, () => ({})]) {
+      const client = createFakeAuthClient()
+      const { authApi } = createDataSource({ requestedMode: 'supabase', supabaseConfigured: true, client, getScenarioInput })
+      assert.equal(authApi.isDemo, false)
+      assert.equal(authApi.demoAccounts, null)
+      await assert.rejects(
+        signInAdmin(authApi, 'admin.demo@climaponto.example', 'demo-admin-2026'),
+        { kind: 'validation', message: 'E-mail ou senha incorretos.' },
+      )
+      assert.deepEqual(client.calls, [['signInWithPassword', 'admin.demo@climaponto.example']])
+    }
+  })
+
+  it('os dois conjuntos nunca se misturam: o demonstrativo não consulta o cliente e o observado não devolve mock', async () => {
+    const clientDemo = createFakeClient()
+    const demonstrativo = createDataSource({ requestedMode: 'supabase', supabaseConfigured: true, client: clientDemo, getScenarioInput: demo })
+    await demonstrativo.readingsApi.fetchLatestReadings()
+    assert.deepEqual(clientDemo.calls, [])
+
+    const clientObs = createFakeClient()
+    const real = createDataSource({ requestedMode: 'supabase', supabaseConfigured: true, client: clientObs, getScenarioInput: () => ({}) })
+    await assert.rejects(real.readingsApi.fetchLatestReadings(), { kind: 'network' })
+    // O fake não implementa insert: basta a escrita ir ao cliente (e não ao mock) para provar o roteamento.
+    await assert.rejects(real.stopsApi.createStop(novoPonto))
+    assert.deepEqual(clientObs.calls, ['stop_latest_readings', 'stops'])
   })
 })
