@@ -5,20 +5,23 @@ import { test, expect, snap, settle, horizontalOverflow } from 'harness-e2e'
 const DESKTOP = { width: 1366, height: 900 }
 const MOBILE = { width: 375, height: 812 }
 const HISTORICO = '/historico?ponto=MOCK-01&periodo=24h'
-const REGIOES = ['Resumo', 'Última medição', 'Evolução recente', 'Insights']
+// Evolução e Insights agora vivem em abas dentro de "Detalhes" (tabpanels); Resumo e Última medição dividem a grade.
+const REGIOES = ['Resumo', 'Última medição', 'Detalhes']
+const GRADE = ['Resumo', 'Última medição']
+const painelAba = (page, nome) => page.getByRole('tabpanel', { name: nome, exact: true })
 
 const regiao = (page, nome) => page.getByRole('region', { name: nome, exact: true })
 const aguardarDashboard = async (page) => {
   await page.goto('/')
   await expect(regiao(page, 'Resumo')).toBeVisible()
-  await expect(regiao(page, 'Insights')).toBeVisible()
+  await expect(regiao(page, 'Detalhes')).toBeVisible()
 }
 const aguardarHistorico = async (page) => {
   await page.goto(HISTORICO)
   await expect(regiao(page, 'Evolução')).toBeVisible()
 }
 
-/** Retângulos das quatro regiões, na ordem do DOM. */
+/** Retângulos das regiões, na ordem do DOM. */
 async function retangulos(page) {
   const out = []
   for (const nome of REGIOES) {
@@ -45,7 +48,7 @@ function semSobreposicao(rects) {
 test.describe('Bento 1366', () => {
   test.use({ viewport: DESKTOP })
 
-  test('as quatro regiões compartilham uma grade e se distribuem em blocos de larguras diferentes', async ({ page }) => {
+  test('Resumo e Última medição compartilham uma grade e se distribuem em blocos de larguras diferentes', async ({ page }) => {
     await aguardarDashboard(page)
     await settle(page)
     const r = await page.evaluate((nomes) => {
@@ -60,12 +63,12 @@ test.describe('Bento 1366', () => {
         mesmoPai: pais.every((p) => p === pais[0]),
         displays: pais.map((p) => p && getComputedStyle(p).display),
       }
-    }, REGIOES)
+    }, GRADE)
     expect(r.todas, 'seções encontradas').toBe(true)
     expect(r.mesmoPai, 'mesmo elemento pai').toBe(true)
-    expect(r.displays).toEqual(['grid', 'grid', 'grid', 'grid'])
+    expect(r.displays).toEqual(['grid', 'grid'])
 
-    const rects = await retangulos(page)
+    const rects = (await retangulos(page)).filter((r) => GRADE.includes(r.nome))
     const lado = []
     for (let i = 0; i < rects.length; i++) {
       for (let j = i + 1; j < rects.length; j++) {
@@ -283,7 +286,7 @@ test.describe('Sparklines', () => {
 
   test('Dashboard: tendências de temperatura e umidade com o último valor em texto', async ({ page }) => {
     await aguardarDashboard(page)
-    const evo = regiao(page, 'Evolução recente')
+    const evo = painelAba(page, 'Evolução (24 h)')
     await expect(evo.getByRole('img', { name: TEMPERATURA })).toBeVisible()
     await expect(evo.getByRole('img', { name: UMIDADE })).toBeVisible()
     await expect(evo.getByText('Último:').first()).toBeVisible()

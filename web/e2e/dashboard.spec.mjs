@@ -59,7 +59,8 @@ test('última medição em destaque com temperatura, umidade e horário', async 
 })
 
 test('gráficos de evolução: temperatura e umidade renderizados; troca de ponto atualiza o link', async ({ page }) => {
-  const evo = page.getByRole('region', { name: 'Evolução recente' })
+  // Evolução é a aba padrão de "Detalhes"
+  const evo = page.getByRole('tabpanel', { name: 'Evolução (24 h)' })
   for (const nome of ['Temperatura (°C)', 'Umidade (%)']) {
     const fig = evo.getByRole('figure', { name: nome })
     await expect(fig).toBeVisible()

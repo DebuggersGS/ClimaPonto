@@ -36,7 +36,7 @@ for (const [nome, rota, pronto] of PAGES) {
 }
 
 const GRAFICOS = [
-  ['Dashboard', '/', (page) => page.getByRole('region', { name: 'Evolução recente' })],
+  ['Dashboard', '/', (page) => page.getByRole('tabpanel', { name: 'Evolução (24 h)' })],
   ['Histórico', '/historico?ponto=MOCK-01&periodo=24h', (page) => page.getByRole('region', { name: 'Evolução' })],
 ]
 

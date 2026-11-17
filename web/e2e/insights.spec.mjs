@@ -3,10 +3,18 @@ import { test, expect, snap, settle, horizontalOverflow, axeViolations } from 'h
 
 const DESKTOP = { width: 1366, height: 900 }
 const MOBILE = { width: 375, height: 812 }
-const insights = (page) => page.getByRole('region', { name: 'Insights', exact: true })
+// Insights e comparador são abas ("Insights" e "Comparar pontos") da seção "Detalhes" do Dashboard.
+const insights = (page) => page.getByRole('tabpanel', { name: 'Insights', exact: true })
+const comparar = (page) => page.getByRole('tabpanel', { name: 'Comparar pontos', exact: true })
 const abrir = async (page) => {
   await page.goto('/')
+  await page.getByRole('tab', { name: 'Insights', exact: true }).click()
   await expect(insights(page).getByRole('heading', { level: 3, name: 'Estados ambientais gravados' })).toBeVisible()
+}
+const abrirComparador = async (page) => {
+  await page.goto('/')
+  await page.getByRole('tab', { name: 'Comparar pontos', exact: true }).click()
+  await expect(comparar(page)).toBeVisible()
 }
 
 test.describe('Bento de Insights', () => {
@@ -51,7 +59,8 @@ test.describe('Bento de Insights', () => {
   test('h1 único e hierarquia sem saltos', async ({ page }) => {
     await abrir(page)
     await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1)
-    await expect(insights(page).getByRole('heading', { level: 2, name: 'Insights' })).toHaveCount(1)
+    await expect(page.getByRole('heading', { level: 2, name: 'Detalhes' })).toHaveCount(1)
+    await expect(insights(page).getByRole('heading', { level: 3 })).toHaveCount(5)
   })
 })
 
@@ -61,7 +70,7 @@ test.describe('Comparador de dois pontos', () => {
   const B = (page) => page.getByRole('combobox', { name: 'Ponto B' })
 
   test('recolhido por padrão; ao abrir mostra selects rotulados e orientação', async ({ page }) => {
-    await abrir(page)
+    await abrirComparador(page)
     await expect(botao(page)).toHaveAttribute('aria-expanded', 'false')
     await expect(page.getByRole('combobox', { name: 'Ponto A' })).toHaveCount(0)
     await botao(page).click()
@@ -75,7 +84,7 @@ test.describe('Comparador de dois pontos', () => {
   })
 
   test('o ponto escolhido some do outro select', async ({ page }) => {
-    await abrir(page)
+    await abrirComparador(page)
     await botao(page).click()
     await A(page).selectOption('MOCK-01')
     await expect(B(page).locator('option[value="MOCK-01"]')).toHaveCount(0)
@@ -84,11 +93,11 @@ test.describe('Comparador de dois pontos', () => {
   })
 
   test('compara dois pontos de simulação: n, origem, intervalo, unidades e diferença', async ({ page }) => {
-    await abrir(page)
+    await abrirComparador(page)
     await botao(page).click()
     await A(page).selectOption('MOCK-01')
     await B(page).selectOption('MOCK-02')
-    const regiao = insights(page)
+    const regiao = comparar(page)
     await expect(regiao.getByText(/^Origem:/)).toContainText('Simulação')
     await expect(regiao.getByText(/Intervalo comparado: .+ a .+/)).toBeVisible()
     await expect(regiao.getByRole('heading', { level: 4, name: 'Temperatura' })).toBeVisible()
@@ -100,16 +109,16 @@ test.describe('Comparador de dois pontos', () => {
   })
 
   test('origens diferentes: explica o motivo de não ser comparável', async ({ page }) => {
-    await abrir(page)
+    await abrirComparador(page)
     await botao(page).click()
     await A(page).selectOption('MOCK-01')
     await B(page).selectOption('MOCK-08')
-    await expect(insights(page)).toContainText('Não comparável:')
-    await expect(insights(page).getByRole('heading', { level: 4 })).toHaveCount(0)
+    await expect(comparar(page)).toContainText('Não comparável:')
+    await expect(comparar(page).getByRole('heading', { level: 4 })).toHaveCount(0)
   })
 
   test('operação só por teclado', async ({ page }) => {
-    await abrir(page)
+    await abrirComparador(page)
     await botao(page).focus()
     await page.keyboard.press('Enter')
     await expect(A(page)).toBeVisible()
@@ -119,7 +128,7 @@ test.describe('Comparador de dois pontos', () => {
     await page.keyboard.press('Tab')
     await expect(B(page)).toBeFocused()
     await page.keyboard.press('ArrowDown')
-    await expect(insights(page).getByRole('heading', { level: 4, name: 'Temperatura' }).or(insights(page).getByText(/Não comparável:/))).toBeVisible()
+    await expect(comparar(page).getByRole('heading', { level: 4, name: 'Temperatura' }).or(comparar(page).getByText(/Não comparável:/))).toBeVisible()
   })
 
   // Nota: ?mock=erro derruba também a lista de pontos, então o erro do comparador com "Tentar novamente"
@@ -150,10 +159,11 @@ for (const [vpNome, vp] of [['desktop', DESKTOP], ['mobile', MOBILE]]) {
 
       test('axe sem violações com comparador aberto e comparação feita', async ({ page }, testInfo) => {
       test.skip(testInfo.project.name === 'firefox', 'axe-core no Firefox derruba a página com gráficos (limitação do navegador; coberto no Chromium)')
+        await page.getByRole('tab', { name: 'Comparar pontos', exact: true }).click()
         await page.getByRole('button', { name: 'Comparar dois pontos' }).click()
         await page.getByRole('combobox', { name: 'Ponto A' }).selectOption('MOCK-01')
         await page.getByRole('combobox', { name: 'Ponto B' }).selectOption('MOCK-02')
-        await expect(insights(page).getByRole('heading', { level: 4, name: 'Temperatura' })).toBeVisible()
+        await expect(comparar(page).getByRole('heading', { level: 4, name: 'Temperatura' })).toBeVisible()
         await settle(page)
         expect(await axeViolations(page)).toEqual([])
         expect(await horizontalOverflow(page)).toEqual([])

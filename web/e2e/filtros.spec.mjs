@@ -47,8 +47,16 @@ async function abrirPontos(page) {
 }
 
 /** Texto visível (innerText) das regiões que NÃO podem mudar com os filtros da lista. */
-const textosFixos = (page) =>
-  Promise.all(['Resumo', 'Última medição', 'Evolução recente', 'Insights'].map((nome) => page.getByRole('region', { name: nome, exact: true }).innerText()))
+// Evolução e Insights são abas de "Detalhes": cada uma é aberta para ler o texto e a aba padrão é restaurada.
+async function textosFixos(page) {
+  const regioes = await Promise.all(['Resumo', 'Última medição'].map((nome) => page.getByRole('region', { name: nome, exact: true }).innerText()))
+  const evolucao = await page.getByRole('tabpanel', { name: 'Evolução (24 h)', exact: true }).innerText()
+  await page.getByRole('tab', { name: 'Insights', exact: true }).click()
+  const insights = await page.getByRole('tabpanel', { name: 'Insights', exact: true }).innerText()
+  await page.getByRole('tab', { name: 'Evolução (24 h)', exact: true }).click()
+  await expect(page.getByRole('tabpanel', { name: 'Evolução (24 h)', exact: true })).toBeVisible()
+  return [...regioes, evolucao, insights]
+}
 
 // ---------------------------------------------------------------- Dashboard
 
@@ -122,7 +130,7 @@ test.describe('Dashboard: busca e filtros', () => {
     await expect(vazio(page)).toBeVisible()
   })
 
-  test('Resumo, Última medição, Evolução recente e Insights não mudam com os filtros', async ({ page }) => {
+  test('Resumo, Última medição, Evolução (24 h) e Insights não mudam com os filtros', async ({ page }) => {
     const antes = await textosFixos(page)
     await busca(page).fill('sapopemba')
     await grupoEstado(page).getByRole('button', { name: 'Normal (5)' }).click()
@@ -166,18 +174,19 @@ test.describe('Dashboard: busca e filtros', () => {
 test.describe('Dashboard: insights', () => {
   test.beforeEach(async ({ page }) => abrirDashboard(page))
 
-  const insights = (page) => page.getByRole('region', { name: 'Insights', exact: true })
+  const insights = (page) => page.getByRole('tabpanel', { name: 'Insights', exact: true })
 
-  test('seção entre Evolução recente e Pontos monitorados, com fonte dos dados', async ({ page }) => {
+  test('aba Insights dentro de Detalhes, antes de Pontos monitorados, com fonte dos dados', async ({ page }) => {
     const titulos = await page.getByRole('heading', { level: 2 }).allTextContents()
-    const i = titulos.indexOf('Insights')
+    const i = titulos.indexOf('Detalhes')
     expect(i).toBeGreaterThan(-1)
-    expect(titulos[i - 1]).toBe('Evolução recente')
     expect(titulos[i + 1]).toBe('Pontos monitorados')
+    await page.getByRole('tab', { name: 'Insights', exact: true }).click()
     await expect(insights(page).getByText(/^Fonte:/)).toBeVisible()
   })
 
   test('cinco insights deterministas; texto e "Como foi calculado" ficam na metodologia recolhida', async ({ page }) => {
+    await page.getByRole('tab', { name: 'Insights', exact: true }).click()
     const regiao = insights(page)
     const cartoes = regiao.getByRole('list').first().getByRole('listitem')
     await expect(cartoes).toHaveCount(5)
@@ -187,7 +196,6 @@ test.describe('Dashboard: insights', () => {
       'Umidade: maior e menor',
       'Pontos sem leitura recente',
       'Há leituras que não são medição real',
-      'Comparar dois pontos',
     ])
     const botao = regiao.getByRole('button', { name: 'Como foi calculado' })
     await expect(botao).toHaveAttribute('aria-expanded', 'false')
@@ -518,7 +526,8 @@ test.describe('mobile 375 px', () => {
   test('insights em 375 px: texto longo não ultrapassa o cartão nem a janela', async ({ page }) => {
     await abrirDashboard(page)
     await settle(page)
-    const itens = page.getByRole('region', { name: 'Insights', exact: true }).getByRole('listitem')
+    await page.getByRole('tab', { name: 'Insights', exact: true }).click()
+    const itens = page.getByRole('tabpanel', { name: 'Insights', exact: true }).getByRole('listitem')
     await expect(itens).toHaveCount(5)
     for (let i = 0; i < 5; i++) {
       const caixa = await itens.nth(i).boundingBox()

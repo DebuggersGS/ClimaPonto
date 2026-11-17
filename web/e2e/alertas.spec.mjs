@@ -41,9 +41,15 @@ test('ponto sem dados (MOCK-04) e ponto normal não geram alerta', async ({ page
 })
 
 test('seções existentes do Dashboard continuam presentes', async ({ page }) => {
-  for (const nome of ['Resumo', 'Última medição', 'Evolução recente', 'Insights', 'Pontos monitorados']) {
+  for (const nome of ['Resumo', 'Última medição', 'Detalhes', 'Pontos monitorados']) {
     await expect(page.getByRole('region', { name: nome })).toBeVisible()
   }
+  // Evolução, Insights e Comparar pontos continuam disponíveis como abas de "Detalhes"
+  await expect(page.getByRole('tabpanel', { name: 'Evolução (24 h)' })).toBeVisible()
+  await page.getByRole('tab', { name: 'Insights', exact: true }).click()
+  await expect(page.getByRole('tabpanel', { name: 'Insights', exact: true })).toBeVisible()
+  await page.getByRole('tab', { name: 'Comparar pontos', exact: true }).click()
+  await expect(page.getByRole('tabpanel', { name: 'Comparar pontos', exact: true })).toBeVisible()
 })
 
 test('teclado: botão de alertas alterna com Enter e mostra foco visível', async ({ page }) => {
