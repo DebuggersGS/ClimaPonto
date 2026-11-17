@@ -15,6 +15,10 @@ const DOCS = [
   'docs/RELATORIO-FINAL.md',
   'docs/INTEGRACAO-GS.md',
   'docs/CHECKLIST-SUBMISSAO.md',
+  'docs/CENARIOS-DEMONSTRACAO.md',
+  'docs/INTERACOES-E-MOVIMENTO.md',
+  'docs/FONTES-E-METODOLOGIA.md',
+  'docs/QA-VISUAL.md',
 ]
 
 test('documentos de entrega existem', () => {
@@ -24,9 +28,8 @@ test('documentos de entrega existem', () => {
 test('relatório final traz commit, branch, status e classificações', () => {
   const t = ler('docs/RELATORIO-FINAL.md')
   for (const s of [
-    'b61d184af3ca677ef32cdb5d6f0b5b8c2de05009',
-    'harness/G-20261116-a1dfae',
-    'LOCAL_RELEASE_READY_WITH_BLOCKERS',
+    'harness/G-20261117-cfedb6',
+    'LOCAL_READY_PENDING_REMOTE',
     'ATENDE',
     'PARCIAL',
     'NÃO ATENDE',
@@ -37,18 +40,39 @@ test('relatório final traz commit, branch, status e classificações', () => {
 test('relatório final registra gates, matriz antes→depois e limites da verificação visual', () => {
   const t = ler('docs/RELATORIO-FINAL.md')
   for (const s of [
-    'Matriz antes → depois',
     'npm --prefix web run lint',
-    'npm --prefix web run build',
-    'kB',
     'node --test',
     'Não foram executados pelo agente',
     'Screenshots antes/depois',
     'release/MANIFEST.txt',
     'release/SHA256SUMS',
+    'Lighthouse',
   ]) assert.ok(t.includes(s), `RELATORIO-FINAL sem: ${s}`)
-  for (const rota of ['/analises', '/relatorios', '/laboratorio', '/pontos', '/historico']) {
-    assert.ok(t.includes(`\`${rota}\``), `RELATORIO-FINAL sem a rota ${rota}`)
+})
+
+test('relatório final não traz SHA completo inventado', () => {
+  const t = ler('docs/RELATORIO-FINAL.md')
+  const longos = t.match(/\b[0-9a-f]{40}\b/g) ?? []
+  assert.deepEqual(longos, [], 'SHA completo não deve aparecer')
+})
+
+const STATUS_VALIDOS = ['verified', 'blocked', 'not_applicable']
+
+test('cenários: tabela S01-S23 com status válido e justificativa', () => {
+  const linhas = ler('docs/CENARIOS-DEMONSTRACAO.md').split('\n').filter((l) => /^\| S\d{2} \|/.test(l))
+  assert.equal(linhas.length, 23)
+  linhas.forEach((linha, i) => {
+    const colunas = linha.split('|').map((c) => c.trim())
+    assert.equal(colunas[1], `S${String(i + 1).padStart(2, '0')}`)
+    assert.ok(STATUS_VALIDOS.includes(colunas[3]), `status inválido em ${colunas[1]}: ${colunas[3]}`)
+    assert.ok(colunas[4].length > 20, `${colunas[1]} sem evidência ou justificativa`)
+  })
+})
+
+test('cenários que dependem de deploy, remoto ou rede ficam blocked', () => {
+  const t = ler('docs/CENARIOS-DEMONSTRACAO.md')
+  for (const id of ['S11', 'S12', 'S13', 'S14']) {
+    assert.match(t, new RegExp(`\\| ${id} \\|[^\\n]*\\| blocked \\|`), `${id} deveria estar blocked`)
   }
 })
 
@@ -86,13 +110,18 @@ test('integração GS cita todas as frentes', () => {
 test('BLOCKERS é curto e cita os bloqueios humanos', () => {
   const t = ler('BLOCKERS.md')
   assert.ok(t.split('\n').length <= 60)
-  for (const k of ['GitHub', 'deploy', 'Teams']) assert.ok(t.includes(k), `BLOCKERS sem: ${k}`)
+  for (const k of ['GitHub', 'deploy', 'Teams', 'CSP', 'GTFS', 'Open-Meteo', 'RLS']) {
+    assert.ok(t.includes(k), `BLOCKERS sem: ${k}`)
+  }
 })
 
 test('nenhum documento declara prontidão total', () => {
   for (const d of DOCS) {
     const t = ler(d)
     assert.ok(!t.includes('100% pronto'), `${d} contém "100% pronto"`)
+    for (const linha of t.split('\n').filter((l) => l.includes('PROFESSOR_READY'))) {
+      assert.ok(/não/i.test(linha), `${d} declara PROFESSOR_READY: ${linha}`)
+    }
     assert.ok(!t.includes('READY_FOR_SUBMISSION'), `${d} contém READY_FOR_SUBMISSION`)
   }
 })

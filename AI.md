@@ -358,3 +358,10 @@ Não foram testados leitores de tela, navegadores além do Chrome, nem dispositi
 - Este registro descreve apenas ações que realmente aconteceram; nenhum prompt ou teste é inventado.
 - Dados exibidos pela aplicação nesta fase são demonstrativos e identificados como tal na interface.
 - Aviso de conexão (useOnlineStatus): navigator.onLine deixou de decidir sozinho; passa a haver sonda HEAD à própria origem a cada 2 s e nos eventos online/offline/foco. Lint e build executados; o spec e2e não pôde ser rodado localmente (runner do harness indisponível no sandbox).
+
+### Documentação de entrega — T11 (17/11/2026, objetivo G-20261117-cfedb6)
+
+- **Feito:** criou `docs/CENARIOS-DEMONSTRACAO.md` (S01-S23: 15 verified, 8 blocked), `docs/INTERACOES-E-MOVIMENTO.md`, `docs/FONTES-E-METODOLOGIA.md` e `docs/QA-VISUAL.md`; reescreveu `docs/RELATORIO-FINAL.md` (status LOCAL_READY_PENDING_REMOTE) e `BLOCKERS.md`; atualizou `docs/MATRIZ-FIAP.md`, `README.md` e `releaseArtifacts.test.js`.
+- **Executado de fato:** `node --test` sobre todos os `*.test.js` de `web/src` (500/500 antes da atualização do teste de artefatos); `npm --prefix web run lint` (saída sem erros, 2 avisos preexistentes `set-state-in-effect`) e `node --test web/src/utils/releaseArtifacts.test.js` (13/13).
+- **Não executado:** specs E2E (os novos de T10 e os adaptados), build, screenshots, Lighthouse. Nenhum deploy, push, escrita no Supabase remoto ou aceite visual humano ocorreu.
+- O código e os documentos gerados por IA permanecem sujeitos à revisão da equipe.

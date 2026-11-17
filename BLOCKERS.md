@@ -1,35 +1,42 @@
 # Bloqueios e ações humanas
 
-Status da release: LOCAL_RELEASE_READY_WITH_BLOCKERS. Os itens abaixo dependem de pessoas ou de serviços externos; nada disso foi feito pelos agentes (sem push, deploy, escrita remota ou envio).
+Status da release: LOCAL_READY_PENDING_REMOTE (branch `harness/G-20261117-cfedb6`). Os itens abaixo dependem de pessoas ou serviços externos; nada disso foi feito pelos agentes (sem push, deploy, escrita remota, envio ou aceite visual).
 
 ## 1. GitHub privado e convites
 
-- Confirmar que o repositório está privado.
-- Convidar os dois professores com permissão **write** e conferir que aceitaram.
-- Fazer o push da branch da release (decisão humana).
+- Confirmar repositório privado, convidar os dois professores com permissão **write** e fazer o push da branch (decisão humana).
 
-## 2. Deploy na Vercel
+## 2. Deploy na Vercel e CSP efetiva
 
-- Criar o projeto apontando para `web/` (veja `docs/deploy.md`; `web/vercel.json` já define build e cabeçalhos).
-- Definir `VITE_DATA_MODE`, `VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY` (somente chave publishable).
-- Registrar a URL de deploy no README e no checklist. Hoje não existe URL.
+- Criar o projeto apontando para `web/` (`docs/deploy.md`) e definir `VITE_DATA_MODE`, `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` (só publishable). Não existe URL de deploy.
+- A CSP de `web/vercel.json` (libera `tiles.openfreemap.org`) só foi testada como texto; verificar no deploy real, no console, que mapa, estilos e Supabase carregam sem violação.
+- Os cenários S11, S12, S13 e S14 dependem do deploy e do Supabase remoto.
 
 ## 3. Envios separados no Teams
 
-- Front-end Design e Web Development são entregas distintas: enviar ZIP, link do GitHub e URL de deploy em cada uma, até 19/11/2026 às 23h55.
-- O ZIP (`release/`, fora do Git), `MANIFEST.txt` e `SHA256SUMS` foram gerados; o ZIP vem do commit indicado na primeira linha do manifesto.
+- Front-end Design e Web Development: ZIP, link do GitHub e URL de deploy em cada, até 19/11/2026 às 23h55. O ZIP desta rodada não foi gerado; `release/MANIFEST.txt` e `SHA256SUMS` são da release anterior.
 
-## 4. CRUD remoto com usuário de teste
+## 4. CRUD e RLS no Supabase remoto
 
-- A release só testou o cliente com Supabase falso (`stopsApi.test.js`). Falta verificar criar, editar, desativar e excluir no Supabase remoto com um usuário de teste com papel admin, com autorização explícita.
-- Pendências do painel do Supabase: desativar o cadastro público e criar as contas administrativas definitivas.
+- Falta verificar criar, editar, desativar e excluir com usuário admin de teste, e o RBAC negativo (S11, S12), com autorização explícita. Hoje: `stopsApi.test.js` (cliente falso) e SQL local não reexecutado.
+- Painel do Supabase: desativar o cadastro público e criar as contas administrativas definitivas.
 
-## 5. Materiais dos colegas
+## 5. Dependências
 
-- Python, Matemática/DPS, Edge/Wokwi, Total Experience e Storytelling: não há material no repositório (veja `docs/INTEGRACAO-GS.md`). Reunir com os colegas responsáveis.
+- Nenhuma dependência não autorizada foi necessária. `maplibre-gl`, `react-map-gl` e `@base-ui/react` foram autorizadas pelo humano e instaladas pelo serviço confiável.
 
-## 6. Outros
+## 6. Dados geográficos rastreáveis (GTFS)
 
-- Definir com a equipe o que é "CitizenTech" (termo ausente no repositório).
-- Aceite visual humano: a nova navegação (barra lateral e menu móvel) não foi vista renderizada neste ambiente (sem navegador); conferir em 375, 768 e 1366 px, claro e escuro, e rodar o gate E2E.
-- Lighthouse e Core Web Vitals não foram medidos.
+- As coordenadas dos pontos são ilustrativas. Para S01 falta fonte com licença checada (GTFS SPTrans, GeoSampa ou outra) e importação aprovada.
+
+## 7. Open-Meteo e dados reais
+
+- Open-Meteo não foi integrada (S02, S13); não há leitura real de ESP32 nem endpoint de ingestão.
+
+## 8. Aceite visual humano e gate E2E
+
+- Os specs E2E novos e adaptados não foram executados pelo agente; aguardam o gate do harness. Capturas antes/depois, vídeo de interações, contraste, 375/768/1366 px e mapa com tiles reais precisam de conferência humana (S23, `docs/QA-VISUAL.md`). Lighthouse não medido.
+
+## 9. Outros
+
+- Definir "CitizenTech" (S16) e reunir materiais de Python, Edge/Wokwi, Total Experience e Storytelling (`docs/INTEGRACAO-GS.md`).
