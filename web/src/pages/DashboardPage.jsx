@@ -16,6 +16,7 @@ import StopGrid from '../components/dashboard/StopGrid.jsx'
 import AlertsPanel from '../components/dashboard/AlertsPanel.jsx'
 import InsightsPanel from '../components/dashboard/InsightsPanel.jsx'
 import StopComparison from '../components/dashboard/StopComparison.jsx'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '../components/ui/Tabs.jsx'
 import MethodologyNote from '../components/ui/MethodologyNote.jsx'
 import DataSourceBadge from '../components/ui/DataSourceBadge.jsx'
 import NoResultsState from '../components/ui/NoResultsState.jsx'
@@ -63,22 +64,30 @@ function ReadyContent({ stops, summary, now, source }) {
         </Section>
 
         <MethodologyNote className="col-span-full" />
-
-        <Section title="Evolução recente" eyebrow="Últimas 24 horas" className="mb-0 min-w-0 lg:col-span-8">
-          <RecentEvolutionPanel stops={stops} items={summary.items} latest={summary.latest} />
-        </Section>
-
-        <Section
-          title="Insights"
-          eyebrow="Leitura rápida"
-          description="Comparações calculadas a partir das últimas leituras exibidas."
-          className="mb-0 min-w-0 lg:col-span-4"
-        >
-          <DataSourceBadge source={source} />
-          <InsightsPanel insights={insights} />
-          <StopComparison stops={stops} />
-        </Section>
       </div>
+
+      {/* Detalhes sob demanda: evolução, insights e comparação ficam em abas para reduzir a poluição visual. */}
+      <Section title="Detalhes" eyebrow="Sob demanda" description="Séries, comparações e insights calculados a partir das leituras exibidas.">
+        <Tabs defaultValue="evolucao">
+          <TabsList aria-label="Detalhes da visão geral">
+            <TabsTrigger value="evolucao">Evolução (24 h)</TabsTrigger>
+            <TabsTrigger value="insights">Insights</TabsTrigger>
+            <TabsTrigger value="comparar">Comparar pontos</TabsTrigger>
+          </TabsList>
+          <TabsContent value="evolucao">
+            <RecentEvolutionPanel stops={stops} items={summary.items} latest={summary.latest} />
+          </TabsContent>
+          <TabsContent value="insights">
+            <div className="max-w-3xl space-y-4">
+              <DataSourceBadge source={source} />
+              <InsightsPanel insights={insights} />
+            </div>
+          </TabsContent>
+          <TabsContent value="comparar">
+            <StopComparison stops={stops} />
+          </TabsContent>
+        </Tabs>
+      </Section>
 
       <Section title="Pontos monitorados" eyebrow="Por ponto">
         <StopFilterBar filter={filter} dimensions={['environmental', 'connectivity']} />

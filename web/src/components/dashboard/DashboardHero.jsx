@@ -1,3 +1,5 @@
+import { Link } from 'react-router'
+import { MapPin } from 'lucide-react'
 import Badge from '../ui/Badge.jsx'
 import Card from '../ui/Card.jsx'
 import { getDataModeInfo } from '../../utils/dataMode.js'
@@ -28,6 +30,13 @@ export default function DashboardHero({ source, children }) {
           <p className="mt-2 max-w-xl text-base text-on-ink-muted">
             Calor urbano sob controle: acompanhe temperatura, umidade e conectividade dos pontos de ônibus de São Paulo.
           </p>
+          <Link
+            to="/pontos"
+            className="mt-5 inline-flex min-h-12 items-center gap-2 rounded-full bg-linear-to-b from-brand-600 to-brand-700 px-6 py-2.5 text-base font-medium text-white shadow-card transition-[background-color,transform] duration-150 ease-out-soft hover:from-brand-700 hover:to-brand-800 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white motion-safe:active:scale-[0.98]"
+          >
+            <MapPin aria-hidden="true" className="h-4 w-4" />
+            Explorar pontos
+          </Link>
         </div>
         <div className="min-w-0 lg:max-w-md">{children}</div>
       </div>
