@@ -1,13 +1,13 @@
 # Uso de Inteligência Artificial
 
-Este documento registra, de forma transparente, como ferramentas de Inteligência Artificial foram usadas no desenvolvimento da aplicação web do ClimaPonto (Front-end Design e Web Development). Segue as cinco partes pedidas no enunciado; no fim está o registro detalhado de cada etapa. Os prompts representativos estão em [prompts.md](prompts.md).
+Este documento registra, de forma transparente, como ferramentas de Inteligência Artificial foram usadas no desenvolvimento da aplicação web do ClimaPonto (Front-end Design e Web Development). Segue as cinco partes pedidas no enunciado; no fim estão a explicação da autoria dos commits e uma linha do tempo resumida do desenvolvimento. Os prompts representativos estão em [prompts.md](prompts.md).
 
 ## 1. Ferramentas utilizadas
 
 | Ferramenta | Finalidade no projeto |
 | --- | --- |
 | **ChatGPT** (OpenAI) | Planejamento da arquitetura, priorização dos requisitos do enunciado, redação das instruções de cada etapa e revisão técnica das entregas (aprovar, pedir correções). |
-| **Claude Code** (Anthropic, modelo Claude Opus 5.5), na extensão do VS Code e no terminal | Implementação: leitura do código, criação e edição de arquivos, comandos de terminal, execução de lint, build, testes unitários e testes em navegador, e diagnóstico de erros. |
+| **Claude Code** (Anthropic), na extensão do VS Code e no terminal, com os modelos **Claude Opus 5.5** (planejamento, revisão e implementação) e **Claude Sonnet 5.5** (implementação de parte das tarefas entre 12 e 16/11) | Implementação: leitura do código, criação e edição de arquivos, comandos de terminal, execução de lint, build, testes unitários e testes em navegador, e diagnóstico de erros. |
 
 O integrante responsável pela parte web (Enrico) conduziu o processo: escreveu ou repassou os pedidos, revisou os resultados, decidiu o que era aprovado e fez os testes de uso.
 
@@ -22,6 +22,7 @@ Exemplos representativos (os textos completos dos pedidos estão em [prompts.md]
 | "Corrigir integralmente os problemas da versão atual" (sidebar sobrepondo o conteúdo, logo cortado, cabeçalho grande, mapa que não carregava e tela preta ao clicar em "Abrir ponto"). | A IA reproduziu os erros no navegador e encontrou as causas: o *worker* do MapLibre não era servido pelo Vite (o mapa caía sempre no aviso de falha) e o minimapa do Ponto 360° passava um formato de dado diferente para a lista alternativa (exceção que apagava a página). Corrigiu as duas causas, redesenhou a barra lateral e o cabeçalho e criou testes de regressão. |
 | "Achei que íamos entregar ele linkado com as outras matérias [...] preciso que você garanta que em todas as matérias todos os pedidos foram devidamente atendidos." | A IA leu os repositórios das outras disciplinas, mostrou que este README contradizia os demais (equipe, FIWARE, pontos P001 a P003), alinhou a documentação e importou no Supabase as leituras do ESP32 que passaram pelo FIWARE, mais uma série pública do Open-Meteo, sempre rotuladas como `simulation`. |
 | Conferir o projeto contra os PDFs do enunciado da GS. | A IA extraiu os requisitos de Front-end Design e Web Development, comparou item a item com o código e apontou o que faltava (Ficha da CitizenTech e ODS no README, este AI.md nas cinco partes, `prompts.md`, deploy e ZIP). |
+| "Pegue tudo o que está nesta organização do GitHub e bata contra o PDF da Global Solution [...] se atentar para coisas que faltam." | A IA clonou os cinco repositórios da equipe, instalou e testou cada parte do zero e listou o que faltava por disciplina. Nesta parte, apontou a falta do deploy e do acesso dos professores e sugeriu explicar a autoria dos commits e resumir este documento. |
 
 ## 3. Aplicação no projeto
 
@@ -51,370 +52,37 @@ Nada gerado pela IA foi aceito sem verificação:
 - **Dificuldades:** manter a IA dentro do escopo de cada etapa, evitar bibliotecas desnecessárias e conferir que os números de testes citados nos documentos eram reais.
 - **Aprendizado:** a IA funciona melhor como copiloto: o grupo define o problema, pede evidência (comando executado, captura de tela, teste) e decide. Toda linha precisa ser entendida por quem entrega.
 
-## Registro detalhado por etapa
-
-### Etapa 1 — Fundação do front-end (09/11/2026)
-
-**Planejamento (ChatGPT):** elaborou o documento de instruções da Etapa 1, contendo contexto do projeto, requisitos da disciplina, stack aprovada (React + Vite, JavaScript, Tailwind CSS, npm), escopo da etapa e critérios de qualidade.
-
-**Execução (Claude Code):** recebeu esse documento e realizou:
-
-1. Diagnóstico do ambiente: pasta vazia, sem repositório Git; Node.js 24.18.1 e npm 11.16.0.
-2. Inicialização do repositório Git na raiz (branch `main`).
-3. Criação da aplicação em `web/` com `npm create vite@latest` (template `react`, create-vite 9.3.4).
-4. Instalação do Tailwind CSS 4 com o plugin oficial `@tailwindcss/vite` e do React Router.
-5. Remoção dos arquivos de exemplo do template e criação da estrutura de pastas (componentes, páginas, hooks, serviços, dados demonstrativos, estilos).
-6. Implementação da interface inicial: cabeçalho, navegação (Dashboard, Pontos, Histórico), layout responsivo, aviso de dados demonstrativos e páginas provisórias.
-7. Escrita do README.md, deste AI.md e do `.gitignore`.
-8. Verificações executadas: `npm run build` (sucesso), `npm run lint` (sem erros ou avisos) e inicialização do servidor de desenvolvimento, conferindo que as rotas `/`, `/pontos` e `/historico` respondem com HTTP 200 e que o CSS do Tailwind é gerado.
-
-**Limites das verificações:** a renderização visual não foi inspecionada em navegador pela IA; não existem testes automatizados nesta etapa.
-
-**Revisão técnica (ChatGPT):** aprovou preliminarmente a fundação e decidiu manter React Router e Oxlint, sem novas bibliotecas, solicitando verificação visual em navegador real antes do primeiro commit.
-
-**Verificação visual (Claude Code):** a aplicação foi aberta no Google Chrome em modo headless, controlado por um script Node.js temporário via Chrome DevTools Protocol (fora do repositório, sem dependências novas). Foram capturadas as páginas Dashboard, Pontos, Histórico e 404 em 1366×900 (desktop) e 375×812 (mobile emulado). Resultados:
-
-- Sem rolagem horizontal em nenhuma página (largura do conteúdo igual à da janela).
-- Item ativo da navegação e título da aba corretos em cada rota.
-- O primeiro Tab foca o link "Pular para o conteúdo".
-- Problema encontrado e corrigido: o rótulo "Sem sensor vinculado" usava cinza claro (`slate-400`, contraste ≈ 2,6:1, abaixo do mínimo WCAG AA de 4,5:1); foi alterado para `slate-500` (≈ 4,8:1).
-
-Não foram testados leitores de tela, navegadores além do Chrome, nem dispositivos móveis físicos.
-
-### Etapa 2A — GitHub, Supabase e contrato de dados (09/11/2026)
-
-**Planejamento (ChatGPT):** definiu os objetivos da etapa (repositório privado, Supabase como backend, modelo das tabelas `stops` e `readings`, modelo de segurança visitante/administrador, contrato de dados) e as restrições (sem CRUD visual, sem credenciais no front-end, sem leituras inventadas).
-
-**Decisões do integrante (Enrico)**, consultado pelo Claude Code durante a execução:
-
-- Autorizou instalar o GitHub CLI e criar o projeto Supabase `climaponto-gs-2026` (região `sa-east-1`) pela integração do Supabase conectada ao Claude.
-- Autorizou executar os testes SQL de RLS no banco.
-
-**Execução (Claude Code):**
-
-1. Consultou a documentação oficial do Supabase (ferramenta de busca de docs da integração) sobre chaves *publishable*, grants da Data API e boas práticas de RLS.
-2. Criou o projeto Supabase e aplicou duas migrações: esquema (tabelas, restrições, índices, trigger de `updated_at`, view de última leitura) e segurança (grants explícitos, RLS, função `private.is_admin()`).
-3. Inseriu 3 pontos demonstrativos (`DEMO-01` a `DEMO-03`), sem endereços reais nem leituras.
-4. Consultou os *advisors* do Supabase: nenhum alerta de segurança; apenas o aviso informativo de índice ainda não usado (esperado, tabela vazia).
-5. Integrou o front-end com `@supabase/supabase-js` (cliente, serviço de pontos, indicação de fonte de dados) mantendo fallback local quando não há configuração.
-6. Criou `npm run check:supabase`, que testa pela API real o acesso de visitante.
-7. Escreveu `docs/data-contract.md`, `docs/architecture-decisions.md` e atualizou o README.
-8. Instalou o GitHub CLI: a tentativa via `winget` travou sem exibir a janela de permissão e foi cancelada; foi usado o pacote portátil oficial (v2.103.3), com SHA-256 conferido.
-
-**Verificações realmente executadas:**
-
-- `npm run check:supabase` contra o banco real: **8/8** — visitante lê pontos ativos e consulta leituras/view; criar, editar e excluir pontos e inserir leituras foram negados (`42501`).
-- `npm run build` e `npm run lint`: sem erros.
-- Captura de tela (Chrome headless, desktop e mobile) das páginas Dashboard e Pontos exibindo os 3 pontos lidos do Supabase.
-
-**Não executado:**
-
-- `supabase/tests/rls_policies.test.sql` (perfis usuário comum e administrador, restrições de validação): a execução pela integração MCP do Supabase foi recusada duas vezes pela própria ferramenta, mesmo após autorização do integrante, possivelmente por conter `UPDATE`/`DELETE` (ainda que dentro de `ROLLBACK`). Deve ser executado manualmente no SQL Editor.
-- Login real de administrador: nenhuma conta foi criada.
-
-### Finalização da Etapa 2A — revisão de segurança (09/11/2026)
-
-**Revisão técnica (ChatGPT):** aprovou parcialmente a Etapa 2A. Aprovou `is_demo`, admins via `app_metadata`, bloqueio de exclusão de pontos com leituras, desativação com histórico, identificação por `stop_code` e conectividade separada do estado ambiental. Decidiu que a classificação ambiental ocorre no ESP32, com validação no backend. Não aprovou ainda a autenticação por `x-device-key` e pediu revisão de segurança. Pediu também que os testes SQL não fossem executados no banco remoto sem nova autorização.
-
-**Execução (Claude Code):**
-
-- GitHub: o `gh` continuava sem login, sem credenciais do GitHub na máquina. Repositório **não** criado e push **não** realizado.
-- Revisão de segurança feita só com consultas de leitura (catálogo do Postgres, *Security Advisor*), busca de segredos em todo o histórico Git e no build. Resultado em `docs/security-review.md`: sem falhas ativas; um risco latente (privilégios padrão do schema `public`), com correção proposta e **não aplicada**.
-- Ajuste em `supabase/tests/rls_policies.test.sql`: o teste passou a criar seus próprios pontos (`TEST-ACTIVE`) em vez de usar o `DEMO-01` real. **O teste não foi executado.**
-- Proposta de ingestão segura (token por dispositivo) e atualização do contrato de dados com as decisões aprovadas.
-
-### Fechamento técnico e de segurança da Etapa 2A (09/11/2026)
-
-**Revisão técnica (ChatGPT):** autorizou testes com Supabase CLI + Docker apenas localmente, com proibição explícita de qualquer operação no remoto. Aprovou três correções (privilégios padrão, proteção de `created_at`, leituras `test` privadas) e a direção da credencial por dispositivo, sem implementação.
-
-**Decisões do integrante (Enrico):** diante do Docker sem WSL, pediu para seguir das duas formas: instalar o necessário para o Docker e testar já com uma alternativa local. Aprovou a janela de administrador do Windows para instalar o WSL.
-
-**Execução (Claude Code):**
-
-1. Docker Desktop não iniciava: diagnóstico apontou WSL ausente. O WSL 3.0.3 foi instalado (`wsl --install --no-distribution`, com elevação), mas exige **reinicialização do Windows**, não realizada. Por isso o teste com Supabase CLI + Docker **não foi executado**.
-2. `supabase init` (CLI 2.122.0 via `npx`) criou `supabase/config.toml`, ajustado para `project_id = "climaponto-local"`, cadastro público desativado e `site_url` do Vite. Nenhum `supabase link` foi feito.
-3. Consultou a documentação do Supabase (*Securing your API*, *Function Configuration*).
-4. Criou três migrações e reescreveu `rls_policies.test.sql` (50 verificações, separando leituras `simulation` públicas de `test` privadas).
-5. Testou em **PostgreSQL 17.10 embarcado** (pacote `embedded-postgres`, fora do repositório), com um *bootstrap* que emula papéis, `auth.jwt()` e privilégios padrão do Supabase.
-   - Primeira execução: 44/50. Duas causas: um erro no próprio teste (literal interpretado como array), corrigido sem mudar expectativas; e um erro real na migração (revogação de `EXECUTE` de `PUBLIC` por schema não tem efeito no PostgreSQL), corrigido com revogação global.
-   - Resultado final: **50/50** com todas as migrações; **34/50** só com as migrações já aplicadas no remoto, sendo as 16 falhas exatamente os pontos corrigidos.
-6. Documentou a estratégia de credenciais de dispositivos, incluindo `verify_jwt = false` no gateway e a validação no código da função.
-7. GitHub: `gh` continua sem login; nada publicado.
-
-**Nada foi aplicado no banco remoto nesta etapa** (nenhuma migração, nenhuma alteração de dados).
-
-### Publicação no GitHub e validação no Supabase local (09/11/2026)
-
-**Pedido do integrante (Enrico):** investigar acessos ao GitHub já existentes antes de pedir login, sem exibir credenciais, e depois validar o Supabase local após a reinicialização do Windows.
-
-**Execução (Claude Code):**
-
-1. GitHub: o Git Credential Manager já tinha a conta `EnricoVidal` (usada pelo `git` nos outros projetos); o GitHub CLI não tinha login próprio.
-   - Uma tentativa de extrair a credencial por arquivo temporário foi **bloqueada** pelo classificador de segurança do Claude Code, e não houve tentativa de contorno.
-   - O integrante escolheu liberar o uso. A credencial foi repassada ao `gh` só em memória, no mesmo processo, sem exibição nem gravação em disco.
-   - Antes de publicar, nova busca de segredos em todo o histórico: nada encontrado.
-   - Criado o repositório **privado** `EnricoVidal/climaponto-gs-2026`; os 12 commits foram publicados na `main`. A visibilidade foi confirmada pela API (`isPrivate = true`).
-2. Após o reinício, o Docker funcionou. O Supabase local (CLI 2.122.0, imagem `supabase/postgres:17.11.0.006`) aplicou as 5 migrações e o seed; `db reset --local` reconstruiu tudo do zero.
-3. Suíte SQL no Supabase local oficial: **50/50**.
-4. Criado `web/scripts/check-supabase-roles.mjs` (testes com tokens reais do Supabase Auth, restrito a endereços locais). Com contas de teste criadas só no Auth local: **14/14**.
-5. Corrigido um encerramento instável dos scripts de verificação no Windows (assertion da libuv ao chamar `process.exit()`), usando `process.exitCode`.
-
-**Nada foi aplicado no banco remoto** (continua com 2 migrações). Nenhuma tela de CRUD foi implementada.
-
-### Etapa 2B — autenticação administrativa e CRUD (10/11/2026)
-
-**Revisão técnica (ChatGPT):** aprovou o fechamento da 2A e autorizou aplicar as três migrações no remoto, implementar login administrativo e CRUD de pontos, sem bibliotecas novas e sem gráficos ou integração IoT.
-
-**Decisão do integrante (Enrico):** depois que a integração recusou a migração com `DROP POLICY`, aprovou aplicar a versão reescrita com `ALTER POLICY`.
-
-**Execução (Claude Code):**
-
-1. **Remoto:** verificação prévia, plano de recuperação e aplicação das três migrações.
-   - A primeira tentativa da última falhou por erro 502; a verificação mostrou que nada tinha sido aplicado.
-   - A segunda foi recusada pela integração; as alterações foram interrompidas e o caso, reportado.
-   - A terceira, já com `ALTER POLICY`, foi aplicada após aprovação.
-   - Arquivos renomeados para as versões remotas. Verificação posterior e teste de visitante (8/8) feitos.
-2. **Autenticação:** `authService`, `errors.js` (tradução de erros), `AuthProvider`/`useAuth`, `RequireAdmin`, página `/admin/login`, logout e aviso de sessão expirada.
-3. **CRUD:** `stopsService` (criar, editar, ativar/desativar, excluir, contar leituras), `useAdminStops`, `StopForm`, `AdminStopCard`, `ConfirmDialog` (`<dialog>` nativo), `TextField`, `Button`, `FeedbackMessage`, `utils/stopValidation.js` e `utils/formatters.js`, página `/admin/pontos` com pesquisa e filtro. Área administrativa carregada com `React.lazy`.
-4. **Testes executados:**
-   - build e lint;
-   - SQL 50/50 e papéis 14/14 no Supabase local;
-   - teste de interface de ponta a ponta no Supabase local, 21/21 na execução final.
-     - A primeira execução deu 20/21 e revelou um defeito real no logout, que foi corrigido.
-     - Uma execução intermediária falhou por processos de teste antigos ainda abertos (problema do roteiro de teste, não da aplicação).
-   - revisão visual das capturas de tela, que levou a um ajuste na posição dos selos;
-   - busca de credenciais nos arquivos e no bundle.
-5. **Não executado:** CRUD no remoto com conta real de admin (não há conta), leitores de tela e outros navegadores.
-
-### Finalização da Etapa 2B (10/11/2026)
-
-**Pedido do integrante (Enrico), com planejamento do ChatGPT:** concluir de forma autônoma as pendências da 2B (Auth remoto, validação remota do CRUD, auditoria, qualidade, preparação do deploy), sem contornar bloqueios de segurança.
-
-**Decisão do integrante:** autorizou criar duas contas de teste por SQL no remoto e desativá-las ao final.
-
-**Execução (Claude Code):**
-
-1. Leu a configuração pública de Auth (`/auth/v1/settings`): **cadastro público ligado**. Não foi possível desligá-lo, porque a integração não oferece API de configuração de Auth. Ficou como ação humana.
-2. Tentou criar contas pelo cadastro público oficial: recusado (domínio `.test` inválido; domínios reais exigiriam envio de e-mail).
-3. Testou no Supabase local o provisionamento por SQL (login e RLS funcionaram). No remoto, criou as duas contas com **somente hashes bcrypt**; as senhas ficaram só na memória do processo de teste.
-4. **Validação remota:** 31/31 (API 15/15 e interface 16/16), apenas com pontos `TEST-*`, removidos ao final. `DEMO-01..03` comprovadamente inalterados (md5 de todas as colunas antes e depois).
-5. Retirou o papel admin e bloqueou as duas contas. Confirmou 0 sessões ativas e apagou os perfis temporários do navegador e o arquivo de hashes.
-6. Auditoria somente leitura do remoto (RLS, políticas, grants, funções, advisors): sem problemas.
-7. **Acessibilidade com axe-core:** encontrou e corrigiu `heading-order` na lista administrativa. Resultado final de 0 violações nas telas auditadas.
-8. **Deploy:** `web/vercel.json` (rewrite do React Router, CSP e cabeçalhos de segurança, cache), validado localmente (25/25) com servidor que aplica as mesmas regras. **Deploy não executado.**
-9. Documentos: `docs/deploy.md`, `docs/etapa-3-proposta.md` (proposta, nada instalado), atualização de `security-review.md`, README e este arquivo.
-
-**Ferramentas de teste fora do repositório** (pasta temporária da sessão): `axe-core` e scripts de navegador via Chrome DevTools Protocol. Nenhuma dependência nova no aplicativo.
-
-### Etapa 3B — Dashboard e Histórico (12/11/2026)
-
-**Processo:** Claude Code (CLI, no WSL) com o Engineering Harness 0.3.1. O orquestrador foi o Claude Opus 5.5; o planejamento e as revisões independentes (code-reviewer e security-reviewer) usam Opus; a implementação foi feita por subagentes frontend-dev e data-dev em Sonnet 5.5. O ambiente não tem navegador, Docker nem `web/.env.local`.
-
-**Fatos do processo:**
-
-1. Houve uma interrupção por limite de uso da API durante as tarefas T4, T6 e T7. As tarefas foram retomadas e os arquivos parciais, revisados e commitados.
-2. Implementados (12 commits de código antes desta documentação): `utils/` (connectivity, readings, historyPeriods, chartGeometry, formatters), `services/readingsApi` e `readingsService`, hooks `useLatestReadings`, `useReadingsHistory` e `useNow`, componentes em `components/dashboard`, `components/history` e `components/ui`, e as páginas Dashboard e Histórico.
-3. Sem bibliotecas novas: gráfico SVG próprio e ícones SVG inline (ver `docs/architecture-decisions.md`).
-
-**Comandos executados nesta tarefa (cwd `web/`) e resultados:**
-
-- `npm run lint`: terminou sem erros; exibiu 2 avisos `react(set-state-in-effect)`, em `useReadingsHistory.js` e `useLatestReadings.js` (conhecidos, mantidos como trade-off).
-- `npm run build`: concluído com sucesso (bundle principal 321,08 kB, 101,14 kB gzip).
-- `node --test`: 88 testes, 22 suítes, 88 aprovados, 0 falhas.
-
-**Não afirmado aqui:** resultado dos gates finais e das revisões independentes; consultar o `report.md` do harness.
-
-**Pendente (validação humana):** conferir Dashboard e Histórico em navegador real (375/768/1366 px, teclado, axe-core) e com `web/.env.local` apontando para o Supabase (somente leitura). Nada disso foi executado neste ambiente.
-
-**Integração futura:** os branches `harness/G-20261111-4f0f88` e `harness/G-20261112-096aab` (não mesclados) também alteram `AI.md`/`docs`; pode haver conflitos simples de documentação.
-
-### Etapa 3C — Design system, gráficos e modo demonstração (12/11/2026)
-
-**Processo:** Claude Code com o Engineering Harness, objetivo G-20261112-bf4e8c. A implementação foi dividida em tarefas por subagentes (Sonnet 5.5); esta entrada é da tarefa T11 (documentação), escrita a partir do `git log` e da leitura do código.
-
-**O que o histórico Git do objetivo mostra** (`git log 004548d..HEAD`):
-
-1. Porte da base funcional de Dashboard e Histórico, seguido da justificativa das dependências de interface em `docs/architecture-decisions.md`.
-2. Camada de dados: `chartSeries`, resolução do modo de dados (`dataMode`), `statusTones`, dataset mock determinístico com 8 cenários, adaptador mock, fonte de dados única guiada por `VITE_DATA_MODE`, hooks e sinalização do modo efetivo, com testes para cada parte.
-3. Um commit registrou o bloqueio da instalação de dependências com um fallback sem pacotes; depois o Dependency Manager do harness instalou as seis dependências (`lucide-react` 1.72.0, `motion` 14.13.0, `recharts` 3.10.1, `clsx` 2.1.1, `tailwind-merge` 3.7.0, `class-variance-authority` 0.7.1) e o registro de decisões foi corrigido (o fallback foi descartado).
-4. Interface: tokens e `cn()`, componentes base, shell, Pontos e 404, estilos da área administrativa, gráficos Recharts, Histórico e Dashboard redesenhados.
-
-**Comandos executados nesta tarefa (T11) na worktree e resultados reais:**
-
-- `npm --prefix web run build`: concluído. Chunk principal `index-*.js` 893,94 kB (276,54 kB gzip); `AdminStopsPage` 14,33 kB; `AdminLoginPage` 1,70 kB; `TextField` 0,99 kB; CSS 42,96 kB (8,29 kB gzip). O Vite emitiu o aviso de chunk maior que 500 kB. (A 3B tinha 321,08 kB / 101,14 kB gzip.) Na rodada de correção da revisão (T101), Dashboard e Histórico passaram a `React.lazy`: `index` 224,53 kB (71,31 kB gzip), chunk do Recharts 380,62 kB (111,40 kB gzip), sem aviso de chunk.
-- `npm --prefix web run lint`: 0 erros, 2 avisos `react(set-state-in-effect)` em `useReadingsHistory.js` e `useLatestReadings.js` (preexistentes).
-- `node --test` listando os arquivos `*.test.js` de `utils/`, `services/` e `data/mock/`: 204 testes, 50 suítes, 204 aprovados, 0 falhas.
-- `node --test <pasta>/web/src/utils/` (pasta como argumento): falhou ao carregar (a pasta aparece como teste com falha). A causa não foi investigada.
-- Nos comandos de npm, o sandbox registrou uma tentativa de acesso de rede a `registry.npmjs.org` negada; não afetou o resultado e nenhum `npm install` foi executado.
-
-**Não foi executado:** `npm run check:supabase` (não há `web/.env.local` neste ambiente); `cd web && node --test` sem argumentos (a execução em `cd` foi negada pelo ambiente); qualquer verificação em navegador.
-
-**Autoavaliação crítica**
-
-- *Ficou forte:* separação clara da fonte de dados (modo único, sem fallback para mock em erro, sinalizado na interface); mock determinístico com 8 cenários que cobrem os estados; regra de agrupamento do gráfico em função pura testada; 204 testes passando; documentação alinhada ao código.
-- *Ainda fraco:* **nada da interface foi renderizado em navegador.** Largura de 375 px, contraste AA, axe-core, reduced motion e hierarquia h1/h2/h3 não foram conferidos; o offset `sm:top-20` da barra de filtros fixa do Histórico é estimado. Não há testes de componentes React. O bundle principal triplicou (Recharts e motion no chunk inicial, sem code splitting por rota). `icons.jsx` ainda é uma camada sobre lucide-react com consumidores a migrar. `useStops` não tem recarga (o "Tentar novamente" remonta por `key` em Pontos e recarrega a página no Dashboard). O selo "Sem sensor vinculado" foi removido do card de Pontos. Dois avisos de lint continuam.
-- *Depende de aceite humano:* AC1, AC2 e AC24, além da validação visual e de acessibilidade em navegador real (incluindo a conferência com Supabase configurado) e da aprovação do design pela equipe. Nenhum deles foi dado como atendido aqui.
-- *Dados:* todo o conteúdo do modo mock é fictício e sinalizado como demonstração na interface; não há leituras reais no Supabase remoto.
-
-**Integração futura:** os branches `harness/G-20261111-4f0f88` e `harness/G-20261112-096aab` (não mesclados) também alteram `AI.md`/`docs`; pode haver conflitos simples de documentação.
-
-### Etapa 3D — testes E2E automatizados em navegador (13/11/2026)
-
-**Processo:** Claude Code (sessão de manutenção do Engineering Harness 0.5.0) e o próprio harness. Objetivos `G-20261113-e21494` (testes E2E e três correções), derivado do branch do redesign `harness/G-20261112-bf4e8c` sem alterá-lo, e `G-20261113-ec01eb` (continuação). A revisão de `G-20261113-e21494` foi feita pelo agente independente `code-reviewer` do harness (veredito: aprovado, com sugestões aplicadas na continuação).
-
-**Executado de verdade (gate de navegador do harness: Playwright 1.65.0, Chromium 158 e Firefox 159, modo mock, isolado e sem rede):**
-
-- `G-20261113-e21494`, HEAD `76899ac`: 76 testes aprovados, 4 pulados, 0 falhas, 0 instáveis; lint e build aprovados.
-- `G-20261113-ec01eb`, HEAD `99eba02` (o código é idêntico ao de `d2be3a8`; entre os dois commits só a documentação mudou): gate E2E registrado como `0008-gate-e2e` (fase de verificação) e `0013-gate-e2e` (fase final). Nas duas execuções: 78 aprovados, 4 pulados, 0 falhas, 0 instáveis. Os registros e as evidências ficam no estado do harness desse objetivo (`evidence.jsonl` e pastas `evidence/0008-gate-e2e-artifacts` e `evidence/0013-gate-e2e-artifacts`).
-- 12 screenshots reais por execução: Dashboard, Histórico e Pontos, em 1366 px e 375 px, nos dois navegadores.
-
-**Defeitos encontrados pelos testes e corrigidos:**
-
-1. axe-core `definition-list`/`dlitem` (sério) no resumo estatístico dos gráficos: `<dt>`/`<dd>` aninhados em `<div>`s dentro do `<dl>` (`ReadingsSummary.jsx`).
-2. axe-core `scrollable-region-focusable`: tabela de leituras rolável inalcançável pelo teclado (`ReadingsTable.jsx`).
-3. Rolagem horizontal em 375 e 768 px no Dashboard: selo de conectividade com texto longo e `whitespace-nowrap` (`ConnectivityBadge.jsx`).
-4. Cerca de 1,8 mil px de rolagem vazia abaixo do rodapé no Histórico (desktop, Chromium e Firefox): textos `sr-only` (`position: absolute`) dos selos escapavam do contêiner rolável não posicionado (`ReadingsTable.jsx`).
-
-**Não foi feito:** conferência com o Supabase configurado; aprovação estética do design; referências visuais aprovadas (não há comparação de imagens); axe-core no Firefox nas páginas com gráficos (pulado com motivo; coberto no Chromium).
-
-**Autoavaliação:** a interface 3C deixou de estar "nunca renderizada": a parte objetiva de acessibilidade, layout e estados é verificada a cada objetivo. Continua dependendo da equipe o julgamento visual (incluindo a quebra dos valores em 375 px) e a validação com dados reais.
-
-### Finalização de Front-end Design e Web Development (14/11/2026)
-
-**Processo:** Claude Code conduzido pelo Engineering Harness (orquestrador e agentes desta sessão em Claude Opus 5.5, conforme informado pelo orquestrador; o modelo de sessões anteriores não é afirmado aqui), objetivo `G-20261114-4ef93c` (base `harness/G-20261114-3bcf79`, HEAD `94f7f5b`), com os agentes `frontend-dev` e `test-engineer`. Tarefas T1 a T7, cada uma com commits e o trailer `Harness-Task`.
-
-**O que foi feito (código e documentos):**
-
-- T1 (`de32ce0`): número e unidade unidos por espaço não separável e `whitespace-nowrap` nos valores de temperatura e umidade (correção da quebra em 375 px); testes dos formatadores ajustados.
-- T2 (`e15b6f3`, `e9d2e9e`, `ea3db28`): autenticação demonstrativa e escritas de pontos em memória no modo mock; decisão 36.
-- T3 (`5d5a930`, `74d1eae`): `AuthProvider` sobre `authService`; login com aviso e contas fictícias; aviso de demonstração na gestão de pontos.
-- T4 (`6f95a11`, `e60273d`, `9469be3`): movimento reduzido (entrada sem animação), seletor de ponto sem corte, eixo do gráfico sem colisão, e-mail do menu truncado no mobile; `docs/revisao-visual-frontend.md` (seção "Antes").
-- T5 (`249635c`, `525b491`, `ab7eae2`, `fae04c6`) e T6 (`07ecc1e`, `a65a392`): testes E2E escritos (valores em 375 px, estados lento/erro/vazio, 404, movimento reduzido, área administrativa e sua qualidade).
-- T7: `docs/requisitos-fiap-frontend.md`, README, este registro e nota em `docs/security-review.md`.
-
-**Executado de verdade (execuções locais do agente na T7, HEAD `292dd34`, sem rede):**
-
-- `npm --prefix web run lint`: 0 erros, 2 avisos `react(set-state-in-effect)` preexistentes (`useReadingsHistory.js`, `useLatestReadings.js`).
-- `npm --prefix web run build`: concluído (`built in 770ms`).
-- `npm --prefix web test`: o script `test` não existe em `web/package.json`; no lugar, `node --test` sobre todos os `*.test.js` de `web/src`: 228 testes, 53 suítes, 228 aprovados, 0 falhas.
-- O sandbox negou tentativas de rede a `registry.npmjs.org` nos comandos `npm`; sem efeito nos resultados.
-
-**Verificação final do harness (HEAD `cbbd4a8`):** lint (0027) ok; build (0028) ok; E2E (0030), Chromium e Firefox: 190 aprovados, 0 falhas, 0 flaky, 4 pulados, 56 screenshots; testes unitários (0031) 228/228. A galeria foi consultada (por exemplo `historico-desktop` no Firefox e `admin-pontos-mobile` no Chromium).
-
-**Ciclos de correção (verificações reprovadas antes da aprovada):**
-
-1. HEAD `122c82f`: 11 falhas e 1 flaky. T101: `a4968a3` (tendência do resumo em uma linha), `51c6855` (h2 "Pontos cadastrados" visível, sem sobreposição), `4a0c395` (teste limpa a pesquisa antes de ler o bairro do MOCK-05).
-2. HEAD `4a0c395`: 1 falha (Firefox "Page crashed" em `medir()` no Dashboard). T102: `b37bf2d` (medição elemento a elemento, sem `Range` sobre `.sr-only`).
-3. HEAD `b37bf2d`: 6 falhas (`medir()` contava 0 linhas na tendência) e 1 flaky (axe no login escuro, Firefox, "Page crashed"). T103: `bb51488` (TreeWalker) e `cbbd4a8` (tolerância de meia linha no agrupamento de topos).
-4. HEAD `cbbd4a8`: aprovado. A revisão de segurança aprovou (2 achados baixos); a revisão de código pediu mudanças (documentação desatualizada, aviso falso de sessão expirada e item "Gerenciar" cortado a 375 px).
-
-**T104 (revisão de código, rodada 1):** documentos atualizados com os números acima; `AuthProvider.signIn` passou a tratar a desconexão da recusa de conta sem papel admin como manual (sem aviso falso de sessão expirada); `MainNav` rola a navegação até o item ativo. Esses dois ajustes de código vêm **depois** de `cbbd4a8`: os números de gate valem para `cbbd4a8` e nova verificação será feita. Na T104 rodaram `node --test` (228/228), `npm run lint` (0 erros) e `npm run build` (ok).
-
-**Observação real:** "Page crashed" intermitente do Firefox (medição no Dashboard e axe do login escuro), sem causa raiz identificada; passou na execução final.
-
-**Pendências reais:** nova verificação após a T104 e confirmação visual do item "Gerenciar" a 375 px; teste automatizado da regressão do aviso de sessão; aceite estético humano; axe-core pulado no Firefox nas páginas com gráficos (com motivo no teste); enunciado oficial da FIAP ausente do repositório; definição de "CitizenTech" e eventual API pública de terceiros (decisões de produto).
-
-### Busca, filtros e insights (14/11/2026, objetivo G-20261114-9de6e3)
-
-- Tarefas anteriores do objetivo (código da interface): `a255420` (filtros puros), `147d1e5` (insights), `3151019` (navegação sem rolagem interna), `fc0d363` (busca, filtros e insights nas páginas).
-- T3 (IA): `web/e2e/filtros.spec.mjs` (commit `dc3c974`), lendo o dataset mock e os componentes para as asserções; decisão 37 em `docs/architecture-decisions.md`; README e este registro.
-
-**Executado de verdade na T3 (worktree, sem rede):**
-
-- `node --test` sobre os `*.test.js` de `web/src` (listados por glob): 253 testes, 57 suítes, 253 aprovados, 0 falhas.
-- `npm --prefix web run lint`: 0 erros; 2 avisos `set-state-in-effect` preexistentes.
-- `npm --prefix web run build`: concluído (`built in 700ms`).
-- `node --check web/e2e/filtros.spec.mjs`: sintaxe válida.
-- O sandbox negou rede a `registry.npmjs.org` em um dos comandos `npm`; sem efeito nos resultados.
-
-**Não executado localmente:** os testes E2E (não há Playwright nem o módulo `harness-e2e` no ambiente). Portanto o `filtros.spec.mjs` **nunca rodou**: seletores e expectativas foram escritos a partir da leitura do código e podem precisar de ajuste após o gate do harness. Também não houve `check:supabase` nem conferência em navegador real.
-
-**T101 (correção do E2E dos filtros):** `53c38c0` corrigiu seletores e contagens do `filtros.spec.mjs` (o EmptyState é `<p>`, contagem 3, espera o texto "Carregando leituras…" sumir, Histórico em cartões a 375 px); `c6a4867` aplicou `transition-property: none` em `prefers-reduced-motion` (mudança **global** em `index.css`: hover e foco mudam de cor instantaneamente; não há `transitionend` no código).
-
-**Gates executados pelo harness (verificação automática do objetivo), não manualmente:**
-
-1. HEAD `5dfabbd`: lint ok, build ok, unitários 25/25; E2E reprovado com 29 falhas inesperadas (quase todas no spec novo; uma, firefox admin-qualidade axe login escuro, foi "Page crashed" de ambiente), 212 aprovados, 8 pulados, 1 flaky.
-2. HEAD `c6a4867`: lint ok, build ok, unit-filters-insights 25/25; E2E aprovado em Chromium e Firefox com 241 aprovados, 0 falhas, 8 pulados, 1 flaky (Firefox, "filtro de período: 24 h, 7 dias e 30 dias" em `historico.spec.mjs`, preexistente). Gate supabase-visitor pulado (sem `web/.env.local`).
-
-**T102 (revisão de código, rodada 1):** a regra "filtro só aparece com 2 ou mais valores" foi movida para `shouldShowFilter` em `utils/stopFilters.js` (com testes), e `resolveActiveFilters` faz o hook `useStopFilters` ignorar valor selecionado que sumiu das opções (derivado, sem efeito); README e decisão 37 atualizados, incluindo o CSS global acima. Verificações locais: `node --test src/utils/stopFilters.test.js src/utils/dashboardInsights.test.js` 29/29; `npm run lint` 0 erros e 2 avisos `set-state-in-effect` preexistentes; `npm run build` concluído. O E2E desta última alteração será validado pelo próximo gate do harness (não rodou localmente).
-
-### Premium 3.0 (15/11/2026, objetivo G-20261115-739025)
-
-- Planejamento do objetivo em tarefas T1 a T4 (agentes do harness com o Claude); base `4d0d2d0`.
-- **T1:** tokens, tema escuro por `prefers-color-scheme`, vidro em navegação e controles, tipografia e microinterações; Bento do Dashboard (commits `0136301`, `612189c`, `0252397`). Resultado registrado: lint e build ok.
-- **T2:** função pura `buildSparkline` com testes, `Sparkline`, cabeçalho dos cartões do Histórico e tokens de tema nos gráficos (commits `434494f`, `98d6bcb`). Resultado registrado: `node --test` 266/266, lint e build ok.
-- **T3 (spec E2E visual-premium):** executado pelo gate. Evidência 0009: 6 falhas (contraste do botão Excluir no escuro, espera de tabela no mobile), corrigidas em T101. Evidência 0015 (HEAD `c5e3399`): lint ok, build ok, unitários 266/266, E2E 286 aprovados, 0 falhas, 8 pulados, 0 instáveis (Chromium e Firefox).
-- **T4:** documentação. Para o "antes", foram abertas duas capturas reais da evidência 0027 da base (Dashboard e Histórico em desktop); as de mobile não foram abertas.
-- **Conferência visual:** 4 PNGs do 0015 foram abertos (dashboard desktop claro, dashboard mobile claro, histórico desktop escuro, histórico mobile escuro; descrição em `docs/revisao-visual-frontend.md`). A revisão de código achou sobreposição de "27,2 °C" e "53,3 %" em "Última medição" a 1366 px; T102 corrigiu com container query e novo teste E2E. **Não executado:** gate depois dessa correção (será confirmada no próximo gate).
-- O código gerado por IA permanece sujeito à revisão da equipe.
-
-### Fase 3 — Insights, comparador e exploração (15/11/2026, objetivo G-20261115-a610fa)
-
-- **T3 (testes E2E e documentação):** o briefing e os PNGs em `/home/harness/climaponto-fase3` não puderam ser lidos (restrição de leitura); a conferência visual contra eles fica para um humano.
-- Escritos `web/e2e/insights.spec.mjs` e `web/e2e/historico-exploracao.spec.mjs` e ajustado `web/e2e/filtros.spec.mjs` (metodologia recolhida). Executados localmente apenas `npm run lint` e `npm run build` (ok). Os E2E em Chromium e Firefox **não foram executados** pelo agente (módulo `harness-e2e` só roda no gate); os resultados virão do gate.
-- Lacuna: erro do comparador com "Tentar novamente" sem teste (o mock de erro também derruba a lista de pontos).
-
-### Fase 4 — Mapa, favoritos, alertas e palette (15/11/2026, objetivo G-20261115-b9e99d)
-
-- **T1:** utils puros de mapa, favoritos, alertas e command palette, com testes unitários.
-- **T2:** perfis por hora e dia da semana, linha do tempo, qualidade das leituras e relatório CSV, com testes.
-- **T3:** `/pontos` com mapa esquemático SVG, lista, ficha do ponto, favoritos e laboratório de cenários mock.
-- **T4:** Histórico ampliado, `AlertsPanel`, aviso de offline e Command Palette.
-- **T5 (documentação), execuções reais na worktree:** `npm run lint` sem erros e 2 avisos `set-state-in-effect` preexistentes; `npm run build` concluído; `node --test` nos 26 arquivos `*.test.js` de `src`: 368 aprovados, 0 falhas. O sandbox negou rede a `registry.npmjs.org`, sem efeito.
-- **E2E:** especs escritos em `web/e2e` (`mapa`, `favoritos`, `alertas`, `palette`, `laboratorio`, `ficha-ponto`, `pontos`, `historico-perfis`, `qualidade`, `conexao`), não executados localmente na época; depois executados pelo gate do harness em 16/11/2026 (HEAD `b78e7ea`), ver a seção de recuperação da Fase 4.
-- O código gerado por IA permanece sujeito à revisão da equipe.
-
-### Recuperação da Fase 4 — validação da branch (16/11/2026, objetivo G-20261116-a1dfae)
-
-- **Origem:** branch `harness/G-20261115-b9e99d`, cujo último commit é `aab7de9` (`git merge-base` com a branch da recuperação devolve `aab7de9`).
-- **Anotação `console-esperado`:** existe só em `web/e2e/conexao.spec.mjs`, nos testes que usam `setOffline(true)`, com a descrição `ERR_INTERNET_DISCONNECTED` (commit `aab7de9`).
-- **Teste novo** `web/src/utils/e2eConsoleAnnotations.test.js` (commit `3b6c8b9`): verifica que nenhum outro spec contém o marcador, que há ao menos uma anotação em `conexao.spec.mjs`, que toda anotação tem a descrição específica, que ela vem logo antes de `await setOffline(true)` e depois de `page.goto` e `await expect(`, que todo teste com `setOffline(true)` tem exatamente uma anotação e que testes sem `setOffline` não têm; inclui verificações negativas da validação de descrição (curinga, vazia, genérica, ausente, instrução seguinte incorreta).
-- **Execução real** (a partir de `web/`): `node --test src/utils/e2eConsoleAnnotations.test.js` → 11 testes, 11 aprovados, 0 falhas, 0 pulados.
-- **Gates reais** (harness, 16/11/2026, HEAD `b78e7ea`): lint ok (0 erros, 2 avisos preexistentes `set-state-in-effect`); build ok; `supabase-visitor` pulado (opcional, sem `web/.env.local`); e2e modo mock: 472 aprovados, 0 inesperados, 0 flaky, 32 pulados, 124 screenshots; por navegador, Chromium 252 aprovados / 0 pulados e Firefox 220 aprovados / 32 pulados (axe-core pulado no Firefox por travamento da página, condicional preexistente); teste de escopo 11/11.
-- **Correções:** nenhuma correção de código foi necessária.
-- **Conclusão:** os cenários offline passaram no Chromium e no Firefox com a anotação `ERR_INTERNET_DISCONNECTED`, sem padrão genérico nem de navegador específico.
-- O código gerado por IA permanece sujeito à revisão da equipe.
-
-### Release local — objetivo G-20261116-0865c5 (16/11/2026)
-
-- **Como foi feito:** execução pelo harness, com agentes Claude orquestrados por tarefas. Os trailers dos commits registram coautoria Claude Sonnet 5.5 no commit da T1; não se afirma modelo para os demais.
-- **T1 (`271b1c3`):** criou `web/src/services/stopsApi.test.js`, 9 testes `node:test` com cliente Supabase falso, sem rede. Reexecutado na T3: 9 aprovados, 0 falhas. Não comprova escrita no Supabase remoto.
-- **T2 (`b060943`):** ícones lucide-react decorativos na navegação principal (`MainNav.jsx`). Sem inspeção renderizada nem screenshots; reorganização ampla de UX não realizada por limite de orçamento.
-- **T3 (documentação):** criou `docs/RELATORIO-FINAL.md`, `docs/MATRIZ-FIAP.md`, `docs/ARQUITETURA-E-DECISOES.md`, `docs/INTEGRACAO-GS.md`, `docs/CHECKLIST-SUBMISSAO.md` e `BLOCKERS.md`, e atualizou `README.md`. Execuções reais: `npm run lint` (saída 0, 2 avisos preexistentes) e `npm run build` (concluído).
-- Totais de testes e E2E: relatório de verificação do harness. Nenhuma escrita remota, push, deploy ou envio foi feito. Lighthouse não medido.
-- O código gerado por IA permanece sujeito à revisão da equipe.
-
-### Correção da release — T101 (16/11/2026, objetivo G-20261116-0865c5)
-
-- **Origem:** achados da revisão de código (rodada 1): reorganização real da interface (AC2), screenshots (AC9) e relatório com resultados reais (AC12).
-- **Feito:** barra lateral retrátil e menu móvel, seções Análises, Relatórios e Laboratório (rotas antigas preservadas), metodologia recolhida em `<details>`, ajuste dos specs E2E existentes (nomes e caminhos) e novos casos em `navegacao.spec.mjs`, teste unitário `navItems.test.js`, documentos atualizados. Commits `0894f0e`, `e5327c7`, `66b7019` e os de documentação e pacote.
-- **Executado de fato:** `npm --prefix web run lint` (0 erros, 2 avisos preexistentes), `npm --prefix web run build` e `node --test "src/**/*.test.js"` (399/399).
-- **Não executado:** E2E (sem navegador no sandbox) e capturas de tela antes/depois; Lighthouse. Nenhuma captura foi inventada: a revisão visual fica para o gate do harness e para a equipe.
-- O código gerado por IA permanece sujeito à revisão da equipe.
+## Autoria dos commits
+
+Nos 200 commits feitos até a publicação no repositório da equipe (18/11/2026), os autores aparecem assim:
+
+| Autor no Git | Commits | O que significa |
+| --- | ---: | --- |
+| Enrico Vidal | 34 | Commits com o nome do Enrico. Também foram feitos com o Claude Code (etapas 1, 2A e 2B e as correções de 18/11), na extensão do VS Code ou no terminal. |
+| Harness Agent | 159 | Commits gravados automaticamente pelo Claude Code quando o Enrico o executava por uma ferramenta de automação local (chamada "harness"). Ela dividia cada etapa em tarefas, rodava lint, build e testes e gravava um commit por tarefa. |
+| Harness Maintenance (Claude Code) | 6 | O mesmo, em sessões de manutenção dessa ferramenta (13/11). |
+| ClimaPonto Preparacao Automatizada | 1 | Commit automático que trouxe para o repositório o contrato de design e os arquivos da marca (17/11). |
+
+**"Harness Agent" e os outros nomes automáticos não são outras pessoas:** são o Claude Code trabalhando a pedido do Enrico. Em todos os casos, o Enrico definiu o pedido, revisou o resultado e decidiu o que entrava na `main`. Os commits posteriores, de ajustes da entrega, têm autor Enrico Vidal. Os outros integrantes da equipe trabalharam nos repositórios das suas disciplinas (Edge, Python, DPS e Total Experience).
+
+## Linha do tempo do desenvolvimento
+
+| Data | Etapa | O que foi feito com a IA | Como foi verificado |
+| --- | --- | --- | --- |
+| 09/11 | 1 — Fundação | Projeto React + Vite em `web/`, Tailwind 4, React Router, layout responsivo e páginas iniciais. | Build, lint, rotas respondendo e conferência em navegador (um contraste abaixo do mínimo WCAG AA foi corrigido). |
+| 09/11 | 2A — Banco e contrato de dados | Esquema Supabase (`stops` e `readings`), restrições, permissões (RLS), contrato de dados com o sensor e revisão de segurança. | Testes de permissões em SQL num Supabase local (Docker), sem alterar o banco remoto. |
+| 10/11 | 2B — Login e CRUD | Login administrativo (Supabase Auth), CRUD de pontos e migrações aplicadas no banco remoto após aprovação do integrante; preparação do deploy. | CRUD validado no banco remoto com duas contas de teste, desativadas ao final. |
+| 12/11 | 3B e 3C — Dashboard, Histórico e design | Dashboard, Histórico com gráficos (Recharts), design system, tema escuro e modo demonstração com dados fictícios sinalizados. | Lint, build e testes unitários do modo de dados e do conjunto demonstrativo. |
+| 13/11 | 3D — Testes em navegador | Testes automatizados com Playwright em 375, 768 e 1366 px, teclado e acessibilidade; três defeitos encontrados e corrigidos. | Chromium e Firefox: 78 cenários aprovados, 0 falhas. |
+| 14/11 | Finalização, busca e filtros | Login e CRUD em memória no modo demonstração, revisão visual, busca, filtros e insights. | Chromium e Firefox: 190 aprovados, 0 falhas; 228 testes unitários. |
+| 15/11 | Visual, insights e novas funções | Novo visual do Dashboard, sparklines, comparador de pontos, mapa esquemático, favoritos, alertas e busca rápida (Ctrl+K). | 368 testes unitários e testes em navegador; correções de contraste e layout apontadas pelos testes. |
+| 16/11 | Navegação | Barra lateral retrátil, menu móvel, seções Análises, Relatórios e Laboratório, e testes do CRUD com um cliente Supabase falso. | 399 testes unitários e 472 cenários em navegador aprovados, 0 falhas. |
+| 17/11 | Mapa real e Ponto 360° | Mapa MapLibre com agrupamento e lista acessível, filtros na URL, página `/pontos/:código` e marca própria (logo e favicon). | 500 testes unitários e testes em navegador adaptados. |
+| 18/11 | Correção definitiva e integração | Correção do mapa e da tela preta do Ponto 360°, nova barra lateral e cabeçalho, README com a Ficha da CitizenTech, pontos P001 a P003 e leituras (ESP32 via FIWARE e Open-Meteo) no Supabase. | Erros reproduzidos no navegador antes de corrigir, testes de regressão, instalação do zero com 503 testes aprovados e conferência pela API pública do Supabase. |
+| 18/11 | Revisão final da entrega | Conferência dos cinco repositórios da equipe contra o PDF, este documento resumido e a autoria dos commits explicada. | Instalação e testes do zero de cada parte (Web, Python e DPS). |
 
 ## Princípios adotados
 
 - O código gerado por IA é revisado pela equipe antes de ser aprovado.
 - Este registro descreve apenas ações que realmente aconteceram; nenhum prompt ou teste é inventado.
-- Dados exibidos pela aplicação nesta fase são demonstrativos e identificados como tal na interface.
-- Aviso de conexão (useOnlineStatus): navigator.onLine deixou de decidir sozinho; passa a haver sonda HEAD à própria origem a cada 2 s e nos eventos online/offline/foco. Lint e build executados; o spec e2e não pôde ser rodado localmente (runner do harness indisponível no sandbox).
-
-### Documentação de entrega — T11 (17/11/2026, objetivo G-20261117-cfedb6)
-
-- **Feito:** criou `docs/CENARIOS-DEMONSTRACAO.md` (S01-S23: 15 verified, 8 blocked), `docs/INTERACOES-E-MOVIMENTO.md`, `docs/FONTES-E-METODOLOGIA.md` e `docs/QA-VISUAL.md`; reescreveu `docs/RELATORIO-FINAL.md` (status LOCAL_READY_PENDING_REMOTE) e `BLOCKERS.md`; atualizou `docs/MATRIZ-FIAP.md`, `README.md` e `releaseArtifacts.test.js`.
-- **Executado de fato:** `node --test` sobre todos os `*.test.js` de `web/src` (500/500 antes da atualização do teste de artefatos); `npm --prefix web run lint` (saída sem erros, 2 avisos preexistentes `set-state-in-effect`) e `node --test web/src/utils/releaseArtifacts.test.js` (13/13).
-- **Não executado:** specs E2E (os novos de T10 e os adaptados), build, screenshots, Lighthouse. Nenhum deploy, push, escrita no Supabase remoto ou aceite visual humano ocorreu.
-- O código e os documentos gerados por IA permanecem sujeitos à revisão da equipe.
-- Os documentos internos citados aqui (`docs/CENARIOS-DEMONSTRACAO.md`, `docs/RELATORIO-FINAL.md`, `BLOCKERS.md` e outros) foram removidos da versão de entrega no commit `37b5747`, por serem controle interno; continuam no histórico do Git.
-
-### Publicação e integração com as outras disciplinas (18/11/2026, Claude Code)
-
-- **Pedido do integrante:** publicar no repositório da equipe com o histórico completo, conferir tudo contra o PDF da GS e garantir que a aplicação conversa com as outras partes ("achei que íamos entregar ele linkado com as outras matérias").
-- **Feito com auxílio da IA:**
-  - Criação do repositório privado `DebuggersGS/ClimaPonto-Web` e envio dos commits sem reescrever o histórico. O push só foi feito depois da confirmação explícita do integrante.
-  - Conferência do conteúdo enviado contra as págs. 14, 18, 21, 22, 25, 40–42 e 58–61 do enunciado, incluindo instalação do zero a partir do `git archive` (`npm ci`, lint, build e 503/503 testes unitários).
-  - Leitura dos repositórios ClimaPonto-Edge, -Python, -DPS e -TotalEx. A IA apontou que este README contradizia os demais (equipe, arquitetura com FIWARE, pontos P001 a P003 e indicador) e o alinhou.
-  - No Supabase: cadastro de P001 Santana, P002 Interlagos e P003 Barueri; importação das 6 leituras do ESP32 recebidas pelo FIWARE (coletadas pela Central em Python) e de 30 dias da série horária pública do Open-Meteo nas coordenadas das estações INMET usadas pelo DPS; desativação (sem exclusão) dos pontos genéricos `DEMO-01` a `DEMO-03`. Todas as leituras com origem `simulation`.
-  - Nova seção de correspondência ESP32/FIWARE → banco em `docs/data-contract.md`.
-- **Validação:** consulta pela API pública com a chave publishable (só P001 a P003 visíveis, escrita anônima recusada com 401), contagem das leituras por ponto e estado, e alerta de segurança do Supabase.
-- **Limites encontrados:** a integração ao vivo com o FIWARE não é viável para o deploy (servidor ligado só nos testes, IP variável e só HTTP). Algumas ações sensíveis (senha e papel de conta administrativa, configuração do Auth) ficaram com o integrante.
+- Dados demonstrativos e simulados são identificados como tal na interface e nunca apresentados como medição real.

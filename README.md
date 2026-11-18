@@ -2,6 +2,8 @@
 
 **CitizenTech da Global Solution FIAP 2026.2 (Engenharia de Software, 1º ano).** Aplicação web que mostra as condições de calor e umidade nos pontos de ônibus de São Paulo, para que quem espera o transporte (e quem cuida dessas pessoas) saiba onde e quando o calor vira risco.
 
+**Aplicação publicada:** https://climaponto.vercel.app (dados do Supabase; para ver todos os estados, escolha o conjunto demonstrativo no seletor do cabeçalho).
+
 ## Ficha da CitizenTech
 
 | Campo | Resposta |
@@ -13,6 +15,7 @@
 | Como funciona | Um ESP32 com sensor DHT22 no ponto (simulado no Wokwi) mede temperatura e umidade, classifica o calor em *normal* (abaixo de 30 °C), *atenção* (30 °C a 34,9 °C) ou *crítico* (35 °C ou mais) e alerta no próprio ponto, mesmo sem internet. Com rede, envia as leituras por MQTT para o FIWARE (IoT Agent, Orion e STH-Comet), de onde a Central de Leituras em Python as coleta. Esta aplicação web guarda pontos e leituras no Supabase, no mesmo formato de leitura (ponto, temperatura, umidade, estado e origem), e mostra mapa, situação atual, histórico, comparações e alertas. A administração cadastra e mantém os pontos (CRUD) |
 | O que cada parte faz | **Front-end Design e Web Development:** esta aplicação web (`web/`). **Edge Computing:** sensor, circuito e envio ao FIWARE ([ClimaPonto-Edge](https://github.com/DebuggersGS/ClimaPonto-Edge)). **Computational Thinking with Python:** Central de Leituras que busca as leituras no FIWARE e as analisa ([ClimaPonto-Python](https://github.com/DebuggersGS/ClimaPonto-Python)). **Differentiated Problem Solving:** modelagem matemática com dados do INMET ([ClimaPonto-DPS](https://github.com/DebuggersGS/ClimaPonto-DPS)). **Software & Total Experience Design:** jornada, requisitos e protótipo ([ClimaPonto-TotalEx](https://github.com/DebuggersGS/ClimaPonto-TotalEx)). **Storytelling:** pitch em vídeo |
 | Link do repositório | https://github.com/DebuggersGS/ClimaPonto-Web (privado, organização da equipe DebuggersGS) |
+| Link do deploy | https://climaponto.vercel.app |
 | Indicador de impacto | Graus-hora acima de 30 °C por ponto, ou seja, o calor acumulado a que o passageiro fica exposto (referência: 331 °C·h em 12 meses na estação INMET de Santana, calculado no [ClimaPonto-DPS](https://github.com/DebuggersGS/ClimaPonto-DPS)). Na aplicação: horas por ponto em "atenção" ou "crítico" no Histórico, em Análises e no relatório CSV |
 | ODS conectados | 3, 11 e 13 (detalhes abaixo) |
 
@@ -36,7 +39,8 @@ A mesma aplicação atende às duas disciplinas (enunciado da GS, págs. 40–42
 | Lógica de negócio e acesso a dados fora da tela | camadas `pages/` e `components/` (tela) → `hooks/` (estado) → `services/` (dados) → `utils/` (regras puras, com testes) |
 | API externa com CRUD completo | Supabase (API REST + Auth) em `web/src/services/stopsApi.js`: criar (`insert`), consultar (`select`), atualizar (`update`, inclusive ativar/desativar) e excluir (`delete`) pontos; tela em **Área administrativa › Gerenciar pontos** (`/admin/pontos`) |
 | Funcionalidades ligadas ao tema (não só tela estática) | mapa interativo dos pontos, Ponto 360° (`/pontos/:código`), busca e filtros, histórico com gráficos e exportação CSV, comparação entre pontos, alertas, favoritos e busca rápida (Ctrl+K) |
-| Git com 15+ commits significativos | histórico completo no repositório (mais de 180 commits no formato `tipo(escopo): descrição`) |
+| Git com 15+ commits significativos | histórico completo no repositório (mais de 200 commits no formato `tipo(escopo): descrição`; a autoria, inclusive dos commits gravados automaticamente pelo Claude Code, está explicada no [AI.md](AI.md#autoria-dos-commits)) |
+| Link do deploy | https://climaponto.vercel.app (Vercel; detalhes em [docs/deploy.md](docs/deploy.md)) |
 | `AI.md` na raiz | [AI.md](AI.md) (ferramentas, interações, aplicação, validação e análise crítica) e [prompts.md](prompts.md) |
 
 ## Equipe

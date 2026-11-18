@@ -1,6 +1,6 @@
 # Deploy na Vercel — ClimaPonto
 
-> **Status:** preparado e validado localmente. **O deploy ainda não foi executado**; ele depende de aprovação.
+> **Status:** publicado em 18/11/2026 em **https://climaponto.vercel.app** (projeto `climaponto` na Vercel). O deploy foi feito pela Vercel CLI a partir da pasta `web/` (`vercel deploy --prod`), com as três variáveis da seção 2 cadastradas em *Production*. O projeto não está ligado ao GitHub: um push não publica sozinho. Para atualizar o site, rode `npx vercel deploy --prod` dentro de `web/`.
 
 ## 1. O que já está no repositório
 
@@ -55,4 +55,11 @@ Um servidor local aplicou as mesmas regras do `vercel.json` sobre o build de pro
 - páginas renderizando **com a CSP ativa**, sem violações nem erros de console, incluindo as chamadas reais ao Supabase remoto;
 - acessibilidade (axe-core, regras WCAG 2.1 A/AA e boas práticas): 0 violações nas páginas públicas e no login, em desktop e mobile.
 
-**Não validado:** comportamento na infraestrutura real da Vercel (o rewrite e os cabeçalhos foram simulados localmente).
+Essa validação local foi confirmada depois no deploy real (seção 6).
+
+## 6. Validação no deploy real (18/11/2026)
+
+- As rotas `/`, `/pontos`, `/pontos/P001`, `/historico`, `/admin/login` e uma rota inexistente respondem HTTP 200 (fallback do React Router).
+- Os cabeçalhos `Content-Security-Policy`, `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy` e `Permissions-Policy` chegam ao navegador.
+- No Chrome (sem interface, 1366 px), a Visão geral, o Ponto 360° do P001 e o login mostram "Dados do Supabase" e os pontos P001 a P003, sem mensagem de erro.
+- **Não validado aqui:** o mapa (o MapLibre precisa de WebGL, que o Chrome sem interface não tem) e o login administrativo com conta real.
