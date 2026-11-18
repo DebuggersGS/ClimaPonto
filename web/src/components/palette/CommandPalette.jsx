@@ -17,11 +17,11 @@ const ICONS = { stop: MapPin, page: FileText, action: Zap }
 /**
  * Paleta de comandos (Ctrl/Cmd+K): páginas, ações reais e pontos já carregados.
  * Usa as peças de ui/Command.jsx; a busca fica em utils/commandSearch.js.
- * @param {{ open: boolean, onClose: () => void }} props
+ * @param {{ open: boolean, onClose: () => void, returnFocusRef?: import('react').RefObject<HTMLElement|null> }} props
  */
-export default function CommandPalette({ open, onClose }) {
+export default function CommandPalette({ open, onClose, returnFocusRef }) {
   return (
-    <Command open={open} onOpenChange={(next) => !next && onClose()} title="Busca rápida">
+    <Command open={open} onOpenChange={(next) => !next && onClose()} title="Busca rápida" returnFocusRef={returnFocusRef}>
       <PaletteBody onClose={onClose} />
     </Command>
   )

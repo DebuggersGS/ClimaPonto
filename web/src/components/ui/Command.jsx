@@ -10,14 +10,17 @@ import { cn } from '../../utils/cn.js'
 
 /**
  * Diálogo modal da paleta.
- * @param {{ open: boolean, onOpenChange: (open: boolean) => void, title: string, children: import('react').ReactNode }} props
+ * @param {{ open: boolean, onOpenChange: (open: boolean) => void, title: string, returnFocusRef?: import('react').RefObject<HTMLElement|null>, children: import('react').ReactNode }} props
  */
-export function Command({ open, onOpenChange, title, children }) {
+export function Command({ open, onOpenChange, title, returnFocusRef, children }) {
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       <Dialog.Portal>
         <Dialog.Backdrop className="overlay-backdrop fixed inset-0 z-50 bg-ink/60" />
-        <Dialog.Popup className="overlay-motion fixed left-1/2 top-[10vh] z-50 w-[min(36rem,calc(100vw-2rem))] -translate-x-1/2 rounded-card bg-surface p-4 text-slate-900 shadow-elevated outline-none">
+        {/* finalFocus: aberto por código (sem Dialog.Trigger), o foco precisa voltar a quem abriu. */}
+        <Dialog.Popup
+          finalFocus={() => (returnFocusRef?.current?.isConnected ? returnFocusRef.current : true)}
+          className="overlay-motion fixed left-1/2 top-[10vh] z-50 w-[min(36rem,calc(100vw-2rem))] -translate-x-1/2 rounded-card bg-surface p-4 text-slate-900 shadow-elevated outline-none">
           <Dialog.Title className="sr-only">{title}</Dialog.Title>
           {children}
         </Dialog.Popup>

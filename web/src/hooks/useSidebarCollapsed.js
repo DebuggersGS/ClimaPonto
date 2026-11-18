@@ -1,10 +1,5 @@
 import { useCallback, useState } from 'react'
-import {
-  readSidebarOpenGroup,
-  readSidebarPinned,
-  writeSidebarOpenGroup,
-  writeSidebarPinned,
-} from '../utils/sidebarState.js'
+import { readSidebarPinned, writeSidebarPinned } from '../utils/sidebarState.js'
 
 function getStorage() {
   try {
@@ -16,13 +11,12 @@ function getStorage() {
 }
 
 /**
- * Preferências persistidas da barra lateral: fixada (pin) e grupo aberto.
+ * Preferência persistida da barra lateral: fixada expandida (pin) ou compacta.
  * A leitura e a escrita seguras ficam em utils/sidebarState.js.
- * @returns {{ pinned: boolean, togglePinned: () => void, openGroup: string|null, setOpenGroup: (id: string|null) => void }}
+ * @returns {{ pinned: boolean, togglePinned: () => void }}
  */
 export function useSidebarCollapsed() {
   const [pinned, setPinned] = useState(() => readSidebarPinned(getStorage(), false))
-  const [openGroup, setOpenGroupState] = useState(() => readSidebarOpenGroup(getStorage()))
 
   const togglePinned = useCallback(() => {
     setPinned((current) => {
@@ -31,10 +25,5 @@ export function useSidebarCollapsed() {
     })
   }, [])
 
-  const setOpenGroup = useCallback((id) => {
-    setOpenGroupState(id)
-    writeSidebarOpenGroup(getStorage(), id)
-  }, [])
-
-  return { pinned, togglePinned, openGroup, setOpenGroup }
+  return { pinned, togglePinned }
 }

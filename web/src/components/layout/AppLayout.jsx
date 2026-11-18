@@ -1,31 +1,38 @@
-import { Link, Outlet } from 'react-router'
+import { Suspense } from 'react'
+import { Link, Outlet, useLocation } from 'react-router'
 import { WifiOff } from 'lucide-react'
 import { useOnlineStatus } from '../../hooks/useOnlineStatus.js'
 import DemoNotice from '../ui/DemoNotice.jsx'
+import Skeleton from '../ui/Skeleton.jsx'
 import { useSidebarCollapsed } from '../../hooks/useSidebarCollapsed.js'
 import { useIsWideScreen } from '../../hooks/useIsWideScreen.js'
 import Header from './Header.jsx'
+import RouteErrorBoundary from './RouteErrorBoundary.jsx'
 import Sidebar from './Sidebar.jsx'
 
+/**
+ * Estrutura do app. Camadas (z-index), de baixo para cima:
+ * conteúdo (0–10, inclusive controles do mapa) → cabeçalho (30) → barra lateral (40, pode expandir por
+ * cima do cabeçalho) → tooltips, popovers, drawer e diálogos (50, em portal) → link "pular" (60).
+ * No desktop a barra é um espaçador no fluxo + painel fixo; a coluna de conteúdo tem min-w-0 para nunca
+ * gerar rolagem horizontal.
+ */
 export default function AppLayout() {
   const online = useOnlineStatus()
   const sidebar = useSidebarCollapsed()
   const wide = useIsWideScreen()
+  const { pathname } = useLocation()
+
   return (
-    <div className="min-h-screen xl:flex">
+    <div className="flex min-h-screen w-full">
       <a
         href="#conteudo"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-full focus:bg-ink focus:px-5 focus:py-2.5 focus:text-sm focus:font-medium focus:text-on-ink focus:shadow-elevated"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-full focus:bg-ink focus:px-5 focus:py-2.5 focus:text-sm focus:font-medium focus:text-on-ink focus:shadow-elevated"
       >
         Pular para o conteúdo
       </a>
 
-      {wide && <Sidebar
-          pinned={sidebar.pinned}
-          onTogglePinned={sidebar.togglePinned}
-          openGroup={sidebar.openGroup}
-          onOpenGroupChange={sidebar.setOpenGroup}
-        />}
+      {wide && <Sidebar pinned={sidebar.pinned} onTogglePinned={sidebar.togglePinned} />}
 
       <div className="flex min-h-screen min-w-0 flex-1 flex-col">
         <Header />
@@ -39,9 +46,14 @@ export default function AppLayout() {
           )}
         </div>
 
-        <main id="conteudo" className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6 sm:py-10 lg:px-8">
+        <main id="conteudo" tabIndex={-1} className="mx-auto w-full min-w-0 max-w-7xl flex-1 px-4 py-6 outline-none sm:px-6 sm:py-8 lg:px-8">
           <DemoNotice />
-          <Outlet />
+          {/* Suspense aqui (e não acima do layout): trocar de página não desmonta barra nem cabeçalho. */}
+          <RouteErrorBoundary key={pathname}>
+            <Suspense fallback={<Skeleton label="Carregando página…" />}>
+              <Outlet />
+            </Suspense>
+          </RouteErrorBoundary>
         </main>
 
         <footer className="border-t border-slate-900/5">
