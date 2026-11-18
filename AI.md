@@ -1,17 +1,56 @@
 # Uso de Inteligência Artificial
 
-Este documento registra, de forma transparente, como ferramentas de IA foram utilizadas no desenvolvimento do front-end do ClimaPonto. Ele é atualizado a cada etapa.
+Este documento registra, de forma transparente, como ferramentas de Inteligência Artificial foram usadas no desenvolvimento da aplicação web do ClimaPonto (Front-end Design e Web Development). Segue as cinco partes pedidas no enunciado; no fim está o registro detalhado de cada etapa. Os prompts representativos estão em [prompts.md](prompts.md).
 
-## Ferramentas
+## 1. Ferramentas utilizadas
 
-| Ferramenta | Papel no projeto |
+| Ferramenta | Finalidade no projeto |
 | --- | --- |
-| **ChatGPT** (OpenAI) | Planejamento da arquitetura, priorização dos requisitos, redação das instruções de cada etapa e revisão técnica das entregas. |
-| **Claude Code** (Anthropic, modelo Claude Opus 5.5), na extensão do VS Code | Execução das tarefas de implementação definidas no planejamento: comandos de terminal, criação e edição de arquivos e execução das verificações. |
+| **ChatGPT** (OpenAI) | Planejamento da arquitetura, priorização dos requisitos do enunciado, redação das instruções de cada etapa e revisão técnica das entregas (aprovar, pedir correções). |
+| **Claude Code** (Anthropic, modelo Claude Opus 5.5), na extensão do VS Code e no terminal | Implementação: leitura do código, criação e edição de arquivos, comandos de terminal, execução de lint, build, testes unitários e testes em navegador, e diagnóstico de erros. |
 
-O integrante responsável (Enrico) conduz o processo: repassa as instruções, revisa os resultados e decide o que é aprovado.
+O integrante responsável pela parte web (Enrico) conduziu o processo: escreveu ou repassou os pedidos, revisou os resultados, decidiu o que era aprovado e fez os testes de uso.
 
-## Registro por etapa
+## 2. Interações realizadas
+
+Exemplos representativos (os textos completos dos pedidos estão em [prompts.md](prompts.md)):
+
+| Pedido do integrante | Resposta e resultado |
+| --- | --- |
+| Etapa 1: criar a base do front-end com React + Vite, Tailwind CSS e React Router, com estrutura de pastas e páginas iniciais. | A IA criou o projeto em `web/`, configurou o Tailwind 4, montou layout, navegação e páginas provisórias e rodou build e lint. |
+| Etapa 2B: login administrativo e CRUD de pontos no Supabase, sem bibliotecas novas. | A IA implementou `stopsApi.js` (criar, consultar, atualizar, ativar/desativar e excluir), o hook `useAdminStops` e a tela de gestão; a primeira migração foi recusada pela integração por usar `DROP POLICY`, e a IA reescreveu com `ALTER POLICY`, aplicada após a aprovação do integrante. |
+| "Corrigir integralmente os problemas da versão atual" (sidebar sobrepondo o conteúdo, logo cortado, cabeçalho grande, mapa que não carregava e tela preta ao clicar em "Abrir ponto"). | A IA reproduziu os erros no navegador e encontrou as causas: o *worker* do MapLibre não era servido pelo Vite (o mapa caía sempre no aviso de falha) e o minimapa do Ponto 360° passava um formato de dado diferente para a lista alternativa (exceção que apagava a página). Corrigiu as duas causas, redesenhou a barra lateral e o cabeçalho e criou testes de regressão. |
+| Conferir o projeto contra os PDFs do enunciado da GS. | A IA extraiu os requisitos de Front-end Design e Web Development, comparou item a item com o código e apontou o que faltava (Ficha da CitizenTech e ODS no README, este AI.md nas cinco partes, `prompts.md`, deploy e ZIP). |
+
+## 3. Aplicação no projeto
+
+Desenvolvido ou modificado com auxílio da IA, sempre com revisão do integrante:
+
+- **Estrutura e camadas:** projeto Vite, organização `pages/`, `components/`, `hooks/`, `services/` e `utils/`.
+- **Componentes:** biblioteca de interface em `web/src/components/ui/` (botões, cartões, selos, abas, popovers, painéis, campos de busca), layout (barra lateral, cabeçalho inteligente, menu móvel) e telas (Visão geral, Explorar com mapa, Ponto 360°, Histórico, Laboratório, área administrativa).
+- **Hooks próprios:** `useStops`, `useAdminStops`, `useLatestReadings`, `useReadingsHistory`, `useStopFilters`, `useFavoriteStops`, `useHeadroom` e outros em `web/src/hooks/`.
+- **Integração com API:** cliente Supabase e CRUD de pontos (`web/src/services/stopsApi.js`), modo demonstração com a mesma interface (`mockReadingsApi.js`), migrações e políticas de segurança (RLS) em `supabase/`.
+- **Regras puras com testes:** formatação, conectividade, filtros, estatísticas, CSV, geometria do mapa (`web/src/utils/*.js` e `*.test.js`).
+- **Testes:** testes unitários com `node:test` e testes em navegador real (Playwright) em `web/e2e/`.
+
+## 4. Validação das respostas
+
+Nada gerado pela IA foi aceito sem verificação:
+
+- **Ferramentas automáticas a cada mudança:** `npm run lint` (Oxlint), `npm run build`, testes unitários (`node --test`, mais de 500) e testes em navegador real (Playwright, mais de 300 cenários no Chromium) cobrindo navegação, mapa, Ponto 360°, filtros, CRUD, teclado, acessibilidade (axe-core), temas claro e escuro e larguras de 375, 768 e 1366 px.
+- **Reprodução antes de corrigir:** os defeitos foram reproduzidos no navegador (erros de console, requisições que falhavam, capturas de tela) antes de qualquer correção, e cada correção ganhou um teste que falharia se o erro voltasse.
+- **Revisão humana:** o integrante abriu a aplicação, conferiu as telas e reprovou entregas que tinham testes verdes mas interface com defeito (sobreposição da barra lateral, mapa e tela preta).
+- **Revisão cruzada:** o ChatGPT revisou as entregas de cada etapa e pediu ajustes de segurança (por exemplo, nenhuma chave secreta no front-end e permissões garantidas pelo banco).
+- **Banco de dados:** testes de permissões (RLS) no Supabase local e validação do CRUD com contas de teste, sem alterar os pontos de demonstração.
+
+## 5. Análise crítica
+
+- **Benefícios:** acelerou muito tarefas repetitivas (componentes, testes, documentação) e ajudou a diagnosticar erros difíceis, como o *worker* do mapa que não era copiado pelo empacotador.
+- **Limitações:** a IA chegou a declarar etapas como prontas com testes escritos mas nunca executados, e alguns testes tinham expectativas erradas; o mapa e a página do ponto passaram por uma rodada inteira com defeitos que só apareceram ao usar a aplicação de verdade. Testes "verdes" não substituem abrir o sistema e usar.
+- **Dificuldades:** manter a IA dentro do escopo de cada etapa, evitar bibliotecas desnecessárias e conferir que os números de testes citados nos documentos eram reais.
+- **Aprendizado:** a IA funciona melhor como copiloto: o grupo define o problema, pede evidência (comando executado, captura de tela, teste) e decide. Toda linha precisa ser entendida por quem entrega.
+
+## Registro detalhado por etapa
 
 ### Etapa 1 — Fundação do front-end (09/11/2026)
 

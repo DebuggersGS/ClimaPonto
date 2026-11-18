@@ -1,12 +1,43 @@
 # ClimaPonto
 
-Protótipo de monitoramento inteligente de condições ambientais em pontos de ônibus de São Paulo — **Global Solution FIAP 2026.2**.
+**CitizenTech da Global Solution FIAP 2026.2 (Engenharia de Software, 1º ano).** Aplicação web que mostra as condições de calor e umidade nos pontos de ônibus de São Paulo, para que quem espera o transporte (e quem cuida dessas pessoas) saiba onde e quando o calor vira risco.
 
-O objetivo é coletar leituras de temperatura e umidade com ESP32, processar estados ambientais (ex.: calor extremo) e apresentá-los em uma aplicação web, ajudando a identificar pontos de ônibus com condições desconfortáveis ou de risco para quem espera o transporte.
+## Ficha da CitizenTech
 
-> **Situação atual:** Etapa 3C. Banco Supabase com tabelas, permissões (RLS) e 3 pontos **demonstrativos**; área administrativa com login e CRUD de pontos; Dashboard e Histórico com novo design system (tokens, movimento e gráficos Recharts) e **modo demonstração** com dados fictícios determinísticos. Ainda **não há leituras reais** no Supabase remoto (0 leituras): com o Supabase, as telas mostram "Sem dados" até a ingestão existir. O aceite estético humano e o gate E2E depois da correção de layout de "Última medição" (T102) estão **pendentes** (ver *Pendente*). Checklist dos requisitos de front-end: [docs/requisitos-fiap-frontend.md](docs/requisitos-fiap-frontend.md); revisão visual: [docs/revisao-visual-frontend.md](docs/revisao-visual-frontend.md).
+| Campo | Resposta |
+| --- | --- |
+| Nome da CitizenTech | ClimaPonto |
+| Cidade e bairro | São Paulo (SP). Pontos de demonstração em Consolação, Pinheiros, Sé, Itaim Bibi, Lapa, Interlagos, Sapopemba e Jabaquara |
+| Cidadão beneficiado | Quem espera o ônibus em ponto exposto ao sol: idosos, trabalhadores que dependem do transporte público, gestantes e pessoas com doenças agravadas pelo calor |
+| Problema, em uma frase | Nos dias de calor extremo, quem espera o ônibus fica exposto sem saber quais pontos estão em condição de risco, e a cidade não tem esse dado por ponto |
+| Como funciona | Um sensor (ESP32) em cada ponto mede temperatura e umidade e envia as leituras com o estado ambiental (normal, atenção, crítico); o banco (Supabase) guarda pontos e leituras; esta aplicação web mostra mapa, situação atual, histórico, comparações e alertas, e permite à administração cadastrar e manter os pontos |
+| O que cada parte faz | Front-end Design (interface) e Web Development (interação): esta aplicação web em `web/`. Edge Computing: sensor e circuito. Python e Matemática: análise e cálculos sobre as leituras. Software & Total Experience Design: jornada do cidadão e requisitos. Storytelling: pitch. As partes das outras disciplinas estão nas pastas da equipe no repositório |
+| Link do repositório | https://github.com/EnricoVidal/climaponto-gs-2026 (privado) |
+| Indicador de impacto | Número de pontos monitorados e horas por ponto em estado "atenção" ou "crítico" identificadas no histórico (visível no Histórico, em Análises e no relatório CSV) |
+| ODS conectados | 3, 11 e 13 (detalhes abaixo) |
 
-Repositório (privado): https://github.com/EnricoVidal/climaponto-gs-2026
+## ODS conectados
+
+- **ODS 11 — Cidades e comunidades sustentáveis (meta 11.2):** torna mais seguro o uso do transporte público, informando a condição térmica de cada ponto de espera.
+- **ODS 3 — Saúde e bem-estar (meta 3.d):** funciona como alerta precoce de risco à saúde pelo calor para quem fica exposto no ponto, principalmente idosos.
+- **ODS 13 — Ação contra a mudança global do clima (meta 13.1):** dá dados por ponto para a adaptação da cidade às ondas de calor (onde instalar cobertura, sombra ou hidratação primeiro).
+
+## Requisitos de Front-end Design e Web Development
+
+A mesma aplicação atende às duas disciplinas (enunciado da GS, págs. 40–42 e 59–61).
+
+| Exigência do enunciado | Onde está |
+| --- | --- |
+| React com Vite | React 19 + Vite 8 (`web/package.json`, `web/vite.config.js`) |
+| Tailwind CSS | Tailwind 4 (`web/src/styles/index.css`, classes em todos os componentes) |
+| Mínimo de 8 componentes reutilizáveis | 91 componentes em `web/src/components/`, sendo 30 de uso geral em `components/ui/` (Button, Card, Badge, Tabs, Popover, Sheet, SearchField, MetricCard...) |
+| `useState` e `useEffect` | usados em 34 e 19 arquivos (ex.: `hooks/useStops.js`, `hooks/useNow.js`) |
+| Mínimo de 2 custom hooks | 18 hooks em `web/src/hooks/` (ex.: `useStops`, `useAdminStops`, `useStopFilters`, `useReadingsHistory`, `useFavoriteStops`) |
+| Lógica de negócio e acesso a dados fora da tela | camadas `pages/` e `components/` (tela) → `hooks/` (estado) → `services/` (dados) → `utils/` (regras puras, com testes) |
+| API externa com CRUD completo | Supabase (API REST + Auth) em `web/src/services/stopsApi.js`: criar (`insert`), consultar (`select`), atualizar (`update`, inclusive ativar/desativar) e excluir (`delete`) pontos; tela em **Área administrativa › Gerenciar pontos** (`/admin/pontos`) |
+| Funcionalidades ligadas ao tema (não só tela estática) | mapa interativo dos pontos, Ponto 360° (`/pontos/:código`), busca e filtros, histórico com gráficos e exportação CSV, comparação entre pontos, alertas, favoritos e busca rápida (Ctrl+K) |
+| Git com 15+ commits significativos | histórico completo no repositório (mais de 180 commits no formato `tipo(escopo): descrição`) |
+| `AI.md` na raiz | [AI.md](AI.md) (ferramentas, interações, aplicação, validação e análise crítica) e [prompts.md](prompts.md) |
 
 ## Equipe
 
@@ -85,7 +116,9 @@ No modo mock, dois parâmetros de URL permitem conferir estados: `?mock=erro` (t
 npm --prefix web run dev
 ```
 
-Com `VITE_DATA_MODE=mock`, percorra Dashboard, Pontos e Histórico e confira em **375, 768 e 1366 px** (sem rolagem horizontal em 375 px). Use também `?mock=erro` e `?mock=lento`, teclado (foco visível), emulação de `prefers-reduced-motion: reduce` (as animações devem ser suprimidas) e rode o axe-core. As ferramentas de navegador ficam fora do repositório. Os testes E2E correspondentes (Chromium e Firefox, 375/768/1366 px, axe-core, movimento reduzido) **já foram escritos** e rodam no gate do harness; o último resultado registrado (evidência 0015, 286 aprovados, 0 falhas) está em `docs/revisao-visual-frontend.md`. O aceite estético humano também segue pendente.
+Com `VITE_DATA_MODE=mock`, percorra Visão geral, Explorar, Ponto 360°, Histórico e a área administrativa em **375, 768 e 1366 px**, nos temas claro e escuro. Use também `?mock=erro` e `?mock=lento` (estados de erro e carregamento), o teclado (foco visível) e a opção do sistema "reduzir movimento".
+
+Os testes E2E de `web/e2e/` (Playwright: navegação, mapa, Ponto 360°, filtros, CRUD, acessibilidade com axe-core e larguras de tela) rodam com o executor de testes da equipe, que fornece o módulo `harness-e2e` (navegadores, bloqueio de rede externa e auditorias); por isso não há dependência de testes no `package.json`. Os testes unitários rodam direto com `cd web && node --test`.
 
 ### Configuração do Supabase
 
@@ -159,17 +192,15 @@ Contas administrativas são criadas manualmente:
 ## Estrutura do projeto
 
 ```
-GLOBAL-SOLUTION/
+climaponto/
 ├── README.md
-├── AI.md                         # Registro do uso de IA
+├── AI.md                         # Uso de Inteligência Artificial (exigido pelo enunciado)
+├── prompts.md                    # Prompts representativos enviados às ferramentas de IA
 ├── docs/
 │   ├── data-contract.md          # Contrato de dados (ESP32, Python, front-end)
 │   ├── architecture-decisions.md # Decisões técnicas
-│   ├── security-review.md        # Revisão de segurança e testes
-│   ├── deploy.md                 # Deploy na Vercel (preparado)
-│   ├── requisitos-fiap-frontend.md  # Checklist dos requisitos de front-end com evidência
-│   ├── revisao-visual-frontend.md   # Revisão visual (antes e depois)
-│   └── etapa-3-proposta.md       # Proposta do dashboard (em revisão)
+│   ├── security-review.md        # Revisão de segurança e testes do banco
+│   └── deploy.md                 # Deploy na Vercel
 ├── supabase/
 │   ├── config.toml               # Supabase LOCAL (climaponto-local)
 │   ├── migrations/               # Esquema, restrições, índices, RLS, privilégios
@@ -180,6 +211,7 @@ GLOBAL-SOLUTION/
     ├── .env.example
     ├── vercel.json               # Build, rewrites e cabeçalhos de segurança
     ├── scripts/                  # check-supabase-access / check-supabase-roles
+    ├── e2e/                      # Testes em navegador real (Playwright)
     └── src/
         ├── components/
         │   ├── admin/            # StopForm, AdminStopCard
@@ -188,6 +220,9 @@ GLOBAL-SOLUTION/
         │   ├── dashboard/        # DashboardHero, DashboardSummary, StopGrid, StopStatusCard, ...
         │   ├── history/          # ReadingsEvolution, ReadingsSummary, ReadingsTable, PeriodFilter, ...
         │   ├── layout/           # AppLayout, Header (menu móvel), Sidebar, MainNav, navItems
+        │   ├── map/              # Mapa MapLibre e lista alternativa
+        │   ├── point360/         # Abas do Ponto 360°
+        │   ├── stops/            # Explorar: filtros, lista, ficha do ponto
         │   └── ui/               # Button, Card, Badge, Section, MetricCard, EmptyState, Skeleton, ...
         ├── pages/                # Dashboard, Pontos, Histórico (também Análises e Relatórios), Laboratório, 404, AdminLogin, AdminStops
         ├── hooks/                # useAuth, useAdminStops, useStops, useLatestReadings, useReadingsHistory, useNow, useDataMode, ...
@@ -211,71 +246,23 @@ GLOBAL-SOLUTION/
 - **Administradores:** gerenciam pontos; não inserem leituras.
 - **Leituras:** entrarão apenas por um endpoint de ingestão protegido (a implementar).
 
-Detalhes em [docs/data-contract.md](docs/data-contract.md), [docs/architecture-decisions.md](docs/architecture-decisions.md), [docs/security-review.md](docs/security-review.md), [docs/deploy.md](docs/deploy.md) e [docs/etapa-3-proposta.md](docs/etapa-3-proposta.md). A revisão de segurança também traz o passo a passo para rodar os testes SQL em um Supabase **local** (Docker).
-
-## Release local (G-20261117-cfedb6)
-
-Status: LOCAL_READY_PENDING_REMOTE (não é PROFESSOR_READY). Ainda não há URL de deploy. Documentos: [docs/RELATORIO-FINAL.md](docs/RELATORIO-FINAL.md), [docs/CENARIOS-DEMONSTRACAO.md](docs/CENARIOS-DEMONSTRACAO.md) (S01-S23), [docs/INTERACOES-E-MOVIMENTO.md](docs/INTERACOES-E-MOVIMENTO.md), [docs/FONTES-E-METODOLOGIA.md](docs/FONTES-E-METODOLOGIA.md), [docs/QA-VISUAL.md](docs/QA-VISUAL.md), [docs/MATRIZ-FIAP.md](docs/MATRIZ-FIAP.md), [docs/MATRIZ-DE-CONTEUDO-E-UX.md](docs/MATRIZ-DE-CONTEUDO-E-UX.md), [docs/BRAND-GUIDE.md](docs/BRAND-GUIDE.md) e [BLOCKERS.md](BLOCKERS.md). Limitações: os specs E2E novos não foram executados pelo agente (aguardam o gate do harness); sem aceite visual humano; escrita remota no Supabase não reverificada; coordenadas dos pontos ilustrativas; Lighthouse não medido. Segurança: só chave publishable no front-end; RLS é a autoridade ([docs/security-review.md](docs/security-review.md)).
+Detalhes em [docs/data-contract.md](docs/data-contract.md), [docs/architecture-decisions.md](docs/architecture-decisions.md), [docs/security-review.md](docs/security-review.md) e [docs/deploy.md](docs/deploy.md). A revisão de segurança também traz o passo a passo para rodar os testes SQL em um Supabase **local** (Docker).
 
 ## O que já funciona
 
-- **Rodada G-20261117-cfedb6 (código, sem E2E executado):** mapa MapLibre real sob demanda (OpenFreeMap/OSM, atribuição, cluster, marcadores por estado e lista de reserva), Explorar com busca e filtros em linha sincronizados com a URL, rota `/pontos/:id` (Ponto 360°: visão, medições, comparação A/B, qualidade, CSV), sidebar com hover de intenção, pin e drawer, selo permanente "Demonstrativo" e conjunto demonstrativo selecionável, tokens de movimento e primitives de UI. Verificado pelo agente: `node --test` (unitários) e lint; ver [docs/RELATORIO-FINAL.md](docs/RELATORIO-FINAL.md).
-- **Navegação reorganizada (release G-20261116-0865c5, T101):** barra lateral retrátil no desktop (≥ 1280 px, `aria-expanded`, preferência lembrada) e menu móvel acessível por teclado; seções Visão geral (`/`), Explorar (`/pontos`), Análises (`/analises`), Histórico (`/historico`), Laboratório (`/laboratorio`), Relatórios (`/relatorios`) e Administração (só admin). Rotas antigas preservadas; metodologia recolhida em `<details>`. Verificado: lint, build e `node --test` 399/399; E2E escritos/adaptados, ainda sem execução (aguardam o gate). Detalhes em [docs/ARQUITETURA-E-DECISOES.md](docs/ARQUITETURA-E-DECISOES.md). Teste do cliente de pontos com Supabase falso: `stopsApi.test.js`, 9 testes.
-- Interface responsiva com as seções acima e página 404.
-- Banco Supabase com tabelas, restrições, índices, RLS e 3 pontos demonstrativos.
-- Listagem pública de pontos ativos, lida do Supabase ou do dataset mock conforme `VITE_DATA_MODE`, com o modo efetivo sempre sinalizado.
-- **Design system (3C):** tokens em `styles/index.css`, `cn()` (clsx + tailwind-merge), variantes com `cva`, ícones lucide-react e animações com `motion` (`MotionConfig reducedMotion="user"`).
-- **Modo demonstração:** dataset mock determinístico com 8 cenários, adaptador com a mesma interface da fonte real, `?mock=erro` e `?mock=lento`.
-- Login administrativo e CRUD completo de pontos, com validação, diálogos de confirmação e mensagens de retorno.
-- **Modo mock:** autenticação demonstrativa (contas fictícias) e CRUD de pontos em memória, para percorrer a área administrativa sem Supabase.
-- **375 px:** valores de temperatura e umidade sem quebra entre número e unidade (espaço não separável e `whitespace-nowrap`; commit `de32ce0`). Confirmado no gate E2E 0030 (HEAD `cbbd4a8`).
-- **Novos testes E2E** (`valores-375`, `movimento-reduzido`, `admin`, `admin-qualidade`, estados lento/erro/vazio e 404), executados na verificação final no HEAD `cbbd4a8`: lint e build ok; E2E (Chromium e Firefox) 190 aprovados, 0 falhas, 0 flaky, 4 pulados, 56 screenshots; unitários 228/228. Antes da aprovação houve 3 verificações reprovadas (11 falhas + 1 flaky; 1 falha; 6 falhas + 1 flaky), corrigidas em `a4968a3`, `51c6855`, `4a0c395`, `b37bf2d`, `bb51488` e `cbbd4a8`. Depois disso, a T104 alterou `AuthProvider.jsx` (recusa de conta sem papel admin não exibe mais "Sua sessão expirou") e `MainNav.jsx` (item ativo visível a 375 px), além de documentos: **nova verificação será feita**.
-- **Busca, filtros e insights:** campo "Buscar pontos" (nome, código ou bairro) e contagem "Mostrando X de Y pontos" (região `aria-live`) no Dashboard e em Pontos; filtros por estado ambiental gravado e conectividade no Dashboard e por bairro em Pontos, cada um só com 2 ou mais valores nos dados; estado vazio com "Limpar filtros"; seção "Insights" no Dashboard (distribuição do estado gravado, maior e menor temperatura e umidade, pontos offline ou sem dados, leituras que não são medição real), com "Como foi calculado", sem limiares novos. Navegação principal sem rolagem interna, com alvos de 44 px e foco visível. Decisão 37 em `docs/architecture-decisions.md`.
-- **E2E de busca e filtros** (`web/e2e/filtros.spec.mjs`): escritos, cobrindo busca, filtros, insights, estado vazio, limpar filtros, teclado, axe-core (Dashboard e Pontos com filtros e sem resultados), movimento reduzido e navegação a 375 px (visitante e admin mock). Executados pelo gate do harness no HEAD `c6a4867`: Chromium e Firefox, 241 aprovados, 0 falhas, 8 pulados, 1 flaky (Firefox, "filtro de período: 24 h, 7 dias e 30 dias" em `historico.spec.mjs`, spec preexistente). A alteração posterior (regra de visibilidade e filtro ativo, T102) será validada pelo próximo gate.
-- **Premium 3.0 (G-20261115-739025):** Dashboard em grade Bento no desktop (Resumo/Última medição, Evolução/Insights), tema escuro automático por `prefers-color-scheme`, vidro discreto só em navegação e controles, hierarquia tipográfica refinada, sparklines de tendência (só com dados já carregados) e gráficos com tokens de tema. Decisão 38. Verificado até aqui: lint, build e `node --test` 266/266 (T1/T2). Detalhes em [docs/revisao-visual-frontend.md](docs/revisao-visual-frontend.md).
-- **Fase 4 (mapa, favoritos, alertas e Command Palette):** `/pontos` com mapa esquemático SVG (sem mapa base), lista, ficha do ponto, favoritos (só códigos, `localStorage`) e laboratório de cenários mock; Histórico com perfis por hora/dia da semana, linha do tempo, qualidade das leituras e relatório CSV; painel de alertas (`AlertsPanel`), aviso de offline e Command Palette com `<dialog>` nativo. Decisão 39. Verificado localmente: lint (0 erros, 2 avisos preexistentes), build ok, `node --test` 368/368. **E2E (`web/e2e/mapa`, `favoritos`, `alertas`, `palette`, `laboratorio`, `ficha-ponto`, `pontos`, `historico-perfis`, `qualidade`, `conexao`) executados pelo gate do harness em 16/11/2026 (HEAD `b78e7ea`): aprovados em Chromium e Firefox, ver a recuperação da Fase 4 abaixo.**
-- **Escopo da anotação `console-esperado` (recuperação da Fase 4):** a anotação existe só em `web/e2e/conexao.spec.mjs`, nos testes que usam `setOffline(true)`, com a descrição `ERR_INTERNET_DISCONNECTED`. O teste `web/src/utils/e2eConsoleAnnotations.test.js` (`cd web && node --test src/utils/e2eConsoleAnnotations.test.js`: 11 aprovados, 0 falhas) impede que ela apareça em outros specs ou com descrição genérica. Resultados reais dos gates do harness em 16/11/2026, medidos no HEAD `b78e7ea` (objetivo G-20261116-a1dfae): lint ok (0 erros, 2 avisos `set-state-in-effect` preexistentes); build ok; `supabase-visitor` pulado (opcional, sem `web/.env.local`); e2e em modo mock com 472 aprovados, 0 inesperados, 0 flaky, 32 pulados e 124 screenshots, sendo Chromium 252 aprovados / 0 pulados e Firefox 220 aprovados / 32 pulados (axe-core pulado no Firefox por travamento da página, condicional já existente antes desta recuperação); `console-esperado` 11/11. Nenhuma correção de código foi necessária. Os 7 cenários offline passaram na primeira tentativa no Chromium e os 3 sem axe no Firefox, com a anotação `ERR_INTERNET_DISCONNECTED` e sem padrão genérico.
-
-- Checklist dos requisitos: [docs/requisitos-fiap-frontend.md](docs/requisitos-fiap-frontend.md) e revisão visual: [docs/revisao-visual-frontend.md](docs/revisao-visual-frontend.md).
-- CRUD e permissões **validados no Supabase remoto** com contas reais de teste (31/31: API e interface) e no Supabase local (SQL 50/50, papéis 14/14, interface 24/24). Detalhes em `docs/security-review.md`.
-- **Dashboard:** resumo (pontos, contagens por conectividade e por estado ambiental), última medição, conectividade **provisória** (online/atrasado/offline, separada do estado ambiental), visão por ponto e evolução recente. Atualização automática (polling), pausada com a aba oculta. Mostra apenas o `environmental_status` gravado; sem leituras aparece "Sem dados", e estado ausente aparece "Não classificado".
-- **Histórico:** filtros de ponto e período (24 h, 7 dias, 30 dias) refletidos na URL, gráficos Recharts por grandeza (agrupados em intervalos), resumo estatístico, tabela responsiva e limite de 500 registros com aviso de truncamento. Leituras de simulação e teste são sinalizadas.
-- **Testes automatizados** (utils, serviços e dataset mock, com `node:test`): `cd web && node --test`. Última execução registrada em `AI.md`. Não há testes de componentes React.
-- **Testes E2E em navegador real** (`web/e2e/*.spec.mjs`, modo mock): Dashboard, Histórico, Pontos, navegação, filtros, indicadores e cards por estado (normal, atenção, crítico, sem dados, atrasado, offline, demonstrativo), gráficos, `?mock=erro`, `?mock=lento`, larguras 375/768/1366 px, teclado, axe-core (temas claro e escuro), movimento reduzido, erros de console e screenshots desktop/mobile. Rodam pelo gate de navegador do Engineering Harness (Playwright, Chromium e Firefox, isolado e sem rede), que fornece o módulo `harness-e2e`: o projeto não ganhou dependência nova e os testes não rodam com `npm test`. Resultados em `AI.md`.
-- Deploy na Vercel preparado e validado localmente ([docs/deploy.md](docs/deploy.md)), **ainda não publicado**. A interface redesenhada na 3C passou a ser verificada automaticamente pelos testes E2E acima (layout, teclado, axe-core e movimento reduzido); a aprovação estética continua com a equipe.
-
-- **Fase 3 (Insights, comparador e exploração do Histórico):** Insights em Bento compacto com a metodologia ("Como foi calculado") recolhida por padrão; comparador de dois pontos no Dashboard (recolhido, mesma origem e período); Histórico com filtro de origem na URL (`origem`), resumo por dia recolhido e exportação CSV. Testes E2E escritos (`web/e2e/insights.spec.mjs`, `web/e2e/historico-exploracao.spec.mjs`; `filtros.spec.mjs` ajustado para abrir a metodologia antes de ler o texto), com screenshots anexados em 1366 e 375 px, claro e escuro. **Ainda não executados** pelo gate nesta tarefa (os navegadores E2E não estavam disponíveis ao agente); lint e build passam.
+- **Visão geral (`/`):** resumo dos pontos, última medição, alertas, evolução das últimas 24 h, insights e comparação entre dois pontos.
+- **Explorar (`/pontos`):** mapa geográfico real (MapLibre + OpenFreeMap/OpenStreetMap, com atribuição), marcadores por estado ambiental (forma e cor), agrupamento, lista alternativa acessível, busca, filtros sincronizados com a URL, ficha do ponto e favoritos.
+- **Ponto 360° (`/pontos/:código`):** visão, medições, comparação A/B e qualidade dos dados de um ponto, com período na URL e exportação CSV. Ponto inexistente mostra aviso e caminho de volta.
+- **Histórico, Análises e Relatórios:** filtros de ponto, origem e período, gráficos, resumo por dia, perfis por hora e dia da semana, tabela e CSV.
+- **Laboratório:** cenários demonstrativos para testar a interface sem sensor.
+- **Área administrativa (`/admin/pontos`):** login e CRUD completo de pontos (criar, editar, ativar/desativar e excluir), com validação e confirmação.
+- **Interface:** barra lateral compacta que expande ao passar o mouse e pode ser fixada, cabeçalho que se esconde ao rolar a página, tema claro e escuro automáticos, layout para 375, 768 e 1366 px, navegação por teclado e respeito a "reduzir movimento".
+- **Transparência dos dados:** o modo de dados (Supabase ou demonstração) aparece sempre no cabeçalho; leituras de simulação e teste são identificadas e nunca apresentadas como medição real.
+- **Qualidade:** `npm run lint` (0 erros), `npm run build`, 500+ testes unitários (`node --test`) e 28 arquivos de testes E2E em navegador real (Playwright, modo demonstração), incluindo acessibilidade (axe-core) e as larguras acima.
 
 ## Pendente
 
-- **Rodada G-20261117-cfedb6:** executar o gate E2E; aceite visual humano; deploy e CSP efetiva; CRUD/RLS remoto; coordenadas rastreáveis (GTFS); Open-Meteo; página "CitizenTech". Veja [BLOCKERS.md](BLOCKERS.md). O item "mapa com ruas" abaixo está superado pelo mapa MapLibre, mas os pontos remotos ainda têm coordenadas nulas ou ilustrativas.
-- **Release:** GitHub privado com permissão write dos professores, deploy na Vercel, envios separados no Teams, verificação do CRUD remoto com usuário de teste e materiais dos colegas; detalhes em [BLOCKERS.md](BLOCKERS.md).
-
-- **Desativar o cadastro público** no painel do Supabase (*Authentication › Sign In / Providers*): hoje está ligado.
-- Criar a(s) conta(s) administrativa(s) definitiva(s) da equipe pelo painel (passos na seção *Administradores*).
-- Executar o deploy na Vercel (aguarda aprovação).
-- Endpoint de ingestão para o ESP32 e leituras reais/simuladas.
-- Limites ambientais (aguardando aprovação); o front-end não classifica, só exibe o estado gravado.
-- Intervalo de envio do ESP32 e regra de conectividade definitivos (hoje provisórios: 60 s, 2× e 5×).
-- Agregação SQL para períodos longos (hoje a consulta é limitada a 500 registros).
-- **Premium 3.0:** o gate 0015 (HEAD `c5e3399`) passou: 286 E2E aprovados, 0 falhas, 8 pulados (Chromium e Firefox; axe nos dois temas), unitários 266/266. Falta confirmar, no próximo gate, a correção da sobreposição de "Última medição" a 1366 px (T102); a comparação antes/depois está em `docs/revisao-visual-frontend.md`. Seletor manual de tema (claro/escuro) não existe.
-- **Fase 3:** o briefing e os PNGs de referência em `/home/harness/climaponto-fase3` não puderam ser lidos (restrição de leitura); a conferência visual contra eles fica para um humano. O erro do comparador ("Tentar novamente") não tem teste E2E, pois `?mock=erro` também derruba a lista de pontos.
-- **Aceite humano da interface 3C:** aprovação estética do design pela equipe e conferência com o Supabase configurado. A parte objetiva (375/768/1366 px, teclado, axe-core, reduced motion, console, hierarquia de títulos) já roda nos testes E2E; o offset `sm:top-20` da barra de filtros fixa do Histórico não tem teste específico.
-- Referências visuais aprovadas (`toHaveScreenshot`) ainda não existem: hoje os testes geram screenshots para revisão, mas não comparam imagens entre versões.
-- axe-core no Firefox está pulado (com motivo registrado no teste) nas páginas com gráficos: o Firefox derruba a página durante a análise no runner de testes; essas páginas são verificadas no Chromium.
-- "Page crashed" intermitente do Firefox (axe do login escuro e medição no Dashboard): ocorreu em execuções intermediárias e passou na final; causa raiz não identificada.
-- Sugestões de refatoração (revisão de código): extrair um componente `Select` em `components/ui` (hoje repetido em 3 lugares) e unificar o nome `neighborhood`/`neighborhoods` em `getStopFilterOptions`.
-- Conferir em captura (375, 768 e 1366 px, claro e escuro) a nova barra lateral e o menu móvel; capturas não foram feitas na T101 por falta de navegador no sandbox.
-- **Fase 4:** o gate opcional `supabase-visitor` só roda com `web/.env.local` (não executado na recuperação de 16/11/2026).
-- Sem teste automatizado para a regressão do aviso "Sua sessão expirou" após recusa de conta sem papel admin (não há teste de componentes; `web/e2e` fora do escopo da T104).
-- **Enunciado oficial da FIAP** não está no repositório: o checklist segue a lista do objetivo. **"CitizenTech"** não está definido em nenhum documento do repositório, e uma **API pública de terceiros** (se o enunciado exigir) não foi implementada: decisões de produto da equipe. Ver `docs/requisitos-fiap-frontend.md`.
-- Dashboard, Histórico e área administrativa são `lazy`; o chunk com o Recharts tem ~381 kB (111 kB gzip) e o build não emite mais aviso de chunk acima de 500 kB.
-- `components/ui/icons.jsx` segue como camada sobre lucide-react, com consumidores a migrar para importar direto.
-- 2 avisos de lint `set-state-in-effect` (`useReadingsHistory.js`, `useLatestReadings.js`), preexistentes.
-- `useStops` não tem recarga: o "Tentar novamente" de Pontos remonta o componente por `key`, e o do Dashboard recarrega a página.
-- `node --test src/utils/` (pasta como argumento) falha ao carregar; causa não investigada, por isso os testes são executados sem argumento ou por arquivo.
-- **Fase 4, pendências:** seletor manual de tema e refinamento do hero; mapa com ruas (hoje só esquema SVG); os pontos do Supabase remoto têm coordenadas nulas (o mapa usa posições de fallback, sinalizadas); limites ambientais aprovados; previsões; notificações do navegador; aceite estético humano; resultados E2E em Chromium e Firefox (pendentes de verificação).
-
-- Design definitivo (aprovação do Vini) e deploy.
-
-> **Integração futura:** os branches `harness/G-20261111-4f0f88` e `harness/G-20261112-096aab` (não mesclados) também alteram `AI.md`/`docs`; ao integrá-los, podem surgir conflitos simples de documentação.
+- **Leituras reais:** o firmware do ESP32 e o endpoint de ingestão ficam com a parte de Edge Computing; no Supabase ainda não há leituras reais, por isso a aplicação oferece o conjunto **demonstrativo** (seletor no cabeçalho), sempre sinalizado.
+- **Coordenadas:** as posições dos pontos de demonstração são ilustrativas (sem importação de GTFS aprovada).
+- **Regras provisórias:** limites ambientais e regra de conectividade (60 s de intervalo de envio) são provisórios e estão descritos em "Fontes e metodologia".
+- Detalhes técnicos e histórico das etapas: [docs/](docs/) e [AI.md](AI.md).
