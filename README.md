@@ -170,7 +170,7 @@ ClimaPonto-Python/
 | Opção | Funcionalidade |
 |---|---|
 | **1** | Registra uma **medição de campo**: a equipe mede com termômetro portátil nos pontos sem sensor, ou quando o sensor está com defeito. Pede ponto, temperatura, umidade, data e hora. Em um ponto que tem sensor, avisa que o certo é usar a opção 2 e pede confirmação |
-| **2** | Consulta a API do FIWARE e traz as leituras reais do sensor ESP32. Mostra de onde veio a leitura mais recente (histórico ou valor atual), coleta ao vivo quando o histórico está parado e, no fim, lista as leituras do sensor guardadas |
+| **2** | Consulta a API do FIWARE e traz as leituras reais do sensor ESP32 da última hora, uma por minuto. Mostra de onde veio a leitura mais recente (histórico ou valor atual), coleta ao vivo quando o histórico está parado e, no fim, lista as leituras do sensor guardadas |
 | **3** | Painel com a última leitura de cada ponto: temperatura, **Média 1h**, estado, horário e orientação ao passageiro. Mostra também quanto tempo de dados a Média 1h de cada ponto cobre |
 | **4** | Consulta leituras por ponto, por estado, pelos dois juntos, ou acha a leitura mais próxima de um horário |
 | **5** | Mínima, média e máxima por ponto, contagem de estados, ranking dos mais quentes e tabela por período do dia; pode exportar um relatório `.txt` |
@@ -207,12 +207,13 @@ O servidor fica na nuvem e só é ligado nos testes do grupo, e o **IP muda a ca
 3. **Servidor desligado:** avisa e trabalha com as **leituras salvas**.
 4. **Na opção 2:**
    1. A aplicação descobre a entidade do sensor pelo IoT Agent. Se ele não responder, procura a entidade no Orion.
-   2. Busca o histórico no STH-Comet e compara com o horário do valor atual no Orion. As duas datas aparecem na tela.
+   2. Busca no STH-Comet o histórico da última hora, de 100 em 100 leituras (o limite de cada consulta ao servidor), guarda uma leitura por minuto e compara com o horário do valor atual no Orion. As duas datas aparecem na tela.
    3. Se não houver histórico, ou se o Orion estiver mais novo, faz uma **coleta ao vivo** de 6 leituras, uma a cada 5 s. A coleta para sozinha depois de 4 consultas sem leitura nova (o Wokwi parou), e Ctrl+C também interrompe, ficando com o que já chegou.
 
 **Regra de guarda das leituras do sensor (nunca perder leitura boa)**
 
 - As leituras novas são juntadas às salvas, sem repetir horário, e ficam guardadas as da **última hora**, contada a partir da leitura mais nova. São elas que formam a Média 1h.
+- Como o ESP32 envia a cada poucos segundos, do histórico fica **uma leitura por minuto** (cerca de 60 por hora), o suficiente para a média sem guardar centenas de leituras iguais.
 - Quando uma leitura sai, **sai sempre a mais antiga**: ela só é descartada quando chega outra pelo menos 1 hora mais nova.
 - Se nada mais novo chegar (servidor desligado, Wokwi parado, erro na API), **nada é alterado**.
 - As medições de campo nunca são apagadas por essa regra.
@@ -225,7 +226,7 @@ O servidor fica na nuvem e só é ligado nos testes do grupo, e o **IP muda a ca
 | Orion | `GET :1026/version` | Verificar se o servidor está ligado |
 | IoT Agent | `GET :4041/iot/devices/climaponto-p001` | Descobrir a entidade e os nomes dos atributos do sensor |
 | Orion | `GET :1026/v2/entities?options=keyValues` | Plano B: achar a entidade se o IoT Agent não responder |
-| STH-Comet | `GET :8666/STH/v1/contextEntities/type/{tipo}/id/{id}/attributes/{atributo}?lastN=6` | Histórico de temperatura, umidade e média móvel |
+| STH-Comet | `GET :8666/STH/v1/contextEntities/type/{tipo}/id/{id}/attributes/{atributo}?dateFrom={1h10 antes}&hLimit=100&hOffset=0, 100, 200...` | Histórico da última hora de temperatura, umidade e média móvel, de 100 em 100 leituras |
 | Orion | `GET :1026/v2/entities/{id}?options=keyValues` | Valor atual e horário da última leitura, usado na comparação e na coleta ao vivo |
 
 **Formato de uma leitura** (leitura real do sensor, capturada em 16/11/2026 às 23h33)
@@ -293,7 +294,7 @@ minutos até limite  = (limite − temperatura atual) ÷ velocidade × 60
 | Arquivo | Conteúdo |
 |---|---|
 | `dados/pontos.json` | Pontos de ônibus (criado na primeira execução com P001, P002 e P003) |
-| `dados/leituras.json` | Leituras do sensor da última hora de cada ponto e todas as medições de campo |
+| `dados/leituras.json` | Leituras do sensor da última hora de cada ponto (uma por minuto) e todas as medições de campo |
 | `dados/config_fiware.json` | Último IP do servidor FIWARE usado |
 | `backup_dados/leituras_climaponto_p001_<data>_<hora>.json` | Cópia de cada captura do sensor com leituras novas |
 | `relatorios/estatisticas_<data>_<hora>.txt` | Relatórios de estatísticas, quando o usuário pede para salvar |
@@ -324,7 +325,7 @@ O código usa apenas o conteúdo da disciplina (1º e 2º semestres) e a bibliot
 | Estrutura de seleção `match/case` | Menu principal, submenu de consultas e submenu de pontos |
 | Repetição `while` | Laço do menu, entradas com validação e coleta ao vivo |
 | Repetição `for` | Buscas, Média 1h, estatísticas, painel, matriz e relatórios |
-| Funções (subalgoritmos) | 52 funções, todas com **anotação de tipo e docstring**, como `classificar_temperatura(...) -> str` e `calcular_tendencia(...) -> dict \| None` |
+| Funções (subalgoritmos) | 54 funções, todas com **anotação de tipo e docstring**, como `classificar_temperatura(...) -> str` e `calcular_tendencia(...) -> dict \| None` |
 | Parâmetros posicionais, nomeados e default | `ler_texto(mensagem, obrigatorio=False)`, `ordenar(lista, chave, decrescente=True)`, `sincronizar(..., ao_vivo=False)` |
 | Parâmetros arbitrários | `resumo_numerico(*valores)`, `nome_do_atributo(chaves, *apelidos)` e `buscar_leituras(leituras, **criterios)` |
 | Tratamento de exceções | `ValueError` (números, datas, JSON), `OSError` (arquivos), erros do `requests` (`ConnectionError`, `Timeout`, `HTTPError`), `KeyboardInterrupt` e `EOFError`, sem `except` genérico |
@@ -366,7 +367,7 @@ O código usa apenas o conteúdo da disciplina (1º e 2º semestres) e a bibliot
 
 ## 11. Exemplos de execução
 
-*Todos os exemplos abaixo foram executados com as leituras reais do sensor capturadas em 16/11/2026 e uma medição de campo no P002.*
+*Os exemplos abaixo foram executados com as leituras reais do sensor capturadas em 16/11/2026 e uma medição de campo no P002; o último usa a hora completa de leituras reais de 18/11/2026.*
 
 **Abertura com o servidor ligado** (execução de 17/11/2026, servidor do grupo na AWS)
 
@@ -441,6 +442,21 @@ O P001 mostra 24,4 °C agora, mas está em **Atenção**: a temperatura caiu de 
   -> O ponto está esfriando.
 ```
 
+**Painel com uma hora completa de leituras** (trecho; leituras reais de 18/11/2026, das 19h11 às 20h11, baixadas do histórico do FIWARE do grupo)
+
+```
+  Ponto                 Temp.  Média 1h   Estado   Última leitura    Orientação
+  --------------------------------------------------------------------------------------------
+  P001 Santana        21.8 °C   22.1 °C   Normal   18/11/2026 20:11  Espera sem alerta
+  P002 Interlagos           -         -   -        sem leituras      -
+  P003 Barueri              -         -   -        sem leituras      -
+
+  --- Quanto da última hora a Média 1h cobre ---
+  P001 Santana      61 leitura(s) em 59 min
+```
+
+Com uma hora de dados, a Média 1h deixa de cobrir segundos e o aviso de "menos de 1 hora" some.
+
 ## 12. Testes realizados
 
 **Testes com o sensor real (FIWARE e Wokwi do grupo)**
@@ -449,6 +465,7 @@ O P001 mostra 24,4 °C agora, mas está em **Atenção**: a temperatura caiu de 
 |---|---|---|
 | 10/11/2026 | Primeira captura pela opção 2 | 6 leituras reais de 37,6 °C, estado crítico |
 | 16/11/2026, 23h33 | Temperatura alterada no Wokwi e busca pela opção 2 | 6 leituras de 49,8 °C a 24,4 °C, com o estado acompanhando a média |
+| 18/11/2026, 19h11 às 20h11 | Wokwi ligado por mais de uma hora, com a temperatura ajustada pela previsão do tempo para Santana naquele horário; histórico do STH-Comet buscado de 100 em 100 | 61 leituras, uma por minuto, de 22,4 °C a 21,8 °C e umidade de 75 % a 89 %; Média 1h de 22,1 °C cobrindo 59 minutos |
 | 17/11/2026 | Abertura com o servidor ligado, sem leituras novas | Entidade encontrada, diagnóstico STH × Orion na tela e nada alterado |
 
 **Bateria de QA** (18 casos automatizados, que rodam o `main.py` com entradas simuladas e conferem a tela e os arquivos; um servidor FIWARE de teste simula o IoT Agent, o Orion e o STH-Comet)
@@ -480,8 +497,8 @@ Resultado: **18 de 18 casos passaram**. Também foi conferido que o botão Run d
 
 - O servidor FIWARE fica na nuvem e só é ligado nos testes do grupo; fora disso, a aplicação usa as leituras salvas.
 - As leituras do sensor vêm de uma simulação no Wokwi, não de um ponto de ônibus real.
-- A **Média 1h** só fica completa quando o sensor fica ligado por pelo menos uma hora e a opção 2 é usada algumas vezes nesse período. Com as capturas atuais, ela cobre segundos; o painel mostra isso explicitamente.
-- Do sensor, ficam guardadas as leituras da última hora (o histórico completo fica no FIWARE e nos backups), porque o objetivo é mostrar o estado atual e a tendência.
+- A **Média 1h** só fica completa quando o sensor fica ligado por pelo menos uma hora. Na captura de 18/11/2026, ela cobriu 59 minutos (61 leituras); com capturas mais curtas, o painel avisa quanto tempo a média cobre.
+- Do sensor, fica guardada uma leitura por minuto da última hora (o histórico completo fica no FIWARE e nos backups), porque o objetivo é mostrar o estado atual e a tendência.
 - Os limites de 30 °C e 35 °C são de demonstração; não medem sensação térmica nem substituem alertas oficiais.
 
 ## 14. Equipe e uso de IA

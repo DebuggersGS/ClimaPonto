@@ -84,6 +84,10 @@ Os prompts estão organizados nas etapas em que o trabalho foi feito.
 
 > Acrescente a este arquivo a participação da IA a partir das alterações feitas pelo grupo, mantendo o formato e deixando explícito o objetivo de cada prompt.
 
+### Etapa 10 · Captura de uma hora de leituras reais
+
+> O servidor FIWARE foi religado com um novo IP. Atualize o IP na simulação do Wokwi e mantenha o sensor enviando por uma hora, para que a Média 1h seja calculada com uma hora completa de leituras. Confira se os dados estão chegando e se são coerentes com a temperatura real da região naquele horário. *(Resultado: a temperatura do Wokwi foi ajustada pela previsão do tempo para Santana; ao conferir, a IA identificou que o STH-Comet devolve no máximo 100 leituras por consulta, e a busca do histórico passou a ser feita de 100 em 100, guardando uma leitura por minuto.)*
+
 ## 3. Funcionalidades desenvolvidas, sugeridas ou modificadas com apoio da IA
 
 | Funcionalidade | Decisão | Apoio da IA |
@@ -100,6 +104,7 @@ Os prompts estão organizados nas etapas em que o trabalho foi feito.
 | Configuração correta do FIWARE do grupo (serviço `climaponto`) e diagnóstico STH-Comet × Orion | Grupo | Identificação da causa das leituras antigas e escrita da correção |
 | Coleta ao vivo no Orion quando o histórico está parado | Sugerido pela IA e aceito pelo grupo | Escrita da coleta, com parada automática após 4 consultas sem leitura nova |
 | Média 1h e guarda das leituras da última hora (substituiu a regra das 6 leituras) | Grupo | Escrita do cálculo e da regra que retira sempre a leitura mais antiga |
+| Busca do histórico da última hora no STH-Comet, de 100 em 100, com uma leitura por minuto | Grupo, a partir de problema identificado pela IA | Identificação do limite de 100 leituras por consulta e escrita da busca paginada |
 | Backup automático, recuperação pelo backup e captura real embutida no código | Grupo | Escrita das três camadas de proteção dos dados |
 | Medição de campo (substituiu a leitura digitada) | Grupo, a partir de sugestão da IA | Reescrita da opção 1 e do aviso para pontos com sensor |
 | Títulos, subtítulos, tabelas com cabeçalho, `v` para voltar e Enter só em opção inválida | Grupo | Escrita das telas |
@@ -110,7 +115,7 @@ Os prompts estão organizados nas etapas em que o trabalho foi feito.
 
 - **Supervisão de cada versão:** nenhuma alteração foi aceita sem revisão. Cada versão do código e da documentação foi apresentada e explicada antes de ser salva, e o grupo solicitou ajustes sempre que o resultado não correspondia ao planejado. Por exemplo: a opção de importação deixou de gerar dados simulados, as leituras guardadas do sensor foram limitadas, primeiro às 6 mais recentes e depois às da última hora, e os textos foram reescritos para ficarem claros ao usuário.
 - **Testes:** foram testados entradas inválidas, data no futuro, IP inválido, servidor desligado, servidor ligado (com um servidor de teste que reproduz as respostas do FIWARE), JSON corrompido, persistência após fechar e abrir o programa e estatísticas com valores conhecidos (28, 32 e 36 °C, média 32). A tabela completa está no `README.md`.
-- **Teste com o sensor real:** em 10/11/2026, a opção 2 recebeu 6 leituras reais do ESP32 (37,6 °C, estado crítico). Em 16/11/2026, às 23h33, com a temperatura sendo alterada no Wokwi, a opção 2 recebeu 6 leituras de 49,8 °C a 24,4 °C, com o estado acompanhando a média. Em 17/11/2026, a aplicação abriu com o servidor ligado, encontrou a entidade `urn:ngsi-ld:ClimaPonto:P001` e, sem leituras novas, não alterou nada.
+- **Teste com o sensor real:** em 10/11/2026, a opção 2 recebeu 6 leituras reais do ESP32 (37,6 °C, estado crítico). Em 16/11/2026, às 23h33, com a temperatura sendo alterada no Wokwi, a opção 2 recebeu 6 leituras de 49,8 °C a 24,4 °C, com o estado acompanhando a média. Em 17/11/2026, a aplicação abriu com o servidor ligado, encontrou a entidade `urn:ngsi-ld:ClimaPonto:P001` e, sem leituras novas, não alterou nada. Em 18/11/2026, com o Wokwi ligado por mais de uma hora e a temperatura ajustada pela previsão do tempo para Santana, foram salvas 61 leituras, uma por minuto, das 19h11 às 20h11 (22,4 °C a 21,8 °C), e a Média 1h passou a cobrir 59 minutos.
 - **Teste no computador do grupo:** Windows, Python 3.14 (64 bits) e VS Code, com o terminal padrão em PowerShell. Foram testadas a abertura com o servidor ligado e desligado, a busca no FIWARE (opção 2), a listagem das leituras salvas do sensor e a execução pelo botão Run.
 - **Conferência das linhas de fluxo:** com apoio da IA, cada opção do menu foi percorrida do início ao fim, incluindo o retorno com `v`, as opções inválidas e os caminhos com o servidor ligado e desligado. Foram conferidas também a ordem de carregamento dos dados (arquivo principal, backup e captura embutida) e a regra que impede apagar leituras boas.
 - **Testes de QA:** a IA atuou como especialista em QA, elaborando e executando uma bateria de 18 casos automatizados, que roda o `main.py` com entradas simuladas e confere a tela e os arquivos gravados. Os casos cobrem entradas inválidas, valores-limite, falha de rede, servidor de teste do FIWARE, arquivo corrompido ou bloqueado, ausência do `requests` e o cálculo da Média 1h. Todos passaram; a tabela está na seção 12 do `README.md`.

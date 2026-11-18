@@ -56,6 +56,8 @@ FAIXA_UMIDADE = (0.0, 100.0)
 FUSO_BRASILIA = timedelta(hours=-3)
 VOLTAR = "v"                            # em qualquer pergunta, "v" volta ao menu principal
 LEITURAS_DO_SENSOR = 6                  # quantas leituras do ESP32 são buscadas em cada consulta
+PAGINA_HISTORICO = 100                  # o STH-Comet devolve no máximo 100 leituras por consulta
+PAGINAS_HISTORICO = 15                  # até 1.500 leituras: mais de 1 hora de envios do ESP32
 JANELA_MEDIA = timedelta(hours=1)       # leituras do sensor guardadas e usadas na média: a última hora
 INTERVALO_COLETA = 5                    # segundos entre consultas na coleta ao vivo (o ESP32 publica a cada 2 s)
 PERIODOS_DIA = (("Madrugada", 0, 6), ("Manhã", 6, 12), ("Tarde", 12, 18), ("Noite", 18, 24))
@@ -461,19 +463,26 @@ def descobrir_entidade(config: dict, dispositivo: str) -> tuple:
     return {"id": achada["id"], "tipo": achada["type"]}, encontrados
 
 
-def consultar_historico(config: dict, entidade: dict, atributo: str, quantidade: int) -> list:
-    """Busca as últimas leituras de um atributo no STH-Comet. Sem histórico, devolve lista vazia."""
+def consultar_historico(config: dict, entidade: dict, atributo: str, desde: str) -> list:
+    """Busca no STH-Comet as leituras de um atributo a partir do horário 'desde' (UTC), de 100 em 100
+    (limite de cada consulta). Sem histórico, devolve lista vazia."""
     url = (f"http://{config['ip']}:{config['porta_sth']}/STH/v1/contextEntities/type/{entidade['tipo']}"
            f"/id/{entidade['id']}/attributes/{atributo}")
-    try:
-        resposta = requests.get(url, headers=cabecalhos_fiware(config), params={"lastN": quantidade}, timeout=8)
-        resposta.raise_for_status()
-        elementos = resposta.json()["contextResponses"][0]["contextElement"]["attributes"]
-    except (requests.exceptions.RequestException, KeyError, IndexError, ValueError):
-        return []                                            # STH-Comet desligado ou sem assinatura
-    if elementos:
-        return elementos[0]["values"]
-    return []
+    valores = []
+    for pagina in range(PAGINAS_HISTORICO):
+        parametros = {"hLimit": PAGINA_HISTORICO, "hOffset": pagina * PAGINA_HISTORICO, "dateFrom": desde}
+        try:
+            resposta = requests.get(url, headers=cabecalhos_fiware(config), params=parametros, timeout=8)
+            resposta.raise_for_status()
+            elementos = resposta.json()["contextResponses"][0]["contextElement"]["attributes"]
+        except (requests.exceptions.RequestException, KeyError, IndexError, ValueError):
+            return valores                                   # STH-Comet desligado ou sem assinatura
+        if not elementos or not elementos[0]["values"]:
+            return valores
+        valores.extend(elementos[0]["values"])
+        if len(elementos[0]["values"]) < PAGINA_HISTORICO:
+            return valores
+    return valores
 
 
 def consultar_atual(config: dict, entidade: dict) -> dict:
@@ -544,6 +553,31 @@ def servidor_ligado(config: dict, espera: float = 3) -> bool:
         return False
 
 
+def uma_por_minuto(por_horario: dict) -> dict:
+    """O ESP32 envia a cada poucos segundos: do histórico, fica só a leitura mais recente de cada minuto
+    (cerca de 60 leituras por hora), o suficiente para a Média 1h sem guardar centenas de leituras iguais."""
+    ultima_do_minuto = {}
+    for horario in ordenar_texto(list(por_horario.keys())):
+        ultima_do_minuto[horario[:16]] = horario                 # "2026-11-18T21:48" -> horário mais recente
+    resultado = {}
+    for horario in ultima_do_minuto.values():
+        resultado[horario] = por_horario[horario]
+    return resultado
+
+
+def ordenar_texto(lista: list) -> list:
+    """Ordenação por inserção de uma lista de textos (mesma lógica de ordenar)."""
+    copia = list(lista)
+    for i in range(1, len(copia)):
+        atual = copia[i]
+        j = i - 1
+        while j >= 0 and copia[j] > atual:
+            copia[j + 1] = copia[j]
+            j -= 1
+        copia[j + 1] = atual
+    return copia
+
+
 def baixar_leituras_fiware(config: dict, ponto: dict, quantidade: int, ao_vivo: bool = True) -> list | None:
     """Monta leituras completas (temperatura, umidade e média móvel) a partir do FIWARE.
     Devolve None se o sensor não for encontrado no FIWARE."""
@@ -552,19 +586,25 @@ def baixar_leituras_fiware(config: dict, ponto: dict, quantidade: int, ao_vivo: 
         return None
     print(f"  Dispositivo {ponto['dispositivo']} -> entidade {entidade['id']}")
 
+    # Histórico da última hora (com folga de 10 min), contada a partir do horário do Orion
+    ultima_orion = horario_do_orion(config, entidade)
+    referencia = datetime.now(timezone.utc)
+    if ultima_orion:
+        referencia = datetime.strptime(ultima_orion, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+    desde = (referencia - JANELA_MEDIA - timedelta(minutes=10)).strftime("%Y-%m-%dT%H:%M:%S.000Z")
     por_horario = {}
     for codigo in ("t", "h", "m"):
         if codigo not in nomes:
             continue
-        for valor in consultar_historico(config, entidade, nomes[codigo], quantidade):
+        for valor in consultar_historico(config, entidade, nomes[codigo], desde):
             horario = valor["recvTime"].split(".")[0] + "Z"
             por_horario.setdefault(horario, {})[codigo] = float(valor["attrValue"])
+    por_horario = uma_por_minuto(por_horario)
 
     if por_horario:
         ultima_historico = max(por_horario)
     else:
         ultima_historico = None
-    ultima_orion = horario_do_orion(config, entidade)
     texto_historico = "nenhuma"
     if ultima_historico:
         texto_historico = hora_texto(ultima_historico)
@@ -840,7 +880,7 @@ def importar_do_sensor(pontos: list, leituras: list, config: dict) -> None:
     if ponto is None:
         return
     subtitulo("Consulta ao FIWARE")
-    print(f"  Buscando as {LEITURAS_DO_SENSOR} leituras mais recentes do sensor...")
+    print("  Buscando a última hora de leituras do sensor...")
     adicionadas = sincronizar(config, ponto, leituras)
     if adicionadas is not None:
         salvar_json(ARQ_CONFIG, {"ip": config["ip"]})
