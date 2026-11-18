@@ -42,11 +42,11 @@ Os prompts estão organizados nas etapas em que o trabalho foi feito.
 
 > Teste a aplicação com entradas inválidas, servidor ligado e desligado, arquivo JSON corrompido e reinício do programa, e apresente os resultados antes de qualquer alteração ser salva.
 
-### Etapa 4 · Desenvolvimento do README e do prompts.md
+### Etapa 4 · Desenvolvimento do README e do prompt.md
 
 > Elabore o `README.md` com os ODS conectados e a explicação de como o projeto contribui para suas metas. Inclua requisitos, execução, funcionalidades, origem dos dados, regras, persistência, conceitos aplicados, exemplos, testes e limitações.
 
-> Elabore o `prompts.md` conforme o edital: ferramentas e finalidades, prompts utilizados, funcionalidades desenvolvidas com apoio da IA, forma de verificação e análise crítica.
+> Elabore o `prompt.md` conforme o edital: ferramentas e finalidades, prompts utilizados, funcionalidades desenvolvidas com apoio da IA, forma de verificação e análise crítica.
 
 ### Etapa 5 · Integração com o sensor real e correção de erros
 

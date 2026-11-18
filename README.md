@@ -7,7 +7,21 @@
 
 Aplicação em Python, executada no terminal, que **recebe as leituras de temperatura e umidade dos pontos de ônibus**, classifica o calor em *normal*, *atenção* ou *crítico* e transforma esses dados em informação útil: painel do estado atual, consultas, estatísticas, ranking dos pontos mais quentes e tendência de aquecimento.
 
-Repositório: https://github.com/DebuggersGS/ClimaPonto-Python
+---
+
+## Ficha da CitizenTech
+
+| Campo | Resposta |
+|---|---|
+| **Nome** | ClimaPonto |
+| **Cidade / bairro** | São Paulo/SP. Ponto piloto **P001** na região de Santana (Zona Norte); pontos de Interlagos (Zona Sul) e Barueri (Grande São Paulo) também cadastrados |
+| **Cidadão beneficiado** | Passageiros que esperam ônibus expostos ao calor, principalmente idosos e trabalhadores |
+| **Problema em uma frase** | Quem espera ônibus em São Paulo fica exposto ao calor sem nenhuma informação sobre a temperatura naquele ponto |
+| **Como funciona** | Um ESP32 com sensor DHT22 no ponto mede temperatura e umidade, classifica o calor em *normal*, *atenção* (≥ 30 °C) ou *crítico* (≥ 35 °C) e alerta no próprio ponto, mesmo sem internet. Quando há rede, envia as leituras por MQTT para a plataforma FIWARE, de onde esta Central de Leituras em Python as busca para mostrar o estado de cada ponto e analisá-las |
+| **Papel de cada componente** | ver a tabela da [seção 2](#2-solução-integrada) |
+| **Repositório** | https://github.com/DebuggersGS/ClimaPonto-Python |
+| **Indicador de impacto** | Horas em atenção e em crítico e graus-hora acima de 30 °C por ponto (calor acumulado a que o passageiro fica exposto). Referência: 331 °C·h no ano em Santana (nov/2025 a out/2026, dados INMET, repositório [ClimaPonto-DPS](https://github.com/DebuggersGS/ClimaPonto-DPS)) |
+| **ODS** | **3** Saúde e Bem-Estar (meta 3.d) · **11** Cidades e Comunidades Sustentáveis (meta 11.2) · **13** Ação Contra a Mudança do Clima (meta 13.1), detalhados na [seção 3](#3-impacto-e-contribuição-para-os-ods) |
 
 ---
 
@@ -128,7 +142,7 @@ O programa usa caminhos relativos à própria pasta, então funciona em qualquer
 ClimaPonto-Python/
 ├── main.py                     # aplicação completa (um único arquivo)
 ├── README.md
-├── prompts.md                  # documentação do uso de IA
+├── prompt.md                   # documentação do uso de IA
 ├── dados/                      # criada pelo programa
 │   ├── pontos.json             # pontos de ônibus
 │   ├── leituras.json           # leituras em uso
@@ -478,4 +492,4 @@ Resultado: **18 de 18 casos passaram**. Também foi conferido que o botão Run d
 | Guilherme De Rosa Peres | 569193 |
 | Vinícius Fuentes Cavalcanti | 570818 |
 
-O uso de inteligência artificial no desenvolvimento está documentado em [`prompts.md`](prompts.md).
+O uso de inteligência artificial no desenvolvimento está documentado em [`prompt.md`](prompt.md).
