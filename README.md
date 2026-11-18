@@ -41,7 +41,8 @@ O arquivo do vídeo também está em [`video/`](video/) (3min46s).
    │
    └──(MQTT)──> [FIWARE: IoT Agent → Orion (dado atual) → STH-Comet (histórico)]
                                    │
-                                   └──> [Aplicação web ClimaPonto (Front-end/Web)]
+                                   ├──> [Aplicação web ClimaPonto (Front-end/Web)]
+                                   └──> [Central de Leituras em Python (Computational Thinking)]
 ```
 
 | Camada | O que faz | Responsável |
@@ -49,6 +50,7 @@ O arquivo do vídeo também está em [`video/`](video/) (3min46s).
 | Dispositivo IoT (este repositório) | Mede, decide e alerta no ponto | Vinícius |
 | Back-end FIWARE (AWS) | Recebe por MQTT, guarda o dado atual e o histórico | Vinícius |
 | Aplicação / dashboard | Mostra os dados ao cidadão e gerencia os pontos | Enrico |
+| Central de Leituras (Python) | Busca as leituras no FIWARE, guarda em JSON e analisa ([ClimaPonto-Python](https://github.com/DebuggersGS/ClimaPonto-Python)) | Guilherme |
 
 ## Circuito
 
@@ -97,7 +99,7 @@ Todas as leituras do ESP32 são **simuladas no Wokwi** (`"origem": "simulacao_wo
 | Integrante | RM |
 |---|---|
 | Enrico Vieira de Almeida Vidal | 569217 |
-| Guilherme de Rosa Peres | 569193 |
+| Guilherme De Rosa Peres | 569193 |
 | Vinícius Fuentes Cavalcanti | 570818 |
 
 ## Uso de inteligência artificial
