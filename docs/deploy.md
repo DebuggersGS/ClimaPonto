@@ -22,7 +22,7 @@
 
 ## 2. Configuração do projeto na Vercel (ao executar o deploy)
 
-1. *Add New › Project* e importar o repositório privado `EnricoVidal/climaponto-gs-2026`.
+1. *Add New › Project* e importar o repositório privado `DebuggersGS/ClimaPonto-Web` (a conta da Vercel precisa ter acesso à organização DebuggersGS no GitHub).
 2. **Root Directory:** `web`. O restante vem do `vercel.json`.
 3. **Environment Variables** (Production e Preview):
    - `VITE_SUPABASE_URL` = URL do projeto Supabase.

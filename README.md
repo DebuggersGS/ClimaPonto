@@ -11,8 +11,8 @@
 | Cidadão beneficiado | Quem espera o ônibus em ponto exposto ao sol: idosos, trabalhadores que dependem do transporte público, gestantes e pessoas com doenças agravadas pelo calor |
 | Problema, em uma frase | Nos dias de calor extremo, quem espera o ônibus fica exposto sem saber quais pontos estão em condição de risco, e a cidade não tem esse dado por ponto |
 | Como funciona | Um sensor (ESP32) em cada ponto mede temperatura e umidade e envia as leituras com o estado ambiental (normal, atenção, crítico); o banco (Supabase) guarda pontos e leituras; esta aplicação web mostra mapa, situação atual, histórico, comparações e alertas, e permite à administração cadastrar e manter os pontos |
-| O que cada parte faz | Front-end Design (interface) e Web Development (interação): esta aplicação web em `web/`. Edge Computing: sensor e circuito. Python e Matemática: análise e cálculos sobre as leituras. Software & Total Experience Design: jornada do cidadão e requisitos. Storytelling: pitch. As partes das outras disciplinas estão nas pastas da equipe no repositório |
-| Link do repositório | https://github.com/EnricoVidal/climaponto-gs-2026 (privado) |
+| O que cada parte faz | Front-end Design (interface) e Web Development (interação): esta aplicação web em `web/`. Edge Computing: sensor e circuito. Python e Matemática: análise e cálculos sobre as leituras. Software & Total Experience Design: jornada do cidadão e requisitos. Storytelling: pitch. As partes das outras disciplinas estão nos repositórios da equipe na organização [DebuggersGS](https://github.com/DebuggersGS): `ClimaPonto-Edge`, `ClimaPonto-DPS`, `ClimaPonto-Python` e `ClimaPonto-TotalEx` |
+| Link do repositório | https://github.com/DebuggersGS/ClimaPonto-Web (privado, organização da equipe DebuggersGS) |
 | Indicador de impacto | Número de pontos monitorados e horas por ponto em estado "atenção" ou "crítico" identificadas no histórico (visível no Histórico, em Análises e no relatório CSV) |
 | ODS conectados | 3, 11 e 13 (detalhes abaixo) |
 
