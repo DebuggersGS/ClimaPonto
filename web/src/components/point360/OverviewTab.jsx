@@ -9,9 +9,6 @@ import Card from '../ui/Card.jsx'
 import EmptyState from '../ui/EmptyState.jsx'
 import MetricCard from '../ui/MetricCard.jsx'
 
-// O mapa reutilizado tem altura de tela cheia; aqui vira um minimapa.
-const MINIMAP_SIZE = '[&_figure>div]:h-64 [&_figure>div]:min-h-0 lg:[&_figure>div]:h-64'
-
 const noop = () => {}
 
 function Indicators({ current, quality, now }) {
@@ -47,11 +44,11 @@ function Indicators({ current, quality, now }) {
 function MiniMap({ stop }) {
   if (partitionStopsByCoordinates([stop]).located.length === 0) return null
   return (
-    <section aria-labelledby="minimapa-titulo" className={MINIMAP_SIZE}>
+    <section aria-labelledby="minimapa-titulo">
       <h3 id="minimapa-titulo" className="mb-2 text-lg font-semibold text-slate-900">
         Localização
       </h3>
-      <StopMap items={[stop]} selectedCode={stop.code} onSelect={noop} fictionalPosition={stop.isDemo} />
+      <StopMap items={[stop]} selectedCode={stop.code} onSelect={noop} fictionalPosition={stop.isDemo} compact />
     </section>
   )
 }

@@ -1,6 +1,6 @@
 import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { MARKER_SHAPES, SAO_PAULO_CENTER, buildStopGeoData, getMapBounds, resolveMapOrigin } from './geoMap.js'
+import { MARKER_SHAPES, SAO_PAULO_CENTER, buildStopGeoData, getMapBounds, resolveMapOrigin, toMapItem } from './geoMap.js'
 import { SAO_PAULO_BOUNDS } from './stopMap.js'
 
 const stop = (code, latitude, longitude, extra = {}) => ({ id: `id-${code}`, code, latitude, longitude, ...extra })
@@ -83,5 +83,29 @@ describe('getMapBounds', () => {
     const { bounds, isFallback } = getMapBounds([[-46.6, -23.5]])
     assert.equal(isFallback, false)
     assert.deepEqual(bounds, [[-46.6, -23.5], [-46.6, -23.5]])
+  })
+})
+
+describe('toMapItem', () => {
+  it('ponto simples (Ponto 360°) vira { stop, reading: null, connectivity: null }', () => {
+    const stop = { id: 'a', code: 'MOCK-01', latitude: -23.5, longitude: -46.6 }
+    assert.deepEqual(toMapItem(stop), { stop, reading: null, connectivity: null })
+  })
+
+  it('item do summarizeDashboard é preservado e campos ausentes viram null', () => {
+    const stop = { id: 'b', code: 'MOCK-02' }
+    const connectivity = { status: 'online' }
+    assert.deepEqual(toMapItem({ stop, connectivity }), { stop, reading: null, connectivity })
+  })
+
+  it('entrada nula não lança exceção', () => {
+    assert.deepEqual(toMapItem(null), { stop: {}, reading: null, connectivity: null })
+  })
+
+  it('buildStopGeoData aceita os dois formatos e devolve a mesma feição', () => {
+    const stop = { id: 'c', code: 'MOCK-03', name: 'X', latitude: -23.55, longitude: -46.63 }
+    const simples = buildStopGeoData([stop]).featureCollection.features[0]
+    const embrulhado = buildStopGeoData([toMapItem(stop)]).featureCollection.features[0]
+    assert.deepEqual(simples, embrulhado)
   })
 })

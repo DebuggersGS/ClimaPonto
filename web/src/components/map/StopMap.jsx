@@ -1,6 +1,6 @@
 import { TriangleAlert } from 'lucide-react'
 import { lazy, Suspense, useMemo, useState } from 'react'
-import { buildStopGeoData } from '../../utils/geoMap.js'
+import { buildStopGeoData, toMapItem } from '../../utils/geoMap.js'
 import Badge from '../ui/Badge.jsx'
 import Button from '../ui/Button.jsx'
 import MapBoundary from './MapBoundary.jsx'
@@ -63,7 +63,8 @@ function UnlocatedSection({ entries, onSelect, selectedCode }) {
  * @param {{ items: object[], selectedCode: string|null, onSelect: (code: string) => void, fictionalPosition?: boolean }} props
  *   `items` itens (summarizeDashboard) já filtrados; `fictionalPosition` rotula o conjunto demonstrativo
  */
-export default function StopMap({ items, selectedCode, onSelect, fictionalPosition = false }) {
+export default function StopMap({ items: rawItems, selectedCode, onSelect, fictionalPosition = false, compact = false }) {
+  const items = useMemo(() => (rawItems ?? []).map(toMapItem), [rawItems])
   const geo = useMemo(() => buildStopGeoData(items), [items])
   const [failure, setFailure] = useState(() => (hasWebGL() ? null : 'webgl'))
   const [attempt, setAttempt] = useState(0)
@@ -83,7 +84,13 @@ export default function StopMap({ items, selectedCode, onSelect, fictionalPositi
       {failure && <FailureNotice kind={failure} onRetry={retry} />}
       {!failure && hasLocated && (
         <figure aria-label="Mapa dos pontos de ônibus" className="m-0">
-          <div className="relative h-[60dvh] min-h-96 w-full overflow-hidden rounded-card bg-surface-muted ring-1 ring-slate-900/10 lg:h-[68dvh]">
+          <div
+            className={
+              compact
+                ? 'relative h-64 w-full overflow-hidden rounded-card bg-surface-muted ring-1 ring-slate-900/10'
+                : 'relative h-[60dvh] min-h-96 w-full overflow-hidden rounded-card bg-surface-muted ring-1 ring-slate-900/10 lg:h-[68dvh]'
+            }
+          >
             <MapBoundary key={attempt} onFailure={failWith('load')}>
               <Suspense fallback={<p role="status" className="p-4 text-sm text-slate-700">Carregando mapa…</p>}>
                 <StopMapCanvas geo={geo} selectedCode={selectedCode} onSelect={onSelect} onFailure={failWith('style')} />
@@ -95,15 +102,17 @@ export default function StopMap({ items, selectedCode, onSelect, fictionalPositi
               </Badge>
             )}
           </div>
-          <figcaption>
-            <MapLegend />
-          </figcaption>
+          {!compact && (
+            <figcaption>
+              <MapLegend />
+            </figcaption>
+          )}
         </figure>
       )}
       {!hasLocated && !failure && (
         <p className="text-sm text-slate-700">Nenhum ponto tem coordenadas válidas cadastradas para aparecer no mapa.</p>
       )}
-      {(failure || hasLocated) && (
+      {(failure || (hasLocated && !compact)) && (
         <details open={failure !== null} className="mt-3">
           <summary className="min-h-10 cursor-pointer py-2 text-sm font-medium text-slate-800 focus-visible:outline-2 focus-visible:outline-brand-600">
             Lista dos pontos no mapa ({located.length})

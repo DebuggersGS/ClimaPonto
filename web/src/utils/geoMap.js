@@ -22,7 +22,11 @@ export const MARKER_SHAPES = Object.freeze({
 
 const CONNECTIVITY_STATUSES = ['online', 'delayed', 'offline', 'no_data', 'unknown']
 
-function unwrap(item) {
+/**
+ * Normaliza um item do mapa para { stop, reading, connectivity }: aceita ponto simples (Ponto 360°)
+ * ou item do summarizeDashboard. Componentes do mapa só recebem este formato.
+ */
+export function toMapItem(item) {
   if (item !== null && typeof item === 'object' && 'stop' in item) {
     return { stop: item.stop ?? {}, reading: item.reading ?? null, connectivity: item.connectivity ?? null }
   }
@@ -44,7 +48,7 @@ export function resolveMapOrigin(stop, reading) {
 }
 
 function toFeature(item) {
-  const { stop, reading, connectivity } = unwrap(item)
+  const { stop, reading, connectivity } = toMapItem(item)
   const environmental = normalizeEnvironmentalStatus(reading?.environmentalStatus)
   const status = CONNECTIVITY_STATUSES.includes(connectivity?.status) ? connectivity.status : 'no_data'
   return {

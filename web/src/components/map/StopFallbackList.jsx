@@ -22,7 +22,7 @@ export default function StopFallbackList({ items, selectedCode, onSelect, label 
             </span>
             <span className="flex flex-wrap gap-1.5">
               {reading && <EnvironmentalStatusBadge status={reading.environmentalStatus} size="sm" />}
-              <ConnectivityBadge status={connectivity.status} />
+              {connectivity && <ConnectivityBadge status={connectivity.status} />}
             </span>
           </button>
         </li>
