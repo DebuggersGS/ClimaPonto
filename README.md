@@ -17,7 +17,7 @@
 | **Cidade / bairro** | São Paulo/SP. Ponto piloto **P001** na região de Santana (Zona Norte), endereço exato a confirmar |
 | **Cidadão beneficiado** | Passageiros que esperam ônibus expostos ao calor, principalmente idosos e trabalhadores |
 | **Problema em uma frase** | Quem espera ônibus em São Paulo fica exposto ao calor sem nenhuma informação sobre a temperatura naquele ponto |
-| **Como funciona** | Um ESP32 com sensor no ponto mede temperatura e umidade, classifica o calor em *normal*, *atenção* (≥ 30 °C) ou *crítico* (≥ 35 °C) e alerta no local, mesmo sem internet. As leituras seguem por MQTT para a plataforma FIWARE e aparecem numa aplicação web com estado, histórico e gerenciamento dos pontos |
+| **Como funciona** | Um ESP32 com sensor no ponto mede temperatura e umidade, classifica o calor em *normal*, *atenção* (≥ 30 °C) ou *crítico* (≥ 35 °C) e alerta no local, mesmo sem internet. As leituras seguem por MQTT para a plataforma FIWARE, são coletadas pela Central em Python e aparecem numa aplicação web com mapa, estado, histórico e gerenciamento dos pontos |
 | **Papel de cada componente** | ver tabela abaixo |
 | **Repositório** | https://github.com/DebuggersGS/ClimaPonto-TotalEx |
 | **Indicador de impacto** | Graus-hora acima de 30 °C por ponto. Referência: 331 °C·h no ano em Santana (dados INMET, repositório [ClimaPonto-DPS](https://github.com/DebuggersGS/ClimaPonto-DPS)). Para a experiência: 80 % ou mais das pessoas interpretando o estado corretamente em teste com 5 participantes (meta proposta) |
@@ -26,7 +26,7 @@
 | Componente | Disciplina | Responsável |
 |---|---|---|
 | Sensor ESP32 (Wokwi) e integração FIWARE ([ClimaPonto-Edge](https://github.com/DebuggersGS/ClimaPonto-Edge)) | Edge Computing & Computer Systems | Vinícius |
-| Aplicação web com CRUD de pontos | Front-end Design · Web Development | Enrico |
+| Aplicação web com mapa, histórico e CRUD de pontos ([ClimaPonto-Web](https://github.com/DebuggersGS/ClimaPonto-Web)) | Front-end Design · Web Development | Enrico |
 | Central de Leituras em Python ([ClimaPonto-Python](https://github.com/DebuggersGS/ClimaPonto-Python)) | Computational Thinking with Python | Guilherme |
 | Modelagem matemática ([ClimaPonto-DPS](https://github.com/DebuggersGS/ClimaPonto-DPS)) | Differentiated Problem Solving | Guilherme |
 | **Experiência, requisitos, protótipo e roadmap** | **Software & Total Experience Design** | **Vinícius** |
