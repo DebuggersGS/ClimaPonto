@@ -1,7 +1,13 @@
 import { useReducedMotion } from 'motion/react'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import MapGL, { AttributionControl, Layer, NavigationControl, Source } from 'react-map-gl/maplibre'
+import { setWorkerUrl } from 'maplibre-gl'
 import 'maplibre-gl/dist/maplibre-gl.css'
+// O MapLibre 6 procura o worker em "./maplibre-gl-worker.mjs" ao lado do próprio módulo. Com o Vite isso
+// quebra nos dois modos: o pré-empacotamento (dev) não copia o arquivo e o build não o emite. Sem worker
+// nenhum estilo/bloco é processado e o mapa caía no aviso de falha. Aqui o Vite emite o worker como
+// asset do próprio site (CSP: worker-src 'self') e o MapLibre recebe a URL explícita.
+import maplibreWorkerUrl from 'maplibre-gl/dist/maplibre-gl-worker.mjs?url'
 import { RotateCcw } from 'lucide-react'
 import Button from '../ui/Button.jsx'
 import { drawMarkerImage } from './markerImages.js'
@@ -11,17 +17,32 @@ import {
   clusterLayer,
   FIT_OPTIONS,
   LAYER_IDS,
+  markerImageId,
   MAP_LOCALE,
   MAP_STYLES,
   pointsLayer,
   SELECT_ZOOM,
   selectedLayer,
   SOURCE_ID,
+  STATUS_LEGEND,
 } from './mapConfig.js'
 import { useColorScheme } from './useColorScheme.js'
 
+setWorkerUrl(maplibreWorkerUrl)
+
 const INTERACTIVE_LAYERS = [LAYER_IDS.clusters, LAYER_IDS.points]
 const FLY_DURATION_MS = 800
+
+/** Registra os 8 marcadores (estado × conectividade) de uma vez, antes de a camada pedir por eles. */
+function addMarkerImages(map) {
+  for (const { status } of STATUS_LEGEND) {
+    for (const online of [true, false]) {
+      const id = markerImageId(status, online)
+      const image = drawMarkerImage(id)
+      if (image && !map.hasImage(id)) map.addImage(id, image.data, { pixelRatio: image.pixelRatio })
+    }
+  }
+}
 
 /** Pontos [lng, lat] por código, para centralizar a seleção. */
 const coordinatesByCode = (featureCollection) =>
@@ -98,8 +119,11 @@ export default function StopMapCanvas({ geo, selectedCode, onSelect, onFailure }
   }
 
   function handleError(event) {
-    if (!loadedRef.current) onFailure()
-    else if (event.sourceId) setTileWarning(true)
+    // O erro fica no console para diagnóstico real (o aviso da interface não substitui a causa).
+    console.error('[mapa]', event.error ?? event)
+    // Bloco isolado (tem sourceId/tile) não derruba o mapa: só avisa. Sem estilo carregado, cai na lista.
+    if (event.sourceId || event.tile) setTileWarning(true)
+    else if (!loadedRef.current) onFailure()
   }
 
   return (
@@ -111,8 +135,11 @@ export default function StopMapCanvas({ geo, selectedCode, onSelect, onFailure }
         attributionControl={false}
         interactiveLayerIds={INTERACTIVE_LAYERS}
         cursor={hovering ? 'pointer' : ''}
+        // Marcadores registrados assim que o estilo chega (e de novo ao trocar claro/escuro), antes do 1º quadro.
+        onStyleData={(event) => addMarkerImages(event.target)}
         onLoad={(event) => {
           loadedRef.current = true
+          addMarkerImages(event.target)
           setMap(event.target)
         }}
         onError={handleError}
