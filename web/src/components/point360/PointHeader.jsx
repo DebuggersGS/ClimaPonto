@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { Link } from 'react-router'
 import { resolveMapOrigin } from '../../utils/geoMap.js'
 import { partitionStopsByCoordinates } from '../../utils/stopMap.js'
-import DemonstrativeBadge from '../data/DemonstrativeBadge.jsx'
 import FavoriteButton from '../stops/FavoriteButton.jsx'
 import Badge from '../ui/Badge.jsx'
 import Button from '../ui/Button.jsx'
@@ -35,7 +34,7 @@ export default function PointHeader({ stop, isFavorite, onToggleFavorite }) {
   }
 
   return (
-    <header className="mb-6">
+    <header className="mb-4">
       {/* Destino fixo: o mapa com este ponto selecionado; funciona também em acesso direto (sem histórico). */}
       <Link
         to={`/pontos?ponto=${encodeURIComponent(stop.code)}`}
@@ -62,7 +61,6 @@ export default function PointHeader({ stop, isFavorite, onToggleFavorite }) {
             )}
           </p>
           <div className="mt-2 flex flex-wrap items-center gap-2">
-            <DemonstrativeBadge />
             {stop.isDemo && (
               <Badge tone="demo" icon="Sparkles" size="sm">
                 Ponto demonstrativo

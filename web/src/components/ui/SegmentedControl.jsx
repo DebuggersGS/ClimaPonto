@@ -13,7 +13,7 @@ export default function SegmentedControl({ label, options, value, onChange, clas
   const groupId = useId()
   const reducedMotion = useReducedMotion()
   return (
-    <div role="group" aria-label={label} className={cn('glass-control inline-flex max-w-full flex-wrap gap-1 rounded-full p-1', className)}>
+    <div role="group" aria-label={label} className={cn('glass-control inline-flex max-w-full flex-wrap gap-1 rounded-[1.375rem] p-1', className)}>
       {options.map((option) => {
         const active = option.value === value
         return (
@@ -23,7 +23,7 @@ export default function SegmentedControl({ label, options, value, onChange, clas
             aria-pressed={active}
             onClick={() => onChange(option.value)}
             className={cn(
-              'relative min-h-10 rounded-full px-4 py-2 text-sm font-medium transition-colors duration-150',
+              'relative min-h-9 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors duration-150',
               active ? 'font-semibold text-slate-900' : 'text-slate-700 hover:text-slate-900',
             )}
           >

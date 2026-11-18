@@ -17,12 +17,12 @@ export default function DemoNotice({ className }) {
       role="note"
       aria-label="Aviso sobre os dados"
       className={cn(
-        'mb-6 flex items-start gap-3 rounded-2xl px-4 py-3 text-sm ring-1 ring-inset',
+        'mb-5 flex items-start gap-2.5 rounded-xl px-3.5 py-2 text-[0.8125rem] leading-5 ring-1 ring-inset',
         getToneClasses(tone.tone).soft,
         className,
       )}
     >
-      <StatusIcon name={tone.icon} className="mt-0.5 h-4 w-4 shrink-0" />
+      <StatusIcon name={tone.icon} className="mt-0.5 h-3.5 w-3.5 shrink-0" />
       <p>
         {mode === 'supabase' ? (
           <>

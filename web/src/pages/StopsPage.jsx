@@ -1,7 +1,6 @@
 import { useMemo, useState } from 'react'
 import StopsExplorer from '../components/stops/StopsExplorer.jsx'
 import Button from '../components/ui/Button.jsx'
-import DataSourceBadge from '../components/ui/DataSourceBadge.jsx'
 import EmptyState from '../components/ui/EmptyState.jsx'
 import PageHeader from '../components/ui/PageHeader.jsx'
 import Skeleton from '../components/ui/Skeleton.jsx'
@@ -26,7 +25,6 @@ function StopsContent({ onRetry }) {
 
   return (
     <>
-      <DataSourceBadge source={source} />
 
       {loading && !error && <Skeleton shape="chart" label="Carregando pontos…" />}
 

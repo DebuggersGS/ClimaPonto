@@ -1,6 +1,5 @@
 import { useMemo } from 'react'
 import SensorLab from '../components/stops/SensorLab.jsx'
-import DataSourceBadge from '../components/ui/DataSourceBadge.jsx'
 import EmptyState from '../components/ui/EmptyState.jsx'
 import PageHeader from '../components/ui/PageHeader.jsx'
 import Skeleton from '../components/ui/Skeleton.jsx'
@@ -17,7 +16,7 @@ import { summarizeDashboard } from '../utils/readings.js'
  */
 export default function LabPage() {
   useDocumentTitle('Laboratório')
-  const { stops, isLoading, error, source } = useStops()
+  const { stops, isLoading, error } = useStops()
   const { readings, isLoading: readingsLoading, error: readingsError, lastUpdatedAt } = useLatestReadings()
   const now = useNow()
   const scenarios = useMemo(() => getSensorLabScenarios(), [])
@@ -33,7 +32,6 @@ export default function LabPage() {
         title="Laboratório"
         description="Cenários simulados para conferir como a interface reage a cada estado de sensor. Fica separado do monitoramento: nada aqui é medição real."
       />
-      <DataSourceBadge source={source} />
       {scenarios === null ? (
         <EmptyState
           variant="info"

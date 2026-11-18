@@ -86,7 +86,7 @@ export default function StopStatusCard({ item, now }) {
         <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-slate-100 pt-2">
           <Link
             to={`/pontos/${encodeURIComponent(stop.code)}`}
-            aria-label={`Abrir ${stop.name} (${stop.code})`}
+            aria-label={`Abrir ponto: ${stop.name} (${stop.code})`}
             className="group/link inline-flex min-h-10 items-center gap-1.5 rounded-md px-2 text-sm font-medium text-brand-700 underline-offset-2 hover:underline focus-visible:outline-2 focus-visible:outline-brand-600 dark:text-brand-200"
           >
             Abrir ponto
@@ -95,7 +95,7 @@ export default function StopStatusCard({ item, now }) {
               className="h-4 w-4 transition-transform duration-150 ease-out-soft motion-safe:group-hover/link:translate-x-0.5"
             />
           </Link>
-          <StopHistoryLink code={stop.code}>Histórico</StopHistoryLink>
+          <StopHistoryLink code={stop.code} />
         </div>
       </div>
     </Card>

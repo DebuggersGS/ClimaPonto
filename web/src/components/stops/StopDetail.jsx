@@ -44,6 +44,9 @@ function ReadingRows({ reading }) {
       <Row label="Origem">
         <ReadingSourceBadge source={reading.source} />
       </Row>
+      <Row label="Regra de conectividade">
+        <span className="text-slate-600">Provisória: baseada na idade da última leitura e num intervalo de envio de exemplo.</span>
+      </Row>
     </>
   )
 }

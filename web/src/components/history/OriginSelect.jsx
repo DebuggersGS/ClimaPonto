@@ -30,7 +30,7 @@ export default function OriginSelect({ options, value, onChange, id }) {
             </option>
           ))}
         </select>
-        <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 text-slate-600" />
+        <ChevronDown aria-hidden="true" className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-600" />
       </div>
     </div>
   )

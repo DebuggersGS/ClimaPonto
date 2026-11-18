@@ -1,9 +1,6 @@
 import { Link } from 'react-router'
 import { MapPin } from 'lucide-react'
-import Badge from '../ui/Badge.jsx'
 import Card from '../ui/Card.jsx'
-import { getDataModeInfo } from '../../utils/dataMode.js'
-import { getDataModeTone } from '../../utils/statusTones.js'
 
 // Brilho radial sutil (brand + ciano) sobre o fundo ink; decorativo.
 const GLOW = {
@@ -12,21 +9,19 @@ const GLOW = {
 }
 
 /**
- * Hero escuro da Visão geral: único h1 da página, frase do produto, indicador do
- * modo de dados e, em `children`, o controle de atualização.
- * @param {{ source: string, children?: import('react').ReactNode }} props
+ * Hero escuro da Visão geral: único h1 da página, frase do produto e, em `children`,
+ * o controle de atualização.
+ * @param {{ children?: import('react').ReactNode }} props
  */
-export default function DashboardHero({ source, children }) {
-  const tone = getDataModeTone(source)
+export default function DashboardHero({ children }) {
   return (
     <Card variant="dark" className="relative mb-section overflow-hidden p-6 sm:p-8">
       <div aria-hidden="true" className="pointer-events-none absolute inset-0" style={GLOW} />
       <div className="relative flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div className="min-w-0">
-          <Badge tone={tone.tone} icon={tone.icon} size="sm">
-            Fonte: {getDataModeInfo(source).label}
-          </Badge>
-          <h1 className="mt-4 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Visão geral</h1>
+          {/* O modo de dados já aparece no cabeçalho e no aviso do topo: aqui não se repete. */}
+          <p className="text-xs font-semibold uppercase tracking-wider text-on-ink-muted">Monitoramento de calor urbano</p>
+          <h1 className="mt-2 text-3xl font-semibold tracking-tight text-white sm:text-4xl">Visão geral</h1>
           <p className="mt-2 max-w-xl text-base text-on-ink-muted">
             Calor urbano sob controle: acompanhe temperatura, umidade e conectividade dos pontos de ônibus de São Paulo.
           </p>

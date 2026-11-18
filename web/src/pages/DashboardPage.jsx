@@ -74,16 +74,17 @@ function ReadyContent({ stops, summary, now, source }) {
             <TabsTrigger value="insights">Insights</TabsTrigger>
             <TabsTrigger value="comparar">Comparar pontos</TabsTrigger>
           </TabsList>
-          <TabsContent value="evolucao">
+          {/* keepMounted: trocar de aba não desmonta os gráficos nem refaz a consulta ("Carregando…" piscando). */}
+          <TabsContent value="evolucao" keepMounted>
             <RecentEvolutionPanel stops={stops} items={summary.items} latest={summary.latest} />
           </TabsContent>
-          <TabsContent value="insights">
+          <TabsContent value="insights" keepMounted>
             <div className="max-w-3xl space-y-4">
               <DataSourceBadge source={source} />
               <InsightsPanel insights={insights} />
             </div>
           </TabsContent>
-          <TabsContent value="comparar">
+          <TabsContent value="comparar" keepMounted>
             <StopComparison stops={stops} />
           </TabsContent>
         </Tabs>
@@ -132,7 +133,7 @@ export default function DashboardPage() {
 
   return (
     <>
-      <DashboardHero source={source}>
+      <DashboardHero>
         <RefreshControl
           lastUpdatedAt={lastUpdatedAt}
           isRefreshing={readingsLoading || isRefreshing}
