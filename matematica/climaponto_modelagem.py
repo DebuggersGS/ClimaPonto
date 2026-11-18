@@ -72,7 +72,7 @@ PONTOS = (
 PERIODO_RELATORIO = (datetime(2025, 11, 1), datetime(2026, 11, 1))  # período do relatório PDF
 
 URL_DADOS = "https://raw.githubusercontent.com/DebuggersGS/ClimaPonto-DPS/main/dados/inmet_sp.json"
-API_CLIMAPONTO = None  # endereço da API do backend do ClimaPonto (ainda não publicado)
+API_CLIMAPONTO = None  # ponto de extensão: endereço de uma API de leituras (não usada; ver receber_leituras_esp32)
 TAMANHO_MAXIMO = 20 * 1024 * 1024   # recusa respostas maiores que 20 MB
 FAIXA_VALIDA = (-5.0, 45.0)         # °C fisicamente possíveis em São Paulo
 
@@ -471,18 +471,21 @@ def receber_leituras_esp32(ponto, modelos, quantidade=6):
     """Últimas leituras do sensor instalado no ponto.
 
     COMO FUNCIONA NA SOLUÇÃO INTEGRADA
-      1. O ESP32 do ponto lê o sensor DHT22 (temperatura e umidade) a cada 10 min;
-         esse intervalo vem do cálculo de limite (erro < 3,5 % na taxa de variação).
+      1. O ESP32 do ponto lê o sensor DHT22 (temperatura e umidade). Em campo, o intervalo
+         recomendado é de 10 min, resultado do cálculo de limite (erro < 3,5 % na taxa de
+         variação); na simulação do Wokwi a leitura é feita a cada 2 s, para a demonstração.
       2. Ele classifica a leitura no próprio dispositivo (normal/atencao/critico) e aciona
          LEDs e buzzer mesmo sem internet: a decisão acontece na borda (edge).
-      3. Com rede, envia à API do ClimaPonto um JSON no contrato do grupo:
-         {"ponto_id", "temperatura", "umidade", "estado", "origem", "timestamp"}.
-      4. Este programa consulta GET {API}/leituras?ponto_id=P001&limite=6 e usa as
-         leituras para calcular a tendência (derivada) e prever o próximo estado.
+      3. Com rede, publica a leitura por MQTT na plataforma FIWARE do grupo
+         (IoT Agent -> Orion -> STH-Comet), consultada pela Central de Leituras em Python
+         e pela aplicação web, no formato {"ponto_id", "temperatura", "umidade", "estado",
+         "origem", "timestamp"}.
+      4. Com as últimas leituras, calcula-se a tendência (derivada) e prevê-se o próximo estado.
 
-    NESTA VERSÃO a API ainda não foi publicada (API_CLIMAPONTO = None). Por isso as
-    leituras são de DEMONSTRAÇÃO, geradas a partir do modelo ajustado aos dados reais
-    daquele ponto e daquele horário, com "origem": "simulacao_esp32".
+    NESTE PROGRAMA as leituras são de DEMONSTRAÇÃO, porque o servidor FIWARE fica na nuvem
+    e só é ligado durante os testes do grupo. Elas são geradas a partir do modelo ajustado
+    aos dados reais daquele ponto e daquele horário, com "origem": "simulacao_esp32".
+    Se API_CLIMAPONTO receber um endereço, as leituras passam a ser buscadas nele.
     """
     if API_CLIMAPONTO:
         url = f"{API_CLIMAPONTO}/leituras?ponto_id={ponto['id']}&limite={quantidade}"
@@ -554,7 +557,7 @@ def painel_sensor(ponto, modelos):
                 print(f"  Previsão: estado {nome} em cerca de {minutos:.0f} min, se a tendência continuar.")
             break
     print("\n  [Demonstração] Leituras simuladas (origem: simulacao_esp32). Na solução integrada,")
-    print("  elas vêm do ESP32 do ponto pela API do ClimaPonto (parte de Edge Computing).")
+    print("  elas vêm do ESP32 do ponto pela plataforma FIWARE (parte de Edge Computing).")
 
 
 # =============================================================================

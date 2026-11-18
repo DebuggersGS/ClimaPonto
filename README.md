@@ -17,7 +17,7 @@
 | **Cidade / bairro** | São Paulo/SP. Ponto piloto **P001** na região de Santana (Zona Norte), endereço exato a confirmar |
 | **Cidadão beneficiado** | Passageiros que esperam ônibus expostos ao calor, principalmente idosos e trabalhadores |
 | **Problema em uma frase** | Quem espera ônibus em São Paulo fica exposto ao calor sem nenhuma informação sobre a temperatura naquele ponto |
-| **Como funciona** | Um sensor ESP32 no ponto mede temperatura e umidade a cada 10 min, classifica o calor em *normal*, *atenção* (≥ 30 °C) ou *crítico* (≥ 35 °C), aciona sinais locais e envia as leituras para um painel web; a análise matemática define a frequência de leitura, os horários críticos e a tendência de aquecimento |
+| **Como funciona** | Um ESP32 com sensor DHT22 no ponto mede temperatura e umidade, classifica o calor em *normal*, *atenção* (≥ 30 °C) ou *crítico* (≥ 35 °C) e alerta no próprio ponto, mesmo sem internet. Quando há rede, envia as leituras por MQTT para a plataforma FIWARE, consultada pela aplicação web e pela Central de Leituras em Python. A análise matemática (este repositório) define a frequência de leitura recomendada (10 min), os horários críticos e a tendência de aquecimento |
 | **Papel de cada componente** | ver tabela abaixo |
 | **Repositório** | https://github.com/DebuggersGS/ClimaPonto-DPS |
 | **Indicador de impacto** | Graus-hora acima de 30 °C por ponto (calor acumulado a que o passageiro fica exposto) e horas com alerta informado. Referência medida: 331 °C·h no ano em Santana (nov/2025 a out/2026, dados INMET) |
@@ -26,12 +26,19 @@
 ## Solução integrada
 
 ```
-[ESP32 + DHT22 no ponto]  ──(JSON a cada 10 min)──>  [API ClimaPonto]  ──>  [Painel web]
-   classifica localmente                                   │
-   LEDs/buzzer sem internet                                ▼
-                                          [Análise em Python: limites, derivadas, integrais]
-                                                   ▲
-[INMET - dados históricos oficiais] ──(robô mensal)── dados/inmet_sp.json
+[ESP32 + DHT22 no ponto]
+   │  classifica e alerta no local (LEDs, buzzer e LCD), mesmo sem internet
+   │
+   └──(MQTT)──> [FIWARE: IoT Agent → Orion (dado atual) → STH-Comet (histórico)]
+                                   │
+                                   ├──> [Aplicação web ClimaPonto]
+                                   └──> [Central de Leituras em Python]
+
+[INMET - dados históricos oficiais] ──(robô mensal)──> dados/inmet_sp.json
+                                   │
+                                   └──> [Análise matemática (este repositório): limites, derivadas, integrais]
+                                          define a frequência de leitura recomendada (10 min),
+                                          os horários críticos e a regra de tendência usados pelo sensor e pelo painel
 ```
 
 | Componente | Disciplina |
@@ -44,6 +51,10 @@
 
 Este repositório contém a parte de **Differentiated Problem Solving** (pasta `matematica/`). As demais partes ficam nos repositórios de cada disciplina, na organização DebuggersGS.
 
+## Relatório técnico
+
+O relatório técnico em PDF (normas ABNT), com a descrição do problema, o modelo, as análises de limites, derivadas e integrais e a interpretação dos resultados, está em [`relatorio/ClimaPonto_Relatorio_Differentiated_Problem_Solving.pdf`](relatorio/ClimaPonto_Relatorio_Differentiated_Problem_Solving.pdf). Ele é entregue no Portal junto com o código `matematica/climaponto_modelagem.py`.
+
 ## Dados
 
 - **Fonte:** medições reais das estações automáticas do **INMET** ([dados históricos](https://portal.inmet.gov.br/dadoshistoricos)), convertidas de UTC para o horário de Brasília.
@@ -51,7 +62,7 @@ Este repositório contém a parte de **Differentiated Problem Solving** (pasta `
 - **Atualização automática:** o robô [`atualizar_dados.yml`](.github/workflows/atualizar_dados.yml) roda todo dia 3, baixa os arquivos oficiais do INMET (grandes, com todas as estações do país) nos servidores do GitHub e publica só as 3 estações em [`dados/inmet_sp.json`](dados/inmet_sp.json) (~230 KB).
 - **No programa:** baixa esse JSON leve do GitHub em segundos. Se o GitHub falhar, baixa direto do portal do INMET (reserva). Guarda uma cópia em `dados_cache` para rodar sem internet nas próximas vezes.
 - **Falhas do INMET:** a estação de Barueri ficou sem dados em vários meses de 2026. O programa detecta e usa automaticamente os 12 meses completos mais recentes com dados suficientes.
-- **Sensor ESP32:** nesta versão, as leituras do sensor no programa de matemática são de **demonstração** (`"origem": "simulacao_esp32"`), no mesmo formato JSON que o ESP32 vai enviar.
+- **Sensor ESP32:** as leituras do sensor no programa de matemática são de **demonstração** (`"origem": "simulacao_esp32"`), no mesmo formato de leitura da solução, porque o servidor FIWARE só fica ligado durante os testes do grupo. As leituras reais do ESP32 chegam por MQTT ao FIWARE e são consultadas pela Central de Leituras em Python ([ClimaPonto-Python](https://github.com/DebuggersGS/ClimaPonto-Python)).
 
 ## Como rodar a modelagem matemática
 
