@@ -10,7 +10,7 @@ const DESKTOP = { width: 1366, height: 900 }
 const MOBILE = { width: 375, height: 812 }
 const botaoAbrir = (page) => page.getByRole('button', { name: /Busca rápida/ })
 const dialogo = (page) => page.getByRole('dialog', { name: 'Busca rápida' })
-const campo = (page) => page.getByRole('combobox', { name: 'Buscar página ou ponto' })
+const campo = (page) => page.getByRole('combobox', { name: 'Buscar página, ação ou ponto' })
 
 test.use({ viewport: DESKTOP })
 
@@ -79,7 +79,8 @@ test('busca por código de ponto leva à ficha em /pontos', async ({ page }) => 
   await campo(page).fill('MOCK-03')
   await expect(dialogo(page).getByRole('option').first()).toContainText('MOCK-03')
   await page.keyboard.press('Enter')
-  await expect(page).toHaveURL(/\/pontos\?ponto=MOCK-03/)
+  // contrato de buildCommandResults (commandSearch.test.js): ponto abre o Ponto 360°
+  await expect(page).toHaveURL(/\/pontos\/MOCK-03$/)
 })
 
 test('sem resultados: mensagem em texto', async ({ page }) => {

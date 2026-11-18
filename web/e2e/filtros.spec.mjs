@@ -36,7 +36,9 @@ async function abrirDashboard(page) {
 /** "Bairro" e "Somente favoritos" vivem no Popover "Mais filtros": abre-o se estiver fechado. */
 const campoBairro = (page) => page.getByRole('combobox', { name: 'Bairro' })
 async function abrirMais(page) {
-  if (!(await campoBairro(page).isVisible())) await page.getByRole('button', { name: /^Mais filtros/ }).click()
+  // pelo estado do gatilho (aria-expanded), não pela visibilidade: o popover que fecha ainda fica visível na animação de saída
+  const gatilho = page.getByRole('button', { name: /^Mais filtros/ })
+  if ((await gatilho.getAttribute('aria-expanded')) !== 'true') await gatilho.click()
   await expect(campoBairro(page)).toBeVisible()
   return campoBairro(page)
 }
@@ -50,7 +52,16 @@ async function abrirPontos(page) {
 // Evolução e Insights são abas de "Detalhes": cada uma é aberta para ler o texto e a aba padrão é restaurada.
 async function textosFixos(page) {
   const regioes = await Promise.all(['Resumo', 'Última medição'].map((nome) => page.getByRole('region', { name: nome, exact: true }).innerText()))
-  const evolucao = await page.getByRole('tabpanel', { name: 'Evolução (24 h)', exact: true }).innerText()
+  // a dica do gráfico (tooltip) depende só da posição do mouse: não faz parte do conteúdo comparado
+  const semDica = (el) => {
+    const copia = el.cloneNode(true)
+    copia.querySelectorAll('.recharts-tooltip-wrapper').forEach((dica) => dica.remove())
+    document.body.append(copia)
+    const texto = copia.innerText
+    copia.remove()
+    return texto
+  }
+  const evolucao = await page.getByRole('tabpanel', { name: 'Evolução (24 h)', exact: true }).evaluate(semDica)
   await page.getByRole('tab', { name: 'Insights', exact: true }).click()
   const insights = await page.getByRole('tabpanel', { name: 'Insights', exact: true }).innerText()
   await page.getByRole('tab', { name: 'Evolução (24 h)', exact: true }).click()
@@ -451,7 +462,8 @@ test.describe('mobile 375 px', () => {
   const menu = (page) => page.getByRole('button', { name: 'Menu', exact: true })
   /** Em 375 px a navegação vive no drawer "Menu" (dialog modal): abre-o (se ainda fechado) antes de agir sobre os links. */
   async function abrirMenu(page) {
-    if (!(await page.getByRole('dialog').isVisible())) await menu(page).click()
+    // Outro diálogo (ex.: o popover "Mais filtros") pode estar aberto: o que importa é a navegação estar visível.
+    if (!(await page.getByRole('navigation', { name: 'Navegação principal' }).isVisible())) await menu(page).click()
     await expect(page.getByRole('navigation', { name: 'Navegação principal' })).toBeVisible()
   }
 
@@ -470,7 +482,7 @@ test.describe('mobile 375 px', () => {
       await expect(links.nth(i)).toBeInViewport({ ratio: 1 })
     }
     // sem rolagem interna: a lista cabe na própria largura
-    const rolagem = await nav.locator('ul').evaluate((ul) => ul.scrollWidth - ul.clientWidth)
+    const rolagem = Math.max(...(await nav.locator('ul').evaluateAll((uls) => uls.map((ul) => ul.scrollWidth - ul.clientWidth))))
     expect(rolagem, `${rotulo}: navegação com rolagem interna`).toBeLessThanOrEqual(0)
     expect(await horizontalOverflow(page), `${rotulo}: rolagem lateral`).toEqual([])
     const doc = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)

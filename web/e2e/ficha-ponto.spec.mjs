@@ -1,6 +1,6 @@
 // Ficha do ponto: recolhida por padrão, painel lateral (1366 px), bottom sheet (375 px), link direto e a11y (modo mock).
 import { test, expect, snap, settle, horizontalOverflow, axeViolations } from 'harness-e2e'
-import { CONSOLE_MAPA, abrirExplorarSemMapa, botaoDoPonto, listaDoMapa } from './suporte-mapa.mjs'
+import { CONSOLE_MAPA, abrirExplorarSemMapa, botaoDoPonto, listaDoMapa, mapaSemRede } from './suporte-mapa.mjs'
 
 test.use({ allowConsole: CONSOLE_MAPA })
 
@@ -11,6 +11,12 @@ const MOBILE = { width: 375, height: 812 }
 const marcador = (page, codigo) => botaoDoPonto(page, codigo)
 const painel = (page, nome) => page.getByRole('complementary', { name: nome })
 const folha = (page, nome) => page.getByRole('dialog', { name: nome })
+
+/** Link direto com ?ponto= em 375 px: a folha modal abre de imediato e deixa o resto da página inerte. */
+async function abrirComFicha(page, url) {
+  await mapaSemRede(page)
+  await page.goto(url)
+}
 
 async function abrir(page, url = '/pontos') {
   await abrirExplorarSemMapa(page, url)
@@ -111,7 +117,7 @@ test.describe('mobile (375 px): bottom sheet', () => {
 
   test('movimento reduzido: a folha entra sem animação', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' })
-    await abrir(page, '/pontos?ponto=MOCK-02')
+    await abrirComFicha(page, '/pontos?ponto=MOCK-02')
     const nome = await folha(page, 'Largo da Batata').evaluate((el) => getComputedStyle(el).animationName)
     expect(nome).toBe('none')
   })
@@ -119,7 +125,7 @@ test.describe('mobile (375 px): bottom sheet', () => {
   for (const colorScheme of ['light', 'dark']) {
     test(`axe-core e captura com o bottom sheet aberto (tema ${colorScheme})`, async ({ page }, testInfo) => {
       await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' })
-      await abrir(page, '/pontos?ponto=MOCK-03')
+      await abrirComFicha(page, '/pontos?ponto=MOCK-03')
       await expect(folha(page, /./)).toBeVisible()
       await settle(page)
       const v = await axeViolations(page)

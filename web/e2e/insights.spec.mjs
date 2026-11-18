@@ -8,7 +8,9 @@ const insights = (page) => page.getByRole('tabpanel', { name: 'Insights', exact:
 const comparar = (page) => page.getByRole('tabpanel', { name: 'Comparar pontos', exact: true })
 const abrir = async (page) => {
   await page.goto('/')
-  await page.getByRole('tab', { name: 'Insights', exact: true }).click()
+  // pelo teclado: a verificação de foco visível depende da modalidade de entrada (clique desliga :focus-visible)
+  await page.getByRole('tab', { name: 'Insights', exact: true }).focus()
+  await page.keyboard.press('Enter')
   await expect(insights(page).getByRole('heading', { level: 3, name: 'Estados ambientais gravados' })).toBeVisible()
 }
 const abrirComparador = async (page) => {

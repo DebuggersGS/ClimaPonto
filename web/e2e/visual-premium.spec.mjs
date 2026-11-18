@@ -204,9 +204,10 @@ test.describe('Vidro', () => {
         const cs = getComputedStyle(el)
         return cs.backdropFilter || cs.webkitBackdropFilter || 'none'
       }
-      // A barra lateral (aside) cobre o conteúdo ao expandir: o fundo opaco garante a leitura (alfa 1).
-      const fundo = getComputedStyle(document.querySelector('aside[data-sidebar]')).backgroundColor
-      const alfa = fundo.match(/\/\s*([\d.]+)\s*\)|,\s*([\d.]+)\)\s*$/)
+      // A barra lateral cobre o conteúdo ao expandir: o fundo opaco garante a leitura (alfa 1).
+      // Alfa só existe em rgba(r, g, b, a) ou na sintaxe com barra; rgb(r, g, b) é opaco (antes o azul era lido como alfa).
+      const fundo = getComputedStyle(document.querySelector('[data-sidebar]')).backgroundColor
+      const alfa = fundo.match(/\/\s*([\d.]+)\s*\)|^rgba\([^,]+,[^,]+,[^,]+,\s*([\d.]+)\)$/)
       return { header: v(document.querySelector('header')), alfaSidebar: alfa ? Number(alfa[1] ?? alfa[2]) : 1 }
     })
     expect(r.header).not.toBe('none')

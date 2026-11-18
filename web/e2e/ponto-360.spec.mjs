@@ -80,7 +80,8 @@ test('download CSV em Medições: nome do arquivo, cabeçalho, origem e selo Dem
   await page.goto('/pontos/MOCK-02?aba=medicoes')
   await expect(page.getByRole('banner').getByText('Demonstrativo').first()).toBeVisible()
   const [download] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Exportar CSV' }).click()])
-  expect(download.suggestedFilename()).toBe('climaponto-MOCK-02-24h-todas.csv')
+  // Contrato de buildCsvFilename (readingsCsv.test.js): nome só com minúsculas, dígitos e hífens.
+  expect(download.suggestedFilename()).toBe('climaponto-mock-02-24h-todas.csv')
   const stream = await download.createReadStream()
   let texto = ''
   for await (const parte of stream) texto += parte.toString('utf8')
