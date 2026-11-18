@@ -27,6 +27,11 @@ export const EMPTY_STOP_FILTERS = Object.freeze({
   favoritesOnly: false,
 })
 
+/** Normalização do texto de busca guardado na URL (aparado e limitado). */
+export function normalizeFilterText(value) {
+  return clean(value)
+}
+
 function clean(value) {
   return typeof value === 'string' ? value.trim().slice(0, MAX_TEXT_LENGTH) : ''
 }

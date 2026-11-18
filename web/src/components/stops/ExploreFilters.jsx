@@ -1,5 +1,7 @@
 import { SlidersHorizontal, Star } from 'lucide-react'
 import { useId, useState } from 'react'
+import { createSearchDraft, reconcileSearchDraft, recordTyping } from '../../utils/searchDraft.js'
+import { normalizeFilterText } from '../../utils/stopFilterParams.js'
 import { shouldShowFilter } from '../../utils/stopFilters.js'
 import Button from '../ui/Button.jsx'
 import { Popover, PopoverContent, PopoverTitle, PopoverTrigger } from '../ui/Popover.jsx'
@@ -8,12 +10,11 @@ import SegmentedControl from '../ui/SegmentedControl.jsx'
 
 const pointsText = (count) => (count === 1 ? '1 ponto' : `${count} pontos`)
 const withCount = (option) => ({ value: option.value, label: `${option.label} (${option.count})` })
-const activeText = (count) => (count === 1 ? '1 filtro ativo' : `${count} filtros ativos`)
 
 function FilterGroup({ title, children }) {
   return (
-    <div>
-      <p aria-hidden="true" className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-700">
+    <div className="flex min-w-0 flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
+      <p aria-hidden="true" className="shrink-0 text-xs font-semibold uppercase tracking-wide text-slate-600 sm:w-32">
         {title}
       </p>
       {children}
@@ -80,33 +81,41 @@ function MoreFilters({ filter }) {
 }
 
 /**
- * Filtros do Explorar em uma linha que quebra bem em telas estreitas: busca,
- * grupos essenciais (estado e conectividade), "Mais filtros", contagem e Limpar.
- * @param {{ filter: ReturnType<import('../../hooks/useStopFilters.js').useStopFilters> }} props
+ * Barra de filtros do Explorar num único bloco alinhado: busca + vista + "Mais filtros" na 1ª linha,
+ * grupos essenciais (estado e conectividade) com rótulo à esquerda, depois contagem e Limpar.
+ * @param {{ filter: ReturnType<import('../../hooks/useStopFilters.js').useStopFilters>, viewControl?: import('react').ReactNode }} props
  */
-export default function ExploreFilters({ filter }) {
-  const { filters, setFilter, clear, options, results, total, hasActiveFilters, activeCount } = filter
-  // Rascunho local: a URL guarda o texto sem espaços nas pontas, mas quem digita precisa deles.
-  const [draft, setDraft] = useState(filters.text)
-  const shownText = draft.trim() === filters.text ? draft : filters.text
+export default function ExploreFilters({ filter, viewControl }) {
+  const { filters, setFilter, clear, options, results, total, hasActiveFilters } = filter
+  // O campo mostra sempre o rascunho; a URL (atrasada) só o substitui quando muda por fora (utils/searchDraft.js).
+  const [search, setSearch] = useState(() => createSearchDraft(filters.text))
+  const reconciled = reconcileSearchDraft(search, filters.text)
+  if (reconciled) setSearch(reconciled)
+  const shownText = (reconciled ?? search).draft
+  const groups = ['environmental', 'connectivity'].filter((name) => shouldShowFilter(name, options, filters))
 
   return (
-    <div className="mb-4 space-y-3">
-      <div className="flex flex-wrap items-end gap-x-6 gap-y-3">
+    <div className="mb-5 rounded-card bg-surface/80 p-3 shadow-xs ring-1 ring-slate-900/10 sm:p-4">
+      <div className="flex flex-wrap items-center gap-3">
         <SearchField
           label="Buscar pontos"
           hideLabel
           placeholder="Buscar por nome, código ou bairro"
           value={shownText}
           onValueChange={(value) => {
-            setDraft(value)
+            setSearch((current) => recordTyping(current, value, normalizeFilterText))
             setFilter('text', value)
           }}
-          className="w-full sm:w-80"
+          className="min-w-0 flex-1 basis-full sm:basis-72"
         />
-        {['environmental', 'connectivity']
-          .filter((name) => shouldShowFilter(name, options, filters))
-          .map((name) => (
+        <div className="flex flex-wrap items-center gap-2">
+          {viewControl}
+          <MoreFilters filter={filter} />
+        </div>
+      </div>
+      {groups.length > 0 && (
+        <div className="mt-3 flex flex-col gap-2.5 border-t border-slate-900/5 pt-3">
+          {groups.map((name) => (
             <FilterGroup key={name} title={name === 'environmental' ? 'Estado ambiental' : 'Conectividade'}>
               <SegmentedControl
                 label={name === 'environmental' ? 'Filtrar por estado ambiental' : 'Filtrar por conectividade'}
@@ -116,15 +125,14 @@ export default function ExploreFilters({ filter }) {
               />
             </FilterGroup>
           ))}
-        <MoreFilters filter={filter} />
-      </div>
-      <div className="flex flex-wrap items-center gap-3">
+        </div>
+      )}
+      <div className="mt-3 flex min-h-10 flex-wrap items-center gap-3">
         <p role="status" aria-live="polite" aria-atomic="true" className="text-sm font-medium text-slate-700">
           Mostrando {results.length} de {pointsText(total)}
-          {hasActiveFilters && ` · ${activeText(activeCount)}`}
         </p>
         {hasActiveFilters && (
-          <Button variant="secondary" size="sm" onClick={clear}>
+          <Button variant="ghost" size="sm" onClick={clear}>
             Limpar filtros
           </Button>
         )}

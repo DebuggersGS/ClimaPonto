@@ -63,10 +63,10 @@ export default function StopsExplorer({ items, now, source, favorites }) {
 
   return (
     <>
-      <div className="mb-3">
-        <SegmentedControl label="Vista dos pontos" options={VIEWS} value={view} onChange={setView} />
-      </div>
-      <ExploreFilters filter={filter} />
+      <ExploreFilters
+        filter={filter}
+        viewControl={<SegmentedControl label="Vista dos pontos" options={VIEWS} value={view} onChange={setView} />}
+      />
       <div className={cn('grid gap-5', showPanel && 'lg:grid-cols-[minmax(0,1fr)_22rem]')}>
         <div className="min-w-0">
           {selected && isDesktop && collapsed && (
