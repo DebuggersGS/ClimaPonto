@@ -477,9 +477,9 @@ def receber_leituras_esp32(ponto, modelos, quantidade=6):
       2. Ele classifica a leitura no próprio dispositivo (normal/atencao/critico) e aciona
          LEDs e buzzer mesmo sem internet: a decisão acontece na borda (edge).
       3. Com rede, publica a leitura por MQTT na plataforma FIWARE do grupo
-         (IoT Agent -> Orion -> STH-Comet), consultada pela Central de Leituras em Python
-         e pela aplicação web, no formato {"ponto_id", "temperatura", "umidade", "estado",
-         "origem", "timestamp"}.
+         (IoT Agent -> Orion -> STH-Comet), consultada pela Central de Leituras em Python,
+         cujas leituras alimentam a aplicação web pelo Supabase, no formato {"ponto_id",
+         "temperatura", "umidade", "estado", "origem", "timestamp"}.
       4. Com as últimas leituras, calcula-se a tendência (derivada) e prevê-se o próximo estado.
 
     NESTE PROGRAMA as leituras são de DEMONSTRAÇÃO, porque o servidor FIWARE fica na nuvem

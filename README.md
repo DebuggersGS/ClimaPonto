@@ -17,7 +17,7 @@
 | **Cidade / bairro** | São Paulo/SP. Ponto piloto **P001** na região de Santana (Zona Norte), endereço exato a confirmar |
 | **Cidadão beneficiado** | Passageiros que esperam ônibus expostos ao calor, principalmente idosos e trabalhadores |
 | **Problema em uma frase** | Quem espera ônibus em São Paulo fica exposto ao calor sem nenhuma informação sobre a temperatura naquele ponto |
-| **Como funciona** | Um ESP32 com sensor DHT22 no ponto mede temperatura e umidade, classifica o calor em *normal*, *atenção* (≥ 30 °C) ou *crítico* (≥ 35 °C) e alerta no próprio ponto, mesmo sem internet. Quando há rede, envia as leituras por MQTT para a plataforma FIWARE, consultada pela aplicação web e pela Central de Leituras em Python. A análise matemática (este repositório) define a frequência de leitura recomendada (10 min), os horários críticos e a tendência de aquecimento |
+| **Como funciona** | Um ESP32 com sensor DHT22 no ponto mede temperatura e umidade, classifica o calor em *normal*, *atenção* (≥ 30 °C) ou *crítico* (≥ 35 °C) e alerta no próprio ponto, mesmo sem internet. Quando há rede, envia as leituras por MQTT para a plataforma FIWARE, consultada pela Central de Leituras em Python, cujas leituras alimentam a aplicação web pelo Supabase. A análise matemática (este repositório) define a frequência de leitura recomendada (10 min), os horários críticos e a tendência de aquecimento |
 | **Papel de cada componente** | ver tabela abaixo |
 | **Repositório** | https://github.com/DebuggersGS/ClimaPonto-DPS |
 | **Indicador de impacto** | Graus-hora acima de 30 °C por ponto (calor acumulado a que o passageiro fica exposto) e horas com alerta informado. Referência medida: 331 °C·h no ano em Santana (nov/2025 a out/2026, dados INMET) |
