@@ -31,8 +31,7 @@
    │
    └──(MQTT)──> [FIWARE: IoT Agent → Orion (dado atual) → STH-Comet (histórico)]
                                    │
-                                   ├──> [Aplicação web ClimaPonto]
-                                   └──> [Central de Leituras em Python]
+                                   └──> [Central de Leituras em Python] ──(leituras importadas)──> [Supabase] ──> [Aplicação web ClimaPonto]
 
 [INMET - dados históricos oficiais] ──(robô mensal)──> dados/inmet_sp.json
                                    │
