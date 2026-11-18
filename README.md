@@ -25,10 +25,10 @@
 
 | Componente | Disciplina | Responsável |
 |---|---|---|
-| Sensor ESP32 (Wokwi) e integração FIWARE | Edge Computing & Computer Systems | Vinícius |
+| Sensor ESP32 (Wokwi) e integração FIWARE ([ClimaPonto-Edge](https://github.com/DebuggersGS/ClimaPonto-Edge)) | Edge Computing & Computer Systems | Vinícius |
 | Aplicação web com CRUD de pontos | Front-end Design · Web Development | Enrico |
-| Programa Python de operação | Computational Thinking with Python | Guilherme |
-| Modelagem matemática | Differentiated Problem Solving | Guilherme |
+| Central de Leituras em Python ([ClimaPonto-Python](https://github.com/DebuggersGS/ClimaPonto-Python)) | Computational Thinking with Python | Guilherme |
+| Modelagem matemática ([ClimaPonto-DPS](https://github.com/DebuggersGS/ClimaPonto-DPS)) | Differentiated Problem Solving | Guilherme |
 | **Experiência, requisitos, protótipo e roadmap** | **Software & Total Experience Design** | **Vinícius** |
 | Pitch e marca | Storytelling & Inspiração Empreendedora | Vinícius |
 
@@ -60,7 +60,7 @@ Apresentação em slides: [`ClimaPonto_TotalExperience.pdf`](ClimaPonto_TotalExp
 | Integrante | RM |
 |---|---|
 | Enrico Vieira de Almeida Vidal | 569217 |
-| Guilherme de Rosa Peres | 569193 |
+| Guilherme De Rosa Peres | 569193 |
 | Vinícius Fuentes Cavalcanti | 570818 |
 
 ## Uso de inteligência artificial
