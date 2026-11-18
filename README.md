@@ -7,13 +7,13 @@
 | Campo | Resposta |
 | --- | --- |
 | Nome da CitizenTech | ClimaPonto |
-| Cidade e bairro | São Paulo (SP). Pontos de demonstração em Consolação, Pinheiros, Sé, Itaim Bibi, Lapa, Interlagos, Sapopemba e Jabaquara |
+| Cidade e bairro | São Paulo (SP). Ponto piloto **P001 em Santana** (Zona Norte, endereço exato a confirmar), mais **P002 Interlagos** (Zona Sul) e **P003 Barueri** (Grande São Paulo), os mesmos pontos das outras disciplinas |
 | Cidadão beneficiado | Quem espera o ônibus em ponto exposto ao sol: idosos, trabalhadores que dependem do transporte público, gestantes e pessoas com doenças agravadas pelo calor |
 | Problema, em uma frase | Nos dias de calor extremo, quem espera o ônibus fica exposto sem saber quais pontos estão em condição de risco, e a cidade não tem esse dado por ponto |
-| Como funciona | Um sensor (ESP32) em cada ponto mede temperatura e umidade e envia as leituras com o estado ambiental (normal, atenção, crítico); o banco (Supabase) guarda pontos e leituras; esta aplicação web mostra mapa, situação atual, histórico, comparações e alertas, e permite à administração cadastrar e manter os pontos |
-| O que cada parte faz | Front-end Design (interface) e Web Development (interação): esta aplicação web em `web/`. Edge Computing: sensor e circuito. Python e Matemática: análise e cálculos sobre as leituras. Software & Total Experience Design: jornada do cidadão e requisitos. Storytelling: pitch. As partes das outras disciplinas estão nos repositórios da equipe na organização [DebuggersGS](https://github.com/DebuggersGS): `ClimaPonto-Edge`, `ClimaPonto-DPS`, `ClimaPonto-Python` e `ClimaPonto-TotalEx` |
+| Como funciona | Um ESP32 com sensor DHT22 no ponto (simulado no Wokwi) mede temperatura e umidade, classifica o calor em *normal* (abaixo de 30 °C), *atenção* (30 °C a 34,9 °C) ou *crítico* (35 °C ou mais) e alerta no próprio ponto, mesmo sem internet. Com rede, envia as leituras por MQTT para o FIWARE (IoT Agent, Orion e STH-Comet), de onde a Central de Leituras em Python as coleta. Esta aplicação web guarda pontos e leituras no Supabase, no mesmo formato de leitura (ponto, temperatura, umidade, estado e origem), e mostra mapa, situação atual, histórico, comparações e alertas. A administração cadastra e mantém os pontos (CRUD) |
+| O que cada parte faz | **Front-end Design e Web Development:** esta aplicação web (`web/`). **Edge Computing:** sensor, circuito e envio ao FIWARE ([ClimaPonto-Edge](https://github.com/DebuggersGS/ClimaPonto-Edge)). **Computational Thinking with Python:** Central de Leituras que busca as leituras no FIWARE e as analisa ([ClimaPonto-Python](https://github.com/DebuggersGS/ClimaPonto-Python)). **Differentiated Problem Solving:** modelagem matemática com dados do INMET ([ClimaPonto-DPS](https://github.com/DebuggersGS/ClimaPonto-DPS)). **Software & Total Experience Design:** jornada, requisitos e protótipo ([ClimaPonto-TotalEx](https://github.com/DebuggersGS/ClimaPonto-TotalEx)). **Storytelling:** pitch em vídeo |
 | Link do repositório | https://github.com/DebuggersGS/ClimaPonto-Web (privado, organização da equipe DebuggersGS) |
-| Indicador de impacto | Número de pontos monitorados e horas por ponto em estado "atenção" ou "crítico" identificadas no histórico (visível no Histórico, em Análises e no relatório CSV) |
+| Indicador de impacto | Graus-hora acima de 30 °C por ponto, ou seja, o calor acumulado a que o passageiro fica exposto (referência: 331 °C·h em 12 meses na estação INMET de Santana, calculado no [ClimaPonto-DPS](https://github.com/DebuggersGS/ClimaPonto-DPS)). Na aplicação: horas por ponto em "atenção" ou "crítico" no Histórico, em Análises e no relatório CSV |
 | ODS conectados | 3, 11 e 13 (detalhes abaixo) |
 
 ## ODS conectados
@@ -41,12 +41,13 @@ A mesma aplicação atende às duas disciplinas (enunciado da GS, págs. 40–42
 
 ## Equipe
 
-| Integrante | Responsabilidade |
-| --- | --- |
-| Enrico | Front-end Design e Web Development |
-| Vini | Software & Total Experience Design e Storytelling |
-| Gui | Computational Thinking with Python e Differentiated Problem Solving |
-| Thiago | Edge Computing & Computer Systems |
+Equipe **Debuggers**, turma 1ESPG.
+
+| Integrante | RM | Responsabilidade principal |
+| --- | --- | --- |
+| Enrico Vieira de Almeida Vidal | 569217 | Front-end Design e Web Development (esta aplicação) |
+| Guilherme De Rosa Peres | 569193 | Computational Thinking with Python e Differentiated Problem Solving |
+| Vinícius Fuentes Cavalcanti | 570818 | Edge Computing & Computer Systems (ESP32 e FIWARE), Software & Total Experience Design e Storytelling |
 
 ## Tecnologias
 
@@ -109,6 +110,18 @@ No modo mock, dois parâmetros de URL permitem conferir estados: `?mock=erro` (t
 | MOCK-06 | Offline | Última leitura há horas, com o estado ambiental registrado preservado. |
 | MOCK-07 | Histórico longo | 30 dias de histórico, para conferir 24 h, 7 dias e 30 dias. |
 | MOCK-08 | Demonstrativo | Ponto `is_demo` com leituras de origem Teste. |
+
+### Dados em produção (Supabase)
+
+No deploy (`VITE_DATA_MODE=supabase`), o banco tem os três pontos da equipe. **Nenhuma leitura vem de um sensor instalado num ponto real**, por isso todas têm origem `simulation` e os pontos são marcados como demonstrativos na interface.
+
+| Ponto | Posição de referência | Leituras |
+| --- | --- | --- |
+| P001 Santana (piloto) | Estação INMET A701 Mirante de Santana | Série horária pública do [Open-Meteo](https://open-meteo.com/) (temperatura e umidade) de 19/10 a 18/11/2026, mais as **6 leituras do ESP32 (Wokwi) recebidas pelo FIWARE** em 17/11/2026, coletadas pela Central em Python (`dados/leituras.json` do ClimaPonto-Python) |
+| P002 Interlagos | Estação INMET A771 Interlagos | Série horária pública do Open-Meteo, no mesmo período |
+| P003 Barueri | Estação INMET A755 Barueri | Série horária pública do Open-Meteo, no mesmo período |
+
+O estado de cada leitura segue as regras da equipe, iguais às do ESP32 e do Python: normal abaixo de 30 °C, atenção de 30 °C a 34,9 °C e crítico a partir de 35 °C. Os limites são de demonstração, não índices clínicos nem alertas oficiais. Como não há envio contínuo, a última leitura de cada ponto aparece como **offline** com o passar do tempo, e o estado registrado continua visível. Para ver todos os estados (incluindo crítico e sem dados), use o conjunto **demonstrativo** pelo seletor no cabeçalho ou rode localmente com `VITE_DATA_MODE=mock`.
 
 ### Como validar no navegador
 
@@ -262,7 +275,7 @@ Detalhes em [docs/data-contract.md](docs/data-contract.md), [docs/architecture-d
 
 ## Pendente
 
-- **Leituras reais:** o firmware do ESP32 e o endpoint de ingestão ficam com a parte de Edge Computing; no Supabase ainda não há leituras reais, por isso a aplicação oferece o conjunto **demonstrativo** (seletor no cabeçalho), sempre sinalizado.
-- **Coordenadas:** as posições dos pontos de demonstração são ilustrativas (sem importação de GTFS aprovada).
+- **Ingestão automática do FIWARE:** o ESP32 envia ao FIWARE, mas ainda não há uma ponte automática FIWARE → Supabase. O servidor FIWARE da equipe só fica ligado nos testes, muda de IP a cada vez e responde só em HTTP, que o navegador bloqueia num site HTTPS. Por isso a aplicação não consulta o FIWARE direto; as leituras do ESP32 coletadas pela Central em Python foram importadas no Supabase (ver *Dados em produção*). Essa ponte é o próximo passo.
+- **Coordenadas:** P001 a P003 usam a posição das estações INMET de referência, e os pontos do modo demonstração têm posições ilustrativas. Os endereços exatos dos pontos ainda serão confirmados.
 - **Regras provisórias:** limites ambientais e regra de conectividade (60 s de intervalo de envio) são provisórios e estão descritos em "Fontes e metodologia".
 - Detalhes técnicos e histórico das etapas: [docs/](docs/) e [AI.md](AI.md).

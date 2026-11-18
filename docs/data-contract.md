@@ -1,7 +1,7 @@
 # Contrato de dados — ClimaPonto
 
-> **Status: RASCUNHO v0.1 (09/11/2026).**
-> Este formato ainda **precisa ser alinhado com o Thiago (Edge Computing)** antes de ser considerado definitivo. Os limites ambientais e de conectividade citados aqui são **propostas**, não regras aprovadas.
+> **Status: v0.2 (18/11/2026).** Formato do banco em uso; a ingestão automática a partir do FIWARE é pendência (seção 9).
+> O ESP32 da equipe (parte de Edge Computing, Vinícius) envia por MQTT ao FIWARE, com campos em português (ver seção *Correspondência com o ESP32 e o FIWARE*). Este contrato é o formato do banco da aplicação web; a correspondência campo a campo está documentada abaixo. Os limites ambientais e de conectividade citados aqui são **propostas**, não regras aprovadas.
 
 Este documento descreve como os dados do ClimaPonto são organizados no banco (Supabase/PostgreSQL) e como os demais integrantes — firmware ESP32, scripts Python e front-end — devem produzi-los e consumi-los.
 
@@ -120,7 +120,7 @@ Fonte da verdade do esquema: [`supabase/migrations/`](../supabase/migrations/).
 | `offline` | Offline | Mais de 5× o intervalo de envio. |
 | `no_data` | Sem dados | O ponto nunca enviou leitura. |
 
-O **intervalo de envio** do ESP32 precisa ser definido com o Thiago (exemplo para discussão: 60 segundos).
+O **intervalo de envio** do ESP32 foi definido pela parte de Edge: 2 s na simulação do Wokwi e 10 min proposto para campo pela análise matemática (DPS). A aplicação usa 60 s como valor provisório para a regra de conectividade.
 
 ---
 
@@ -169,7 +169,7 @@ Nenhum usuário do navegador — nem administrador — insere leituras diretamen
 
 Será uma **Supabase Edge Function** que autentica o dispositivo, valida o corpo e grava a leitura usando credencial de servidor (que nunca sai do servidor). A **direção aprovada** é uma credencial individual por dispositivo. Detalhes em [security-review.md, seção 4](security-review.md#4-estratégia-de-autenticação-dos-dispositivos-aprovada-como-direção-não-implementada). **Ainda não implementado.**
 
-**Requisição — exemplo para o Thiago:**
+**Requisição — exemplo:**
 
 ```http
 POST https://<projeto>.supabase.co/functions/v1/ingest-reading
@@ -237,7 +237,7 @@ A camada `services/` converte falhas em `Error` com mensagem em português e pre
 
 ## 9. Pendências deste contrato
 
-- [ ] Validar formato do payload e intervalo de envio com o Thiago.
+- [ ] Ponte automática FIWARE → endpoint de ingestão (próximo passo).
 - [x] Quem classifica as leituras: o ESP32, com validação no endpoint (aprovado).
 - [ ] Definir limites ambientais (e `rules_version` inicial).
 - [ ] Definir limites de conectividade (regra 2×/5× é provisória; depende do intervalo de envio).
@@ -245,3 +245,19 @@ A camada `services/` converte falhas em `Error` com mensagem em português e pre
 - [ ] Implementar a ingestão (fora do escopo atual).
 - [ ] Adicionar `rules_version` à tabela `readings` (migração futura, junto com o endpoint).
 - [ ] Definir comportamento quando o ESP32 não tiver relógio sincronizado.
+
+## 10. Correspondência com o ESP32 e o FIWARE
+
+O ESP32 (repositório ClimaPonto-Edge) publica por MQTT no FIWARE (IoT Agent → Orion → STH-Comet), e a Central de Leituras em Python (ClimaPonto-Python) guarda as leituras em JSON. Cada leitura desse formato vira uma linha de `readings` assim:
+
+| ESP32 / Python (`dados/leituras.json`) | `readings` (Supabase) | Conversão |
+| --- | --- | --- |
+| `ponto_id` (`P001`) | `stop_id` | Busca o `id` do ponto pelo `code` |
+| `temperatura` (°C) | `temperature_c` | Igual |
+| `umidade` (%) | `humidity_pct` | Igual |
+| `estado` (`normal`, `atencao`, `critico`) | `environmental_status` (`normal`, `attention`, `critical`) | Tradução direta; os limites são os mesmos (30 °C e 35 °C) |
+| `origem` (`esp32_fiware`, `simulacao_wokwi`) | `source` | Sempre `simulation`, porque o ESP32 roda no Wokwi |
+| `timestamp` (UTC) | `measured_at` | Igual |
+| `media_movel` | (não armazenado) | O estado já reflete a média móvel calculada no ESP32 |
+
+As 6 leituras do ESP32 recebidas pelo FIWARE em 17/11/2026 foram importadas no ponto P001 com essa correspondência (ver *Dados em produção* no README).

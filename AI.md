@@ -20,6 +20,7 @@ Exemplos representativos (os textos completos dos pedidos estão em [prompts.md]
 | Etapa 1: criar a base do front-end com React + Vite, Tailwind CSS e React Router, com estrutura de pastas e páginas iniciais. | A IA criou o projeto em `web/`, configurou o Tailwind 4, montou layout, navegação e páginas provisórias e rodou build e lint. |
 | Etapa 2B: login administrativo e CRUD de pontos no Supabase, sem bibliotecas novas. | A IA implementou `stopsApi.js` (criar, consultar, atualizar, ativar/desativar e excluir), o hook `useAdminStops` e a tela de gestão; a primeira migração foi recusada pela integração por usar `DROP POLICY`, e a IA reescreveu com `ALTER POLICY`, aplicada após a aprovação do integrante. |
 | "Corrigir integralmente os problemas da versão atual" (sidebar sobrepondo o conteúdo, logo cortado, cabeçalho grande, mapa que não carregava e tela preta ao clicar em "Abrir ponto"). | A IA reproduziu os erros no navegador e encontrou as causas: o *worker* do MapLibre não era servido pelo Vite (o mapa caía sempre no aviso de falha) e o minimapa do Ponto 360° passava um formato de dado diferente para a lista alternativa (exceção que apagava a página). Corrigiu as duas causas, redesenhou a barra lateral e o cabeçalho e criou testes de regressão. |
+| "Achei que íamos entregar ele linkado com as outras matérias [...] preciso que você garanta que em todas as matérias todos os pedidos foram devidamente atendidos." | A IA leu os repositórios das outras disciplinas, mostrou que este README contradizia os demais (equipe, FIWARE, pontos P001 a P003), alinhou a documentação e importou no Supabase as leituras do ESP32 que passaram pelo FIWARE, mais uma série pública do Open-Meteo, sempre rotuladas como `simulation`. |
 | Conferir o projeto contra os PDFs do enunciado da GS. | A IA extraiu os requisitos de Front-end Design e Web Development, comparou item a item com o código e apontou o que faltava (Ficha da CitizenTech e ODS no README, este AI.md nas cinco partes, `prompts.md`, deploy e ZIP). |
 
 ## 3. Aplicação no projeto
@@ -404,3 +405,16 @@ Não foram testados leitores de tela, navegadores além do Chrome, nem dispositi
 - **Executado de fato:** `node --test` sobre todos os `*.test.js` de `web/src` (500/500 antes da atualização do teste de artefatos); `npm --prefix web run lint` (saída sem erros, 2 avisos preexistentes `set-state-in-effect`) e `node --test web/src/utils/releaseArtifacts.test.js` (13/13).
 - **Não executado:** specs E2E (os novos de T10 e os adaptados), build, screenshots, Lighthouse. Nenhum deploy, push, escrita no Supabase remoto ou aceite visual humano ocorreu.
 - O código e os documentos gerados por IA permanecem sujeitos à revisão da equipe.
+- Os documentos internos citados aqui (`docs/CENARIOS-DEMONSTRACAO.md`, `docs/RELATORIO-FINAL.md`, `BLOCKERS.md` e outros) foram removidos da versão de entrega no commit `37b5747`, por serem controle interno; continuam no histórico do Git.
+
+### Publicação e integração com as outras disciplinas (18/11/2026, Claude Code)
+
+- **Pedido do integrante:** publicar no repositório da equipe com o histórico completo, conferir tudo contra o PDF da GS e garantir que a aplicação conversa com as outras partes ("achei que íamos entregar ele linkado com as outras matérias").
+- **Feito com auxílio da IA:**
+  - Criação do repositório privado `DebuggersGS/ClimaPonto-Web` e envio dos commits sem reescrever o histórico. O push só foi feito depois da confirmação explícita do integrante.
+  - Conferência do conteúdo enviado contra as págs. 14, 18, 21, 22, 25, 40–42 e 58–61 do enunciado, incluindo instalação do zero a partir do `git archive` (`npm ci`, lint, build e 503/503 testes unitários).
+  - Leitura dos repositórios ClimaPonto-Edge, -Python, -DPS e -TotalEx. A IA apontou que este README contradizia os demais (equipe, arquitetura com FIWARE, pontos P001 a P003 e indicador) e o alinhou.
+  - No Supabase: cadastro de P001 Santana, P002 Interlagos e P003 Barueri; importação das 6 leituras do ESP32 recebidas pelo FIWARE (coletadas pela Central em Python) e de 30 dias da série horária pública do Open-Meteo nas coordenadas das estações INMET usadas pelo DPS; desativação (sem exclusão) dos pontos genéricos `DEMO-01` a `DEMO-03`. Todas as leituras com origem `simulation`.
+  - Nova seção de correspondência ESP32/FIWARE → banco em `docs/data-contract.md`.
+- **Validação:** consulta pela API pública com a chave publishable (só P001 a P003 visíveis, escrita anônima recusada com 401), contagem das leituras por ponto e estado, e alerta de segurança do Supabase.
+- **Limites encontrados:** a integração ao vivo com o FIWARE não é viável para o deploy (servidor ligado só nos testes, IP variável e só HTTP). Algumas ações sensíveis (senha e papel de conta administrativa, configuração do Auth) ficaram com o integrante.

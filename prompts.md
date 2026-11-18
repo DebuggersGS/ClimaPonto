@@ -49,6 +49,20 @@ Registro dos pedidos enviados às ferramentas de IA durante a construção da ap
 
 **Resposta (resumo):** a versão final mantém só o que o enunciado pede para avaliar e executar (código em `web/`, banco em `supabase/`, `README.md`, `AI.md`, este arquivo e os documentos técnicos citados no README); arquivos de controle interno foram removidos.
 
+## Publicação e integração (18/11/2026, Claude Code)
+
+> Prepare o envio para o repositório dos meus amigos com o histórico completo (git bundle na WSL e push pelo Windows) e me peça confirmação antes do push. [...] Faça um pente fino final no repositório dos meus amigos, comparando com as pp. 40–42 e 59–61 do PDF.
+
+**Resposta (resumo):** a IA criou o repositório `DebuggersGS/ClimaPonto-Web`, conferiu cada exigência do PDF no conteúdo exato que ia ser enviado e só fez o push depois da confirmação.
+
+> ali na tela, ele fala "dados fictícios", é para ter dados fictícios mesmo? ou é para linkar com as outras coisas e tudo mais? achei que íamos entregar ele linkado com as outras matérias [...]
+
+**Resposta (resumo):** o PDF permite dados simulados ou públicos, desde que se diga de onde vieram (pág. 22), mas este repositório contradizia os das outras disciplinas. A IA propôs um roteiro: alinhar a documentação, cadastrar P001 a P003 e importar as leituras do ESP32 via FIWARE.
+
+> faça o que for preciso para atender cada detalhe que foi pedido pelos professores [...] monta um plano e explica cada detalhe [...] te dou autorização de fazer tudo que precisar
+
+**Resposta (resumo):** a IA executou o roteiro (README, contrato de dados, dados no Supabase) e listou as poucas ações que dependem do integrante (deploy na Vercel, configurações do Auth, convite dos professores e envios no Teams).
+
 ## Etapas anteriores (resumo do pedido, conforme registrado no AI.md)
 
 | Etapa | Pedido (resumo registrado) |
