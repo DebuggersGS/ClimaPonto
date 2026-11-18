@@ -41,15 +41,18 @@ O arquivo do vídeo também está em [`video/`](video/) (3min46s).
    │
    └──(MQTT)──> [FIWARE: IoT Agent → Orion (dado atual) → STH-Comet (histórico)]
                                    │
-                                   ├──> [Aplicação web ClimaPonto (Front-end/Web)]
-                                   └──> [Central de Leituras em Python (Computational Thinking)]
+                                   └──(API HTTP)──> [Central de Leituras em Python]
+                                                          │  leituras importadas
+                                                          ▼
+                                       [Supabase] ──> [Aplicação web ClimaPonto]
+                                                      mapa, histórico e CRUD dos pontos
 ```
 
 | Camada | O que faz | Responsável |
 |---|---|---|
 | Dispositivo IoT (este repositório) | Mede, decide e alerta no ponto | Vinícius |
 | Back-end FIWARE (AWS) | Recebe por MQTT, guarda o dado atual e o histórico | Vinícius |
-| Aplicação / dashboard | Mostra os dados ao cidadão e gerencia os pontos | Enrico |
+| Aplicação web | Mostra mapa, estado e histórico ao cidadão e faz o CRUD dos pontos no Supabase ([ClimaPonto-Web](https://github.com/DebuggersGS/ClimaPonto-Web)) | Enrico |
 | Central de Leituras (Python) | Busca as leituras no FIWARE, guarda em JSON e analisa ([ClimaPonto-Python](https://github.com/DebuggersGS/ClimaPonto-Python)) | Guilherme |
 
 ## Circuito
