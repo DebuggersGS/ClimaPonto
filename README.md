@@ -192,7 +192,7 @@ Contas administrativas são criadas manualmente:
 ## Estrutura do projeto
 
 ```
-climaponto/
+ClimaPonto-Web/
 ├── README.md
 ├── AI.md                         # Uso de Inteligência Artificial (exigido pelo enunciado)
 ├── prompts.md                    # Prompts representativos enviados às ferramentas de IA
