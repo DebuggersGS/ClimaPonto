@@ -233,8 +233,8 @@ describe('summarizeDashboard', () => {
     const stops = [{ id: 's1', isDemo: true }, { id: 's2', isDemo: true }, { id: 's3', isDemo: false }, { id: 's4' }]
     const s = summarizeDashboard(stops, [
       reading('a', 's1', 'normal', 1),
-      reading('b', 's2', null, 4),
-      reading('c', 's3', 'critical', 60),
+      reading('b', 's2', null, 40),
+      reading('c', 's3', 'critical', 600),
     ], NOW)
     const sum = (o) => Object.values(o).reduce((x, y) => x + y, 0)
     assert.equal(s.withReadingsCount, 3)

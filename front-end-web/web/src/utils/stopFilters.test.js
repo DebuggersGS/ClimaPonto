@@ -19,7 +19,7 @@ const reading = (stopId, status, ageMs) => ({
 
 const summary = summarizeDashboard(
   stops,
-  [reading('s1', 'critical', 1000), reading('s2', 'normal', 400000), reading('s3', null, 200000)],
+  [reading('s1', 'critical', 1000), reading('s2', 'normal', 4000000), reading('s3', null, 2000000)],
   NOW,
 )
 const items = summary.items

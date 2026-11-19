@@ -6,11 +6,11 @@ const NOW = Date.parse('2026-11-12T15:30:00Z')
 const ago = (ms) => new Date(NOW - ms).toISOString()
 
 describe('getConnectivity', () => {
-  it('respeita os limites exatos com intervalo de 60 s', () => {
-    assert.equal(getConnectivity(ago(120000), NOW).status, 'online')
-    assert.equal(getConnectivity(ago(120001), NOW).status, 'delayed')
-    assert.equal(getConnectivity(ago(300000), NOW).status, 'delayed')
-    assert.equal(getConnectivity(ago(300001), NOW).status, 'offline')
+  it('respeita os limites exatos com o intervalo de 10 min', () => {
+    assert.equal(getConnectivity(ago(1200000), NOW).status, 'online')
+    assert.equal(getConnectivity(ago(1200001), NOW).status, 'delayed')
+    assert.equal(getConnectivity(ago(3000000), NOW).status, 'delayed')
+    assert.equal(getConnectivity(ago(3000001), NOW).status, 'offline')
   })
 
   it('aceita intervalo sobrescrito', () => {
@@ -41,6 +41,6 @@ describe('getConnectivity', () => {
 
 describe('getOfflineThresholdMs', () => {
   it('usa o intervalo padrão', () => {
-    assert.equal(getOfflineThresholdMs(), 300000)
+    assert.equal(getOfflineThresholdMs(), 3000000)
   })
 })

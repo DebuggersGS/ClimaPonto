@@ -2,7 +2,7 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { buildReadingsTimeline } from './readingsTimeline.js'
 
-const MIN = 60000
+const MIN = 10 * 60000 // um intervalo de leitura (10 min)
 const T0 = Date.parse('2026-11-12T12:00:00Z')
 const r = (id, minutes, environmentalStatus = 'normal') => ({ id, measuredAtMs: T0 + minutes * MIN, environmentalStatus })
 

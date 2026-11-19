@@ -70,7 +70,7 @@ O banco rejeita apenas valores fisicamente impossíveis para o sensor previsto (
 
 ## 10. Conectividade calculada, não armazenada
 
-O estado online/atrasado/offline depende da idade da última leitura e muda com o passar do tempo, mesmo sem dados novos. Por isso é calculado na hora da leitura (view `stop_latest_readings` + regra no front-end), e não gravado. A regra 2×/5× do intervalo de envio é provisória até a parte de Edge (Vinícius) definir o intervalo.
+O estado online/atrasado/offline depende da idade da última leitura e muda com o passar do tempo, mesmo sem dados novos. Por isso é calculado na hora da leitura (view `stop_latest_readings` + regra no front-end), e não gravado. O intervalo é de 10 min, o mesmo da Central em Python e da análise matemática; os fatores 2×/5× continuam provisórios.
 
 ## 11. Administradores via `app_metadata.role = 'admin'`
 
@@ -144,8 +144,8 @@ O firmware é configurado com o código legível do ponto (ex.: `DEMO-01`), não
 - **Trade-off:** latência de até um intervalo e mais requisições, mas sem configuração extra de publicação/RLS no Realtime e com comportamento simples de testar. Realtime fica como evolução.
 
 ### 26. Conectividade provisória parametrizada
-- **Decisão:** `utils/connectivity.js` concentra `SEND_INTERVAL_MS` (60 s), `ONLINE_FACTOR` (2), `OFFLINE_FACTOR` (5) e `CLOCK_TOLERANCE_MS`; o instante atual é sempre parâmetro.
-- **Trade-off:** valores provisórios até a parte de Edge (Vinícius) definir o intervalo de envio; trocá-los é mudar constantes. Conectividade é dimensão separada do estado ambiental, e "Sem dados" difere de "Não classificado". Sem limites aprovados, o front não calcula estado ambiental (por isso não existe `environmentalRules.js`).
+- **Decisão:** `utils/connectivity.js` concentra `SEND_INTERVAL_MS` (10 min desde 19/11/2026; antes, 60 s provisórios), `ONLINE_FACTOR` (2), `OFFLINE_FACTOR` (5) e `CLOCK_TOLERANCE_MS`; o instante atual é sempre parâmetro.
+- **Trade-off:** o intervalo de 10 min segue a análise matemática e a Central em Python; os fatores ainda são provisórios e trocá-los é mudar constantes. Conectividade é dimensão separada do estado ambiental, e "Sem dados" difere de "Não classificado". Sem limites aprovados, o front não calcula estado ambiental (por isso não existe `environmentalRules.js`).
 
 ### 27. Limite de consulta vs função de agregação
 - **Decisão:** o histórico pede `HISTORY_LIMIT + 1` (501) registros; se vier o excedente, mostra 500 e avisa o truncamento.

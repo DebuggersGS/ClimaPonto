@@ -5,7 +5,7 @@ import { getReadingSourceInfo, normalizeEnvironmentalStatus } from './readings.j
  * Alertas internos derivados SÓ de dados gravados. Não há limiar de
  * temperatura ou umidade aqui: o estado ambiental vem do banco
  * (environmental_status) e a conectividade segue a regra provisória de
- * connectivity.js (intervalo de envio ainda não definido para o ESP32).
+ * connectivity.js (intervalo de leitura de 10 min, fatores provisórios).
  *
  * @typedef {object} StopAlert
  * @property {string} stopCode
@@ -27,7 +27,7 @@ const ENVIRONMENTAL_RULE = {
 
 function offlineRule(sendIntervalMs) {
   const minutes = (getOfflineThresholdMs(sendIntervalMs) / 60000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })
-  return `Última leitura com mais de ${minutes} min (regra provisória: 5 × o intervalo de envio, ainda não definido para o dispositivo). Dado desatualizado.`
+  return `Última leitura com mais de ${minutes} min (regra provisória: 5 × o intervalo de leitura). Dado desatualizado.`
 }
 
 function buildAlert(stop, reading, type, severity, ruleText) {

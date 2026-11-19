@@ -40,9 +40,9 @@ const CADENCE_TIERS = [
 const DEFAULT_COVERAGE_MS = 8 * DAY_MS
 const LONG_COVERAGE_MS = 31 * DAY_MS
 
-/** Idade da última leitura por situação (conectividade provisória: SEND_INTERVAL_MS = 60 s). */
+/** Idade da última leitura por situação (SEND_INTERVAL_MS = 10 min: online até 20 min, offline acima de 50 min). */
 const LATEST_AGE_ONLINE_MS = 0
-const LATEST_AGE_DELAYED_MS = 3 * MINUTE_MS // com o truncamento ao minuto, 3 a 4 min: atrasado
+const LATEST_AGE_DELAYED_MS = 30 * MINUTE_MS // entre 20 e 50 min: atrasado
 const LATEST_AGE_OFFLINE_MS = 5 * HOUR_MS
 
 /**

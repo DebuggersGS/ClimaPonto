@@ -32,7 +32,7 @@ function buildTransitionEvents(sorted, thresholdMs) {
         event(
           'gap',
           curr,
-          `Lacuna de ${formatDuration(gapMs)} sem leituras (acima de ${formatDuration(thresholdMs)}, regra provisória baseada no intervalo de envio provisório). Última leitura antes: ${prev.id}.`,
+          `Lacuna de ${formatDuration(gapMs)} sem leituras (acima de ${formatDuration(thresholdMs)}, regra provisória: 5 × o intervalo de leitura). Última leitura antes: ${prev.id}.`,
           { gapMs, previousReadingId: prev.id },
         ),
       )

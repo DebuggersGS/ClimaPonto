@@ -45,7 +45,7 @@ function ReadingRows({ reading }) {
         <ReadingSourceBadge source={reading.source} />
       </Row>
       <Row label="Regra de conectividade">
-        <span className="text-slate-600">Provisória: baseada na idade da última leitura e num intervalo de envio de exemplo.</span>
+        <span className="text-slate-600">Baseada na idade da última leitura e no intervalo de leitura de 10 min (fatores provisórios).</span>
       </Row>
     </>
   )

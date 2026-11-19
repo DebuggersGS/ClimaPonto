@@ -2,7 +2,7 @@ import { ChevronDown } from 'lucide-react'
 import { OFFLINE_FACTOR, ONLINE_FACTOR, SEND_INTERVAL_MS } from '../../utils/connectivity.js'
 import { cn } from '../../utils/cn.js'
 
-const SEND_INTERVAL_SECONDS = SEND_INTERVAL_MS / 1000
+const SEND_INTERVAL_MINUTES = SEND_INTERVAL_MS / 60000
 
 /**
  * Metodologia e regras provisórias, recolhida por padrão (divulgação progressiva).
@@ -19,13 +19,14 @@ export default function MethodologyNote({ className }) {
       </summary>
       <div className="space-y-2 px-2 pb-2 pt-3 text-sm text-slate-700">
         <p>
-          Conectividade (premissa provisória): o ponto é considerado online até {ONLINE_FACTOR} vezes o intervalo de
-          envio ({ONLINE_FACTOR} × {SEND_INTERVAL_SECONDS} s), atrasado até {OFFLINE_FACTOR} vezes e offline acima
-          disso, contando a partir do horário da última leitura.
+          Conectividade: o ponto é considerado online até {ONLINE_FACTOR} vezes o intervalo de leitura
+          ({ONLINE_FACTOR} × {SEND_INTERVAL_MINUTES} min), atrasado até {OFFLINE_FACTOR} vezes e offline acima disso,
+          contando a partir do horário da última leitura.
         </p>
         <p>
-          O intervalo real de envio do sensor ainda não foi definido; o valor de {SEND_INTERVAL_SECONDS} s é apenas um
-          exemplo. Conectividade indica se os dados estão chegando e não é condição ambiental.
+          O intervalo de {SEND_INTERVAL_MINUTES} min é o mesmo da Central de Leituras em Python e foi definido pela
+          análise matemática com dados do INMET. Os fatores de atraso e de offline ainda são provisórios.
+          Conectividade indica se os dados estão chegando e não é condição ambiental.
         </p>
         <p>
           Estado ambiental e leituras vêm do banco (ou do modo demonstração, sempre sinalizado). Completude e perfis

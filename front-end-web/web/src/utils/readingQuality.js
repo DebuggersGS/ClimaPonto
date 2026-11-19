@@ -46,7 +46,7 @@ export function computeReadingQuality(readings, { start, end, sendIntervalMs = S
     gapsAboveOffline,
     provisional: true,
     ruleText:
-      `Regra provisória: esperado = período ÷ intervalo de envio (${sendIntervalMs / 1000} s, ainda não definido para o dispositivo); ` +
+      `Regra provisória: esperado = período ÷ intervalo de envio (${sendIntervalMs / 60000} min, o intervalo de leitura do sensor); ` +
       `lacuna conta quando passa de ${thresholdMs / 1000} s entre leituras consecutivas. ` +
       'Instantes repetidos contam uma vez; períodos sem leitura nas bordas não entram nas lacunas.',
   }

@@ -120,7 +120,7 @@ Fonte da verdade do esquema: [`supabase/migrations/`](../supabase/migrations/).
 | `offline` | Offline | Mais de 5× o intervalo de envio. |
 | `no_data` | Sem dados | O ponto nunca enviou leitura. |
 
-O **intervalo de envio** do ESP32 foi definido pela parte de Edge: 2 s na simulação do Wokwi e 10 min proposto para campo pela análise matemática (DPS). A aplicação usa 60 s como valor provisório para a regra de conectividade.
+O **intervalo de envio** do ESP32 foi definido pela parte de Edge: 2 s na simulação do Wokwi e 10 min proposto para campo pela análise matemática (DPS). A aplicação usa os mesmos 10 min da Central de Leituras em Python na regra de conectividade (`SEND_INTERVAL_MS` em `web/src/utils/connectivity.js`): online até 20 min, atrasado até 50 min e offline acima disso.
 
 ---
 
@@ -240,7 +240,7 @@ A camada `services/` converte falhas em `Error` com mensagem em português e pre
 - [ ] Ponte automática FIWARE → endpoint de ingestão (próximo passo).
 - [x] Quem classifica as leituras: o ESP32, com validação no endpoint (aprovado).
 - [ ] Definir limites ambientais (e `rules_version` inicial).
-- [ ] Definir limites de conectividade (regra 2×/5× é provisória; depende do intervalo de envio).
+- [x] Intervalo de leitura definido: 10 min (análise matemática). Os fatores 2×/5× da regra de conectividade continuam provisórios.
 - [x] Modelo de autenticação dos dispositivos: credencial individual, aleatória e revogável (direção aprovada; ver `security-review.md`, seção 4).
 - [ ] Implementar a ingestão (fora do escopo atual).
 - [ ] Adicionar `rules_version` à tabela `readings` (migração futura, junto com o endpoint).

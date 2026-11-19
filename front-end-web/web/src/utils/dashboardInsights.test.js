@@ -85,13 +85,13 @@ describe('buildDashboardInsights', () => {
   it('conta offline e sem dados pela regra de conectividade, usando now', () => {
     const readings = [
       reading('s1'),
-      reading('s2', { measuredAt: ago(301000), measuredAtMs: NOW - 301000 }),
-      reading('s3', { measuredAt: ago(200000), measuredAtMs: NOW - 200000 }),
+      reading('s2', { measuredAt: ago(3010000), measuredAtMs: NOW - 3010000 }),
+      reading('s3', { measuredAt: ago(2000000), measuredAtMs: NOW - 2000000 }),
     ]
     const summary = summarizeDashboard([stop(1), stop(2), stop(3), stop(4)], readings, NOW)
     assert.equal(byId(buildDashboardInsights(summary, NOW), 'stale-stops').text, '2 pontos offline ou sem dados.')
     // com now mais adiantado, todos os pontos com leitura ficam offline
-    const later = NOW + 10 * 60000
+    const later = NOW + 100 * 60000
     assert.equal(byId(buildDashboardInsights(summary, later), 'stale-stops').text, '4 pontos offline ou sem dados.')
   })
 

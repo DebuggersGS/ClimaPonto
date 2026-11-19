@@ -4,7 +4,7 @@ import { deriveStopAlerts } from './stopAlerts.js'
 import { summarizeDashboard } from './readings.js'
 
 const NOW = Date.parse('2026-11-12T15:30:00Z')
-const MIN = 60000
+const MIN = 10 * 60000 // um intervalo de leitura (10 min)
 
 const stops = ['a', 'b', 'c', 'd', 'e', 'f'].map((id, i) => ({ id, code: `P-${i + 1}`, name: `Ponto ${id}`, neighborhood: 'X' }))
 const reading = (stopId, status, ageMs, source = 'simulation', extra = {}) => ({
@@ -67,8 +67,8 @@ describe('deriveStopAlerts', () => {
   })
 
   it('respeita sendIntervalMs informado', () => {
-    assert.equal(alertsFor([reading('a', 'normal', 3 * MIN)], { sendIntervalMs: 30000 }).length, 1)
-    assert.equal(alertsFor([reading('a', 'normal', 3 * MIN)], { sendIntervalMs: 60000 }).length, 0)
+    assert.equal(alertsFor([reading('a', 'normal', 3 * MIN)], { sendIntervalMs: 5 * 60000 }).length, 1)
+    assert.equal(alertsFor([reading('a', 'normal', 3 * MIN)], { sendIntervalMs: 10 * 60000 }).length, 0)
   })
 
   it('offline normal gera só alerta de conectividade', () => {

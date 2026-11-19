@@ -2,13 +2,13 @@ import { describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { computeReadingQuality } from './readingQuality.js'
 
-const MIN = 60000
+const MIN = 10 * 60000 // um intervalo de leitura (10 min)
 const START = Date.parse('2026-11-12T12:00:00Z')
 const END = START + 10 * MIN
 const r = (minutes) => ({ id: String(minutes), measuredAtMs: START + minutes * MIN })
 
 describe('computeReadingQuality', () => {
-  it('calcula válidas, esperado e completude com intervalo provisório de 60 s', () => {
+  it('calcula válidas, esperado e completude com o intervalo de 10 min', () => {
     const q = computeReadingQuality([r(0), r(1), r(2), r(3), r(4)], { start: START, end: END, discarded: 2 })
     assert.equal(q.valid, 5)
     assert.equal(q.discarded, 2)

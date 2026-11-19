@@ -1,9 +1,10 @@
 /**
- * Intervalo de envio do dispositivo, em ms.
- * Valor PROVISÓRIO: exemplo do docs/data-contract.md (seção 5); o intervalo
- * real do ESP32 ainda não foi definido.
+ * Intervalo de leitura do sensor no ponto, em ms: 10 minutos.
+ * Definido pela análise matemática (pasta matematica-dps/) e usado pela
+ * Central de Leituras em Python. Na simulação do Wokwi o envio é mais rápido,
+ * só para demonstração.
  */
-export const SEND_INTERVAL_MS = 60000
+export const SEND_INTERVAL_MS = 10 * 60000
 
 /** Até este múltiplo do intervalo a leitura é considerada online. */
 export const ONLINE_FACTOR = 2

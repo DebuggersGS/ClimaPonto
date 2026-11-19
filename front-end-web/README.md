@@ -110,7 +110,7 @@ No modo mock, dois parâmetros de URL permitem conferir estados: `?mock=erro` (t
 | MOCK-02 | Atenção | Online, estado ambiental registrado como atenção (calor elevado). |
 | MOCK-03 | Crítico | Online, estado ambiental registrado como crítico (temperatura muito alta). |
 | MOCK-04 | Sem dados | Ponto cadastrado que ainda não enviou nenhuma leitura. |
-| MOCK-05 | Conectividade atrasada | Última leitura há poucos minutos: atrasado, ainda não offline. |
+| MOCK-05 | Conectividade atrasada | Última leitura há cerca de 30 minutos: atrasado, ainda não offline. |
 | MOCK-06 | Offline | Última leitura há horas, com o estado ambiental registrado preservado. |
 | MOCK-07 | Histórico longo | 30 dias de histórico, para conferir 24 h, 7 dias e 30 dias. |
 | MOCK-08 | Demonstrativo | Ponto `is_demo` com leituras de origem Teste. |
@@ -281,5 +281,5 @@ Detalhes em [docs/data-contract.md](docs/data-contract.md), [docs/architecture-d
 
 - **Ingestão automática do FIWARE:** o ESP32 envia ao FIWARE, mas ainda não há uma ponte automática FIWARE → Supabase. O servidor FIWARE da equipe só fica ligado nos testes, muda de IP a cada vez e responde só em HTTP, que o navegador bloqueia num site HTTPS. Por isso a aplicação não consulta o FIWARE direto; as leituras do ESP32 coletadas pela Central em Python foram importadas no Supabase (ver *Dados em produção*). Essa ponte é o próximo passo.
 - **Coordenadas:** P001 a P003 usam a posição das estações INMET de referência, e os pontos do modo demonstração têm posições ilustrativas. Os endereços exatos dos pontos ainda serão confirmados.
-- **Regras provisórias:** limites ambientais e regra de conectividade (60 s de intervalo de envio) são provisórios e estão descritos em "Fontes e metodologia".
+- **Regras provisórias:** a conectividade usa o intervalo de leitura de 10 minutos, o mesmo da Central em Python e da análise matemática (online até 20 min, atrasado até 50 min, offline acima disso). Os fatores 2× e 5× e os limites ambientais continuam provisórios e estão descritos em "Fontes e metodologia".
 - Detalhes técnicos e histórico das etapas: [docs/](docs/) e [AI.md](AI.md).

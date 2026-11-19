@@ -126,16 +126,16 @@ describe('summarizeStopQuality e narrativa', () => {
   })
 
   it('com lacuna: conta só intervalos acima do limite e a narrativa cita a maior', () => {
-    // limite = 5 x 60 s = 5 min; lacunas de 10 min e 60 min; 4 min não conta
-    const rows = [reading(1), reading(5), reading(15), reading(75), reading(79)]
+    // limite = 5 x 10 min = 50 min; lacunas de 60 min e 120 min; 40 min não conta
+    const rows = [reading(10), reading(50), reading(110), reading(230), reading(240)]
     const slice = sliceReadingsByWindow(rows, '24h', NOW)
     const quality = summarizeStopQuality(slice, NOW)
     assert.equal(quality.gapCount, 2)
-    assert.equal(quality.largestGapMs, 60 * MIN)
-    assert.equal(quality.gapThresholdMs, 5 * MIN)
+    assert.equal(quality.largestGapMs, 120 * MIN)
+    assert.equal(quality.gapThresholdMs, 50 * MIN)
     const text = buildStopNarrative(slice, quality).join(' ')
-    assert.match(text, /2 lacunas acima de 5 min/)
-    assert.match(text, /a maior tem 1 h/)
+    assert.match(text, /2 lacunas acima de 50 min/)
+    assert.match(text, /a maior tem 2 h/)
   })
 
   it('parcial: variável sem valores é dita como ausente e não entra em médias', () => {
