@@ -119,12 +119,12 @@ O programa usa caminhos relativos à própria pasta, então funciona em qualquer
 
 **Se o programa não rodar (Windows)**
 
-1. **Entre na pasta antes de rodar.** O nome da pasta tem espaços, então use aspas:
+1. **Entre na pasta onde está o `main.py` antes de rodar.** Se o caminho tiver espaços, use aspas:
 
    | Terminal | Comando |
    |---|---|
-   | PowerShell ou Prompt de Comando | `cd "C:\Users\SEU_USUARIO\Downloads\ClimaPonto\python"` e depois `python main.py` |
-   | Git Bash | `cd "/c/Users/SEU_USUARIO/Downloads/ClimaPonto/python"` e depois `python main.py` |
+   | PowerShell ou Prompt de Comando | `cd "C:\caminho\da\pasta\do\main.py"` e depois `python main.py` |
+   | Git Bash | `cd "/c/caminho/da/pasta/do/main.py"` e depois `python main.py` |
 
 2. **`python` não é reconhecido:** use o inicializador do Windows, `py main.py`. Se também não funcionar, reinstale o Python marcando a opção *Add python.exe to PATH*.
 3. **`pip` não é reconhecido** ou aparece `ModuleNotFoundError: No module named 'requests'`: instale pelo mesmo Python que vai rodar o programa, com `python -m pip install requests` (ou `py -m pip install requests`).
