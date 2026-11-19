@@ -1,0 +1,56 @@
+[
+  {
+    "ponto_id": "P001",
+    "temperatura": 37.6,
+    "umidade": 40.0,
+    "media_movel": 37.6,
+    "estado": "critico",
+    "origem": "esp32_fiware",
+    "timestamp": "2026-11-10T20:40:48Z"
+  },
+  {
+    "ponto_id": "P001",
+    "temperatura": 37.6,
+    "umidade": 40.0,
+    "media_movel": 37.6,
+    "estado": "critico",
+    "origem": "esp32_fiware",
+    "timestamp": "2026-11-10T20:40:54Z"
+  },
+  {
+    "ponto_id": "P001",
+    "temperatura": 37.6,
+    "umidade": 40.0,
+    "media_movel": 37.6,
+    "estado": "critico",
+    "origem": "esp32_fiware",
+    "timestamp": "2026-11-10T20:40:58Z"
+  },
+  {
+    "ponto_id": "P001",
+    "temperatura": 37.6,
+    "umidade": 40.0,
+    "media_movel": 37.6,
+    "estado": "critico",
+    "origem": "esp32_fiware",
+    "timestamp": "2026-11-10T20:41:02Z"
+  },
+  {
+    "ponto_id": "P001",
+    "temperatura": 37.6,
+    "umidade": 40.0,
+    "media_movel": 37.6,
+    "estado": "critico",
+    "origem": "esp32_fiware",
+    "timestamp": "2026-11-10T20:41:05Z"
+  },
+  {
+    "ponto_id": "P001",
+    "temperatura": 37.6,
+    "umidade": 40.0,
+    "media_movel": 37.6,
+    "estado": "critico",
+    "origem": "esp32_fiware",
+    "timestamp": "2026-11-10T20:41:09Z"
+  }
+]

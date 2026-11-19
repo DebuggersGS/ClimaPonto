@@ -1,0 +1,20 @@
+[
+  {
+    "id": "P001",
+    "nome": "Santana",
+    "regiao": "Zona Norte",
+    "dispositivo": "climaponto-p001"
+  },
+  {
+    "id": "P002",
+    "nome": "Interlagos",
+    "regiao": "Zona Sul",
+    "dispositivo": ""
+  },
+  {
+    "id": "P003",
+    "nome": "Barueri",
+    "regiao": "Grande São Paulo",
+    "dispositivo": ""
+  }
+]
