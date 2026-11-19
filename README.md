@@ -1,5 +1,8 @@
 <p align="center">
-  <img src="assets/climaponto_logo.svg" alt="ClimaPonto - Monitoramento de calor nos pontos de ônibus" width="560">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/climaponto_logo_dark.png">
+    <img src="assets/climaponto_logo.png" alt="ClimaPonto - Monitoramento de calor nos pontos de ônibus" width="460">
+  </picture>
 </p>
 
 <p align="center">
@@ -54,7 +57,7 @@
 | [`front-end-web/`](front-end-web/) | Front-end Design · Web Development | Enrico | Aplicação React + Vite + Tailwind com mapa, histórico, alertas e CRUD de pontos no Supabase |
 | [`total-experience/`](total-experience/) | Software & Total Experience Design | Vinícius | Apresentação com problema, escopo, requisitos, caso de uso, protótipo e roadmap |
 | [`storytelling/`](storytelling/) | Storytelling & Inspiração Empreendedora | Vinícius | Videopitch, e-mail ao investidor com o arquétipo da marca (missão, visão, valores e objetivos) e slides do pitch |
-| [`assets/`](assets/) | Todas | Equipe | Logo do ClimaPonto |
+| [`assets/`](assets/) | Todas | Equipe | Logo do ClimaPonto, a mesma da aplicação web (versões para fundo claro e escuro) |
 
 Cada pasta tem o próprio `README.md`, com a explicação completa e o passo a passo de execução daquela parte.
 

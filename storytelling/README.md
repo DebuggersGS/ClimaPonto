@@ -1,3 +1,10 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="assets/climaponto_logo_dark.png">
+    <img src="assets/climaponto_logo.png" alt="ClimaPonto - Monitoramento de calor nos pontos de ônibus" width="460">
+  </picture>
+</p>
+
 # ClimaPonto · Storytelling & Inspiração Empreendedora
 
 Videopitch de até 3 minutos e e-mail ao investidor com o arquétipo da marca, para o desafio **"CitizenTech em 3 Minutos: Da Necessidade à Inovação"** da Global Solution 2026.2.
