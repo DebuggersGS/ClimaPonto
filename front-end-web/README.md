@@ -9,7 +9,7 @@
 | Campo | Resposta |
 | --- | --- |
 | Nome da CitizenTech | ClimaPonto |
-| Cidade e bairro | São Paulo (SP). Ponto piloto **P001 em Santana** (Zona Norte, endereço exato a confirmar), mais **P002 Interlagos** (Zona Sul) e **P003 Barueri** (Grande São Paulo), os mesmos pontos das outras disciplinas |
+| Cidade e bairro | São Paulo (SP). Ponto piloto **P001 em Santana** (Zona Norte, referência: estação INMET A701 Mirante de Santana), mais **P002 Interlagos** (Zona Sul) e **P003 Barueri** (Grande São Paulo), os mesmos pontos das outras disciplinas |
 | Cidadão beneficiado | Quem espera o ônibus em ponto exposto ao sol: idosos, trabalhadores que dependem do transporte público, gestantes e pessoas com doenças agravadas pelo calor |
 | Problema, em uma frase | Nos dias de calor extremo, quem espera o ônibus fica exposto sem saber quais pontos estão em condição de risco, e a cidade não tem esse dado por ponto |
 | Como funciona | Um ESP32 com sensor DHT22 no ponto (simulado no Wokwi) mede temperatura e umidade, classifica o calor em *normal* (abaixo de 30 °C), *atenção* (30 °C a 34,9 °C) ou *crítico* (35 °C ou mais) e alerta no próprio ponto, mesmo sem internet. Com rede, envia as leituras por MQTT para o FIWARE (IoT Agent, Orion e STH-Comet), de onde a Central de Leituras em Python as coleta. Esta aplicação web guarda pontos e leituras no Supabase, no mesmo formato de leitura (ponto, temperatura, umidade, estado e origem), e mostra mapa, situação atual, histórico, comparações e alertas. A administração cadastra e mantém os pontos (CRUD) |

@@ -17,7 +17,7 @@
 | Campo | Resposta |
 |---|---|
 | **Nome** | ClimaPonto |
-| **Cidade / bairro** | São Paulo/SP. Ponto piloto **P001** na região de Santana (Zona Norte), endereço exato a confirmar |
+| **Cidade / bairro** | São Paulo/SP. Ponto piloto **P001** em Santana (Zona Norte), com a estação do INMET A701 Mirante de Santana como referência |
 | **Cidadão beneficiado** | Passageiros que esperam ônibus expostos ao calor, principalmente idosos e trabalhadores |
 | **Problema em uma frase** | Quem espera ônibus em São Paulo fica exposto ao calor sem nenhuma informação sobre a temperatura naquele ponto |
 | **Como funciona** | Um ESP32 com sensor DHT22 no ponto mede temperatura e umidade, suaviza as leituras com média móvel, classifica o calor em *normal*, *atenção* (≥ 30 °C) ou *crítico* (≥ 35 °C) e alerta no próprio ponto com LEDs, buzzer e display LCD, mesmo sem internet. Quando há rede, envia as leituras por MQTT para a plataforma FIWARE, de onde a aplicação web as consulta |
