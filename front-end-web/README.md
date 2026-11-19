@@ -1,3 +1,15 @@
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/DebuggersGS/ClimaPonto/main/assets/climaponto_logo_dark.png">
+    <img src="https://raw.githubusercontent.com/DebuggersGS/ClimaPonto/main/assets/climaponto_logo.png" alt="ClimaPonto - Monitoramento de calor nos pontos de ônibus" width="460">
+  </picture>
+</p>
+
+<p align="center">
+  <b>Global Solution FIAP 2026.2 · CitizenTech da Minha Cidade · Engenharia de Software 1º ano</b><br>
+  Disciplinas <b>Front-end Design</b> e <b>Web Development</b> · Equipe <b>Debuggers</b>
+</p>
+
 # ClimaPonto
 
 **CitizenTech da Global Solution FIAP 2026.2 (Engenharia de Software, 1º ano).** Aplicação web que mostra as condições de calor e umidade nos pontos de ônibus de São Paulo, para que quem espera o transporte (e quem cuida dessas pessoas) saiba onde e quando o calor vira risco.
