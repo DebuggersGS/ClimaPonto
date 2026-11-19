@@ -1,4 +1,11 @@
 <p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/DebuggersGS/ClimaPonto/main/assets/climaponto_logo_dark.png">
+    <img src="https://raw.githubusercontent.com/DebuggersGS/ClimaPonto/main/assets/climaponto_logo.png" alt="ClimaPonto - Monitoramento de calor nos pontos de ônibus" width="460">
+  </picture>
+</p>
+
+<p align="center">
   <b>Global Solution FIAP 2026.2 · CitizenTech da Minha Cidade · Engenharia de Software 1º ano</b><br>
   Disciplina <b>Computational Thinking with Python</b> · Equipe <b>Debuggers</b>
 </p>
