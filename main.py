@@ -38,16 +38,17 @@ ARQ_CONFIG = os.path.join(PASTA_DADOS, "config_fiware.json")
 PASTA_RELATORIOS = os.path.join(PASTA, "relatorios")
 PASTA_BACKUP = os.path.join(PASTA, "backup_dados")   # capturas reais do sensor: o programa só cria, nunca apaga
 
-# Captura real do ESP32 (FIWARE do grupo, 16/11/2026 23:33, ponto P001 Santana), embutida no código.
-# Garante dados reais para quem recebe só o main.py e nunca rodou o programa com o servidor ligado.
+# Captura real do ESP32 (FIWARE do grupo, 18/11/2026 das 19h18 às 20h11, ponto P001 Santana), embutida no
+# código: uma hora de leituras, uma a cada 10 minutos. Garante dados reais para quem recebe só o main.py
+# e nunca rodou o programa com o servidor ligado.
 # Formato: (horário UTC, temperatura °C, umidade %, média móvel °C, estado)
 CAPTURA_REAL_EMBUTIDA = (
-    ("2026-11-17T02:33:01Z", 49.8, 40.0, 41.3, "critico"),
-    ("2026-11-17T02:33:04Z", 35.6, 40.0, 41.3, "critico"),
-    ("2026-11-17T02:33:10Z", 24.4, 40.0, 39.0, "critico"),
-    ("2026-11-17T02:33:14Z", 24.4, 40.0, 36.8, "critico"),
-    ("2026-11-17T02:33:17Z", 24.4, 40.0, 31.7, "atencao"),
-    ("2026-11-17T02:33:21Z", 24.4, 40.0, 26.6, "normal"),
+    ("2026-11-18T22:18:58Z", 22.3, 75.5, 22.3, "normal"),
+    ("2026-11-18T22:29:56Z", 22.1, 76.5, 22.1, "normal"),
+    ("2026-11-18T22:39:57Z", 22.2, 83.0, 22.2, "normal"),
+    ("2026-11-18T22:50:54Z", 22.0, 86.0, 22.0, "normal"),
+    ("2026-11-18T23:00:58Z", 21.9, 88.0, 21.9, "normal"),
+    ("2026-11-18T23:11:14Z", 21.8, 89.0, 21.8, "normal"),
 )
 
 LIMITES = (30.0, 35.0)                  # (atenção, crítico) em °C - mesmos do ESP32 e do site
@@ -58,6 +59,7 @@ VOLTAR = "v"                            # em qualquer pergunta, "v" volta ao men
 LEITURAS_DO_SENSOR = 6                  # quantas leituras do ESP32 são buscadas em cada consulta
 PAGINA_HISTORICO = 100                  # o STH-Comet devolve no máximo 100 leituras por consulta
 PAGINAS_HISTORICO = 15                  # até 1.500 leituras: mais de 1 hora de envios do ESP32
+INTERVALO_HISTORICO = timedelta(minutes=10)  # do histórico, guarda uma leitura a cada 10 minutos
 JANELA_MEDIA = timedelta(hours=1)       # leituras do sensor guardadas e usadas na média: a última hora
 INTERVALO_COLETA = 5                    # segundos entre consultas na coleta ao vivo (o ESP32 publica a cada 2 s)
 PERIODOS_DIA = (("Madrugada", 0, 6), ("Manhã", 6, 12), ("Tarde", 12, 18), ("Noite", 18, 24))
@@ -553,15 +555,19 @@ def servidor_ligado(config: dict, espera: float = 3) -> bool:
         return False
 
 
-def uma_por_minuto(por_horario: dict) -> dict:
-    """O ESP32 envia a cada poucos segundos: do histórico, fica só a leitura mais recente de cada minuto
-    (cerca de 60 leituras por hora), o suficiente para a Média 1h sem guardar centenas de leituras iguais."""
-    ultima_do_minuto = {}
-    for horario in ordenar_texto(list(por_horario.keys())):
-        ultima_do_minuto[horario[:16]] = horario                 # "2026-11-18T21:48" -> horário mais recente
+def uma_a_cada_10_min(por_horario: dict) -> dict:
+    """O ESP32 envia a cada poucos segundos: do histórico, fica uma leitura a cada 10 minutos
+    (cerca de 6 por hora), o intervalo recomendado pela análise matemática do grupo. Parte da leitura
+    mais recente e volta no tempo, guardando só as que estão a pelo menos 10 minutos da anterior.
+    Assim a Média 1h é calculada sem sobrecarregar o programa e os arquivos com centenas de leituras."""
     resultado = {}
-    for horario in ultima_do_minuto.values():
-        resultado[horario] = por_horario[horario]
+    ultima_guardada = None
+    horarios = ordenar_texto(list(por_horario.keys()))
+    for i in range(len(horarios) - 1, -1, -1):                   # da mais recente para a mais antiga
+        horario = horarios[i]
+        if ultima_guardada is None or para_brasilia(ultima_guardada) - para_brasilia(horario) >= INTERVALO_HISTORICO:
+            resultado[horario] = por_horario[horario]
+            ultima_guardada = horario
     return resultado
 
 
@@ -599,7 +605,7 @@ def baixar_leituras_fiware(config: dict, ponto: dict, quantidade: int, ao_vivo: 
         for valor in consultar_historico(config, entidade, nomes[codigo], desde):
             horario = valor["recvTime"].split(".")[0] + "Z"
             por_horario.setdefault(horario, {})[codigo] = float(valor["attrValue"])
-    por_horario = uma_por_minuto(por_horario)
+    por_horario = uma_a_cada_10_min(por_horario)
 
     if por_horario:
         ultima_historico = max(por_horario)
@@ -1183,7 +1189,7 @@ def main() -> None:
     if not leituras:
         leituras, fonte = restaurar_backup(), "da cópia de segurança (backup_dados)"
         if not leituras:
-            leituras, fonte = captura_embutida(), "da captura real que vem no código (16/11/2026)"
+            leituras, fonte = captura_embutida(), "da captura real que vem no código (18/11/2026)"
         salvar_json(ARQ_LEITURAS, leituras)
         print(f"\n  [AVISO] Não havia leituras salvas: {len(leituras)} leituras reais do sensor"
               f" foram carregadas {fonte}.")
