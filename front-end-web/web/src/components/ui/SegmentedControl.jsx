@@ -1,0 +1,44 @@
+import { useId } from 'react'
+import { motion, useReducedMotion } from 'motion/react'
+import { cn } from '../../utils/cn.js'
+import { INDICATOR_SPRING } from './motion.js'
+
+/**
+ * Controle segmentado: grupo rotulado de botões com aria-pressed e indicador
+ * ativo animado (layoutId). O estado ativo também tem negrito + indicador,
+ * nunca só cor.
+ * @param {{ label: string, options: { value: string, label: string }[], value: string, onChange: (value: string) => void, className?: string }} props
+ */
+export default function SegmentedControl({ label, options, value, onChange, className }) {
+  const groupId = useId()
+  const reducedMotion = useReducedMotion()
+  return (
+    <div role="group" aria-label={label} className={cn('glass-control inline-flex max-w-full flex-wrap gap-1 rounded-[1.375rem] p-1', className)}>
+      {options.map((option) => {
+        const active = option.value === value
+        return (
+          <button
+            key={option.value}
+            type="button"
+            aria-pressed={active}
+            onClick={() => onChange(option.value)}
+            className={cn(
+              'relative min-h-9 rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors duration-150',
+              active ? 'font-semibold text-slate-900' : 'text-slate-700 hover:text-slate-900',
+            )}
+          >
+            {active && (
+              <motion.span
+                layoutId={`segmented-${groupId}`}
+                transition={reducedMotion ? { duration: 0 } : INDICATOR_SPRING}
+                aria-hidden="true"
+                className="absolute inset-0 rounded-full bg-surface shadow-card ring-1 ring-slate-900/5"
+              />
+            )}
+            <span className="relative">{option.label}</span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}

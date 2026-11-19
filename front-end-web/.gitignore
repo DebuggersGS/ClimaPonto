@@ -1,0 +1,35 @@
+# Dependências
+node_modules/
+
+# Builds
+dist/
+dist-ssr/
+build/
+
+# Variáveis de ambiente e configurações locais (nunca versionar credenciais)
+.env
+.env.*
+!.env.example
+*.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Editores e sistema operacional
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Plataformas de deploy (configurações locais)
+.vercel/
+.netlify/
+
+# Pacote de entrega e relatórios de teste
+release/*.zip
+test-results/
+playwright-report/

@@ -1,0 +1,588 @@
+// Busca, filtros e insights (modo mock): Dashboard, Pontos, estado vazio, "Limpar filtros", teclado,
+// axe, movimento reduzido e 375 px (visitante e admin mock).
+// Dataset determinístico: MOCK-01 Consolação (normal), MOCK-02 Pinheiros (atenção), MOCK-03 Sé (crítico),
+// MOCK-04 Interlagos (sem dados), MOCK-05 Sapopemba (atrasado), MOCK-06 Jabaquara (offline),
+// MOCK-07 Itaim Bibi (histórico longo), MOCK-08 Lapa (teste/demonstrativo). Os valores numéricos de
+// temperatura e umidade dependem do instante e por isso não são afirmados aqui.
+import { test, expect, settle, horizontalOverflow, axeViolations } from 'harness-e2e'
+import { CONSOLE_MAPA, mapaSemRede } from './suporte-mapa.mjs'
+
+// Explorar abre o mapa, que tenta o OpenFreeMap: no gate sem rede a tentativa é abortada (fallback determinístico).
+test.use({ allowConsole: CONSOLE_MAPA })
+test.beforeEach(async ({ page }) => mapaSemRede(page))
+
+const ADMIN = { email: 'admin.demo@climaponto.example', senha: 'demo-admin-2026' }
+
+const busca = (page) => page.getByRole('searchbox', { name: 'Buscar pontos' })
+const contagem = (page) => page.getByRole('status').filter({ hasText: /^Mostrando / })
+const grupoEstado = (page) => page.getByRole('group', { name: 'Filtrar por estado ambiental' })
+const grupoConect = (page) => page.getByRole('group', { name: 'Filtrar por conectividade' })
+const limpar = (page) => page.getByRole('button', { name: 'Limpar filtros' })
+// O título do EmptyState é um parágrafo em negrito (não um heading); a mensagem identifica o estado.
+const vazio = (page) => page.getByText('Nenhum ponto encontrado', { exact: true })
+
+const monitorados = (page) => page.getByRole('region', { name: 'Pontos monitorados' })
+const cardsDash = (page) => monitorados(page).getByRole('listitem')
+const itensPontos = (page) => page.getByRole('main').getByRole('list').first().getByRole('listitem')
+
+async function abrirDashboard(page) {
+  await page.goto('/')
+  await expect(page.getByRole('region', { name: 'Resumo', exact: true })).toBeVisible()
+  await expect(cardsDash(page)).toHaveCount(8)
+  // Evolução recente carrega as leituras depois do resto; só então o texto fixo é estável.
+  await expect(page.getByText('Carregando leituras…')).toHaveCount(0)
+}
+
+/** "Bairro" e "Somente favoritos" vivem no Popover "Mais filtros": abre-o se estiver fechado. */
+const campoBairro = (page) => page.getByRole('combobox', { name: 'Bairro' })
+async function abrirMais(page) {
+  // pelo estado do gatilho (aria-expanded), não pela visibilidade: o popover que fecha ainda fica visível na animação de saída
+  const gatilho = page.getByRole('button', { name: /^Mais filtros/ })
+  if ((await gatilho.getAttribute('aria-expanded')) !== 'true') await gatilho.click()
+  await expect(campoBairro(page)).toBeVisible()
+  return campoBairro(page)
+}
+
+async function abrirPontos(page) {
+  await page.goto('/pontos?vista=lista')
+  await expect(itensPontos(page)).toHaveCount(8)
+}
+
+/** Texto visível (innerText) das regiões que NÃO podem mudar com os filtros da lista. */
+// Evolução e Insights são abas de "Detalhes": cada uma é aberta para ler o texto e a aba padrão é restaurada.
+async function textosFixos(page) {
+  const regioes = await Promise.all(['Resumo', 'Última medição'].map((nome) => page.getByRole('region', { name: nome, exact: true }).innerText()))
+  // a dica do gráfico (tooltip) depende só da posição do mouse: não faz parte do conteúdo comparado
+  const semDica = (el) => {
+    const copia = el.cloneNode(true)
+    copia.querySelectorAll('.recharts-tooltip-wrapper').forEach((dica) => dica.remove())
+    document.body.append(copia)
+    const texto = copia.innerText
+    copia.remove()
+    return texto
+  }
+  const evolucao = await page.getByRole('tabpanel', { name: 'Evolução (24 h)', exact: true }).evaluate(semDica)
+  await page.getByRole('tab', { name: 'Insights', exact: true }).click()
+  const insights = await page.getByRole('tabpanel', { name: 'Insights', exact: true }).innerText()
+  await page.getByRole('tab', { name: 'Evolução (24 h)', exact: true }).click()
+  await expect(page.getByRole('tabpanel', { name: 'Evolução (24 h)', exact: true })).toBeVisible()
+  return [...regioes, evolucao, insights]
+}
+
+// ---------------------------------------------------------------- Dashboard
+
+test.describe('Dashboard: busca e filtros', () => {
+  test.beforeEach(async ({ page }) => abrirDashboard(page))
+
+  test('estado inicial: busca rotulada com dica, contagem e grupos de filtro', async ({ page }) => {
+    await expect(busca(page)).toBeVisible()
+    await expect(page.getByText('Por nome, código ou bairro')).toBeVisible()
+    await expect(contagem(page)).toHaveText('Mostrando 8 de 8 pontos')
+    await expect(contagem(page)).toHaveAttribute('aria-live', 'polite')
+    await expect(contagem(page)).toHaveAttribute('aria-atomic', 'true')
+    await expect(limpar(page)).toHaveCount(0)
+    for (const grupo of [grupoEstado(page), grupoConect(page)]) {
+      await expect(grupo.getByRole('button', { name: 'Todos', exact: true })).toHaveAttribute('aria-pressed', 'true')
+    }
+    // só valores presentes no dataset, com contagem
+    for (const nome of ['Normal (5)', 'Atenção (1)', 'Crítico (1)']) await expect(grupoEstado(page).getByRole('button', { name: nome, exact: true })).toBeVisible()
+    for (const nome of ['Online (5)', 'Atrasado (1)', 'Offline (1)', 'Sem dados (1)']) await expect(grupoConect(page).getByRole('button', { name: nome, exact: true })).toBeVisible()
+    // o Dashboard não oferece filtro por bairro
+    await expect(page.getByRole('combobox', { name: 'Bairro' })).toHaveCount(0)
+  })
+
+  test('busca por nome, código e bairro, sem diferenciar acentos nem caixa', async ({ page }) => {
+    await busca(page).fill('paulista')
+    await expect(cardsDash(page)).toHaveCount(1)
+    await expect(cardsDash(page).first()).toContainText('MOCK-01')
+    await expect(contagem(page)).toHaveText('Mostrando 1 de 8 pontos')
+
+    await busca(page).fill('mock-03')
+    await expect(cardsDash(page)).toHaveCount(1)
+    await expect(cardsDash(page).first()).toContainText('Terminal Parque Dom Pedro II')
+
+    await busca(page).fill('CONSOLACAO')
+    await expect(cardsDash(page)).toHaveCount(1)
+    await expect(cardsDash(page).first()).toContainText('MOCK-01')
+
+    await busca(page).fill('terminal')
+    await expect(cardsDash(page)).toHaveCount(2)
+    await expect(contagem(page)).toHaveText('Mostrando 2 de 8 pontos')
+  })
+
+  test('filtro por estado ambiental gravado', async ({ page }) => {
+    const critico = grupoEstado(page).getByRole('button', { name: 'Crítico (1)' })
+    await critico.click()
+    await expect(critico).toHaveAttribute('aria-pressed', 'true')
+    await expect(grupoEstado(page).getByRole('button', { name: 'Todos', exact: true })).toHaveAttribute('aria-pressed', 'false')
+    await expect(cardsDash(page)).toHaveCount(1)
+    await expect(cardsDash(page).first()).toContainText('MOCK-03')
+    await expect(contagem(page)).toHaveText('Mostrando 1 de 8 pontos')
+
+    await grupoEstado(page).getByRole('button', { name: 'Normal (5)' }).click()
+    await expect(cardsDash(page)).toHaveCount(5)
+    await expect(monitorados(page)).not.toContainText('MOCK-04')
+  })
+
+  test('filtro por conectividade, combinado por E lógico com estado e busca', async ({ page }) => {
+    await grupoConect(page).getByRole('button', { name: 'Offline (1)' }).click()
+    await expect(cardsDash(page)).toHaveCount(1)
+    await expect(cardsDash(page).first()).toContainText('MOCK-06')
+
+    await grupoConect(page).getByRole('button', { name: 'Sem dados (1)' }).click()
+    await expect(cardsDash(page)).toHaveCount(1)
+    await expect(cardsDash(page).first()).toContainText('MOCK-04')
+
+    await grupoConect(page).getByRole('button', { name: 'Online (5)' }).click()
+    await grupoEstado(page).getByRole('button', { name: 'Atenção (1)' }).click()
+    await expect(cardsDash(page)).toHaveCount(1)
+    await expect(cardsDash(page).first()).toContainText('MOCK-02')
+    await busca(page).fill('lapa')
+    await expect(vazio(page)).toBeVisible()
+  })
+
+  test('Resumo, Última medição, Evolução (24 h) e Insights não mudam com os filtros', async ({ page }) => {
+    const antes = await textosFixos(page)
+    await busca(page).fill('sapopemba')
+    await grupoEstado(page).getByRole('button', { name: 'Normal (5)' }).click()
+    await grupoConect(page).getByRole('button', { name: 'Atrasado (1)' }).click()
+    await expect(cardsDash(page)).toHaveCount(1)
+    expect(await textosFixos(page)).toEqual(antes)
+    await busca(page).fill('zzz-inexistente')
+    await expect(vazio(page)).toBeVisible()
+    expect(await textosFixos(page)).toEqual(antes)
+    await limpar(page).first().click()
+    await expect(cardsDash(page)).toHaveCount(8)
+    expect(await textosFixos(page)).toEqual(antes)
+  })
+
+  test('estado vazio e Limpar filtros restauram busca, filtros e lista', async ({ page }) => {
+    await busca(page).fill('zzz-inexistente')
+    await expect(vazio(page)).toBeVisible()
+    await expect(page.getByText('Nenhum ponto corresponde à busca e aos filtros escolhidos.')).toBeVisible()
+    await expect(contagem(page)).toHaveText('Mostrando 0 de 8 pontos')
+    await expect(cardsDash(page)).toHaveCount(0)
+    // um botão junto da contagem e outro no estado vazio
+    await expect(limpar(page)).toHaveCount(2)
+
+    await limpar(page).last().click()
+    await expect(vazio(page)).toHaveCount(0)
+    await expect(busca(page)).toHaveValue('')
+    await expect(cardsDash(page)).toHaveCount(8)
+    await expect(contagem(page)).toHaveText('Mostrando 8 de 8 pontos')
+    await expect(limpar(page)).toHaveCount(0)
+
+    await busca(page).fill('lapa')
+    await grupoEstado(page).getByRole('button', { name: 'Crítico (1)' }).click()
+    await expect(vazio(page)).toBeVisible()
+    await limpar(page).first().click()
+    await expect(busca(page)).toHaveValue('')
+    await expect(grupoEstado(page).getByRole('button', { name: 'Todos', exact: true })).toHaveAttribute('aria-pressed', 'true')
+    await expect(cardsDash(page)).toHaveCount(8)
+  })
+})
+
+test.describe('Dashboard: insights', () => {
+  test.beforeEach(async ({ page }) => abrirDashboard(page))
+
+  const insights = (page) => page.getByRole('tabpanel', { name: 'Insights', exact: true })
+
+  test('aba Insights dentro de Detalhes, antes de Pontos monitorados, com fonte dos dados', async ({ page }) => {
+    const titulos = await page.getByRole('heading', { level: 2 }).allTextContents()
+    const i = titulos.indexOf('Detalhes')
+    expect(i).toBeGreaterThan(-1)
+    expect(titulos[i + 1]).toBe('Pontos monitorados')
+    await page.getByRole('tab', { name: 'Insights', exact: true }).click()
+    await expect(insights(page).getByText(/^Fonte:/)).toBeVisible()
+  })
+
+  test('cinco insights deterministas; texto e "Como foi calculado" ficam na metodologia recolhida', async ({ page }) => {
+    await page.getByRole('tab', { name: 'Insights', exact: true }).click()
+    const regiao = insights(page)
+    const cartoes = regiao.getByRole('list').first().getByRole('listitem')
+    await expect(cartoes).toHaveCount(5)
+    await expect(regiao.getByRole('heading', { level: 3 })).toHaveText([
+      'Estados ambientais gravados',
+      'Temperatura: maior e menor',
+      'Umidade: maior e menor',
+      'Pontos sem leitura recente',
+      'Há leituras que não são medição real',
+    ])
+    const botao = regiao.getByRole('button', { name: 'Como foi calculado' })
+    await expect(botao).toHaveAttribute('aria-expanded', 'false')
+    await expect(regiao).not.toContainText('Como foi calculado:')
+    await expect(regiao).not.toContainText('não é recalculado a partir de temperatura ou umidade')
+
+    await botao.click()
+    await expect(botao).toHaveAttribute('aria-expanded', 'true')
+    const detalhe = regiao.locator('#' + (await botao.getAttribute('aria-controls'))).getByRole('listitem')
+    await expect(detalhe).toHaveCount(5)
+    await expect(detalhe.nth(0)).toContainText('Normal: 5; Atenção: 1; Crítico: 1.')
+    await expect(detalhe.nth(0)).toContainText('não é recalculado a partir de temperatura ou umidade')
+    // MOCK-03 é o ponto com a temperatura mais alta (clamp 36–41 °C; os demais ficam abaixo)
+    await expect(detalhe.nth(1)).toContainText(/Maior: \d+,\d\u00A0°C em Terminal Parque Dom Pedro II \(MOCK-03\)\./)
+    await expect(detalhe.nth(1)).toContainText('não é classificação ambiental')
+    await expect(detalhe.nth(2)).toContainText(/Maior: .*Menor: /)
+    await expect(detalhe.nth(3)).toContainText('2 pontos offline ou sem dados.')
+    await expect(detalhe.nth(4)).toContainText('7 pontos com última leitura de simulação, teste ou origem desconhecida')
+    await expect(regiao).not.toContainText('Dados insuficientes')
+  })
+})
+
+// ---------------------------------------------------------------- Pontos
+
+test.describe('Pontos: busca e bairro', () => {
+  test.beforeEach(async ({ page }) => abrirPontos(page))
+
+  test('busca, bairro, estado ambiental, conectividade e somente favoritos', async ({ page }) => {
+    await expect(busca(page)).toBeVisible()
+    await expect(grupoEstado(page)).toHaveCount(1)
+    await expect(grupoConect(page)).toHaveCount(1)
+    // Bairro e Somente favoritos ficam no Popover "Mais filtros", não na linha principal
+    await expect(campoBairro(page)).toHaveCount(0)
+    await expect(await abrirMais(page)).toBeVisible()
+    await expect(page.getByRole('button', { name: 'Somente favoritos' })).toHaveAttribute('aria-pressed', 'false')
+    await expect(contagem(page)).toHaveText('Mostrando 8 de 8 pontos')
+  })
+
+  test('select Bairro lista "Todos os bairros" e cada bairro com contagem', async ({ page }) => {
+    const bairro = await abrirMais(page)
+    const opcoes = await bairro.locator('option').allTextContents()
+    expect(opcoes[0]).toBe('Todos os bairros')
+    expect(opcoes).toHaveLength(9)
+    for (const b of ['Consolação', 'Pinheiros', 'Sé', 'Interlagos', 'Sapopemba', 'Jabaquara', 'Itaim Bibi', 'Lapa']) expect(opcoes).toContain(`${b} (1)`)
+
+    await bairro.selectOption({ label: 'Pinheiros (1)' })
+    await expect(itensPontos(page)).toHaveCount(1)
+    await expect(itensPontos(page).first()).toContainText('MOCK-02')
+    await expect(contagem(page)).toHaveText('Mostrando 1 de 8 pontos')
+    await expect(limpar(page)).toHaveCount(1)
+  })
+
+  test('busca por nome, código e bairro; combinação com bairro', async ({ page }) => {
+    await busca(page).fill('batata')
+    await expect(itensPontos(page)).toHaveCount(1)
+    await busca(page).fill('mock-08')
+    await expect(itensPontos(page).first()).toContainText('Demonstrativo')
+    await busca(page).fill('jabaquara')
+    await expect(itensPontos(page)).toHaveCount(1)
+    await expect(itensPontos(page).first()).toContainText('MOCK-06')
+
+    await busca(page).fill('')
+    await (await abrirMais(page)).selectOption({ label: 'Pinheiros (1)' })
+    await busca(page).fill('paulista')
+    await expect(vazio(page)).toBeVisible()
+  })
+
+  test('estado vazio e Limpar filtros restauram a lista', async ({ page }) => {
+    await (await abrirMais(page)).selectOption({ label: 'Lapa (1)' })
+    await busca(page).fill('zzz-inexistente')
+    await expect(vazio(page)).toBeVisible()
+    await expect(contagem(page)).toHaveText('Mostrando 0 de 8 pontos')
+    await expect(page.getByRole('link', { name: 'Ver histórico' })).toHaveCount(0)
+    await expect(limpar(page)).toHaveCount(2)
+    await limpar(page).last().click()
+    await expect(vazio(page)).toHaveCount(0)
+    await expect(busca(page)).toHaveValue('')
+    await expect(await abrirMais(page)).toHaveValue('')
+    await expect(itensPontos(page)).toHaveCount(8)
+    await expect(contagem(page)).toHaveText('Mostrando 8 de 8 pontos')
+  })
+})
+
+// ---------------------------------------------------------------- teclado
+
+test('teclado (Dashboard): busca, grupos de filtro e Limpar filtros operáveis sem mouse, com foco visível', async ({ page }) => {
+  await abrirDashboard(page)
+  const foco = () =>
+    page.evaluate(() => {
+      const el = document.activeElement
+      const cs = getComputedStyle(el)
+      return { nome: el.textContent?.trim() || el.getAttribute('type') || el.tagName, outline: cs.outlineStyle !== 'none' && parseFloat(cs.outlineWidth) > 0 }
+    })
+  await busca(page).focus()
+  await page.keyboard.type('mock')
+  await expect(contagem(page)).toHaveText('Mostrando 8 de 8 pontos')
+  // Tab percorre os botões do grupo de estado ambiental na ordem visual, cada um com foco visível
+  for (const nome of ['Todos', 'Normal (5)', 'Atenção (1)', 'Crítico (1)']) {
+    await page.keyboard.press('Tab')
+    const f = await foco()
+    expect(f.nome).toBe(nome)
+    expect(f.outline, `foco visível em ${nome}`).toBe(true)
+  }
+  await page.keyboard.press('Enter')
+  await expect(grupoEstado(page).getByRole('button', { name: 'Crítico (1)' })).toHaveAttribute('aria-pressed', 'true')
+  await expect(cardsDash(page)).toHaveCount(1)
+  // o botão "Limpar filtros" junto da contagem é alcançável por Tab e acionável pelo teclado
+  await limpar(page).first().focus()
+  expect((await foco()).outline).toBe(true)
+  await page.keyboard.press('Enter')
+  await expect(cardsDash(page)).toHaveCount(8)
+  await expect(grupoEstado(page).getByRole('button', { name: 'Todos', exact: true })).toHaveAttribute('aria-pressed', 'true')
+  // conectividade pela barra de espaço
+  await grupoConect(page).getByRole('button', { name: 'Offline (1)' }).focus()
+  await page.keyboard.press('Space')
+  await expect(cardsDash(page)).toHaveCount(1)
+})
+
+test('teclado (Pontos): busca e bairro operáveis sem mouse', async ({ page }) => {
+  await abrirPontos(page)
+  await busca(page).focus()
+  await page.keyboard.type('sapopemba')
+  await expect(itensPontos(page)).toHaveCount(1)
+  // "Mais filtros" abre por teclado e o campo Bairro fica operável dentro do painel
+  await page.getByRole('button', { name: /^Mais filtros/ }).focus()
+  await page.keyboard.press('Enter')
+  await campoBairro(page).focus()
+  await expect(campoBairro(page)).toBeFocused()
+  await limpar(page).first().focus()
+  await expect(limpar(page).first()).toBeFocused()
+  await page.keyboard.press('Enter')
+  await expect(itensPontos(page)).toHaveCount(8)
+  await expect(busca(page)).toHaveValue('')
+})
+
+// ---------------------------------------------------------------- axe
+
+// Firefox: o axe derruba a página com gráficos Recharts (limitação já documentada em qualidade.spec.mjs);
+// as regras avaliam o DOM e independem do motor, então o Dashboard é coberto no Chromium.
+const ehFirefox = (testInfo) => testInfo.project.name === 'firefox'
+
+for (const colorScheme of ['light', 'dark']) {
+  test(`axe-core: Dashboard com filtros aplicados (tema ${colorScheme})`, async ({ page }, testInfo) => {
+    test.skip(ehFirefox(testInfo), 'axe-core no Firefox derruba a página com gráficos (limitação do navegador; coberto no Chromium)')
+    await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' })
+    await abrirDashboard(page)
+    await grupoEstado(page).getByRole('button', { name: 'Normal (5)' }).click()
+    await grupoConect(page).getByRole('button', { name: 'Online (5)' }).click()
+    await busca(page).fill('mock')
+    await expect(cardsDash(page)).toHaveCount(3)
+    await settle(page)
+    const v = await axeViolations(page)
+    await testInfo.attach(`axe-dashboard-filtros-${colorScheme}`, { body: JSON.stringify(v, null, 2), contentType: 'application/json' })
+    expect(v).toEqual([])
+  })
+
+  test(`axe-core: Dashboard sem resultados (tema ${colorScheme})`, async ({ page }, testInfo) => {
+    test.skip(ehFirefox(testInfo), 'axe-core no Firefox derruba a página com gráficos (limitação do navegador; coberto no Chromium)')
+    await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' })
+    await abrirDashboard(page)
+    await busca(page).fill('zzz-inexistente')
+    await expect(vazio(page)).toBeVisible()
+    await settle(page)
+    const v = await axeViolations(page)
+    await testInfo.attach(`axe-dashboard-vazio-${colorScheme}`, { body: JSON.stringify(v, null, 2), contentType: 'application/json' })
+    expect(v).toEqual([])
+  })
+
+  test(`axe-core: Pontos com filtros aplicados (tema ${colorScheme})`, async ({ page }, testInfo) => {
+    await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' })
+    await abrirPontos(page)
+    await (await abrirMais(page)).selectOption({ label: 'Pinheiros (1)' })
+    await expect(itensPontos(page)).toHaveCount(1)
+    await settle(page)
+    const v = await axeViolations(page)
+    await testInfo.attach(`axe-pontos-filtros-${colorScheme}`, { body: JSON.stringify(v, null, 2), contentType: 'application/json' })
+    expect(v).toEqual([])
+  })
+
+  test(`axe-core: Pontos sem resultados (tema ${colorScheme})`, async ({ page }, testInfo) => {
+    await page.emulateMedia({ colorScheme, reducedMotion: 'reduce' })
+    await abrirPontos(page)
+    await busca(page).fill('zzz-inexistente')
+    await expect(vazio(page)).toBeVisible()
+    await settle(page)
+    const v = await axeViolations(page)
+    await testInfo.attach(`axe-pontos-vazio-${colorScheme}`, { body: JSON.stringify(v, null, 2), contentType: 'application/json' })
+    expect(v).toEqual([])
+  })
+}
+
+// ---------------------------------------------------------------- movimento reduzido
+
+test.describe('movimento reduzido: aplicar e limpar filtros', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' })
+  })
+
+  // Medido logo após cada ação (sem settle): nenhum elemento do conteúdo com translação
+  // e nenhuma animação finita em execução.
+  const semMovimento = (page, rotulo) =>
+    page.evaluate(() => {
+      const deslocados = [...document.querySelectorAll('main *')].flatMap((el) => {
+        const m = getComputedStyle(el).transform.match(/matrix\(([^)]+)\)/)
+        if (!m) return []
+        const [, , , , tx, ty] = m[1].split(',').map(Number)
+        return Math.abs(tx) > 0.5 || Math.abs(ty) > 0.5 ? [`${el.tagName.toLowerCase()} tx=${tx} ty=${ty}`] : []
+      })
+      const animacoes = document
+        .getAnimations()
+        .filter((a) => a.effect?.getComputedTiming().iterations !== Infinity && a.playState === 'running')
+        .map((a) => a.animationName || a.id || a.constructor.name)
+      return { deslocados, animacoes }
+    }).then((r) => {
+      expect(r.deslocados, `${rotulo}: elementos com translação`).toEqual([])
+      expect(r.animacoes, `${rotulo}: animações finitas em execução`).toEqual([])
+    })
+
+  test('Dashboard: aplicar filtros, estado vazio e limpar', async ({ page }) => {
+    await abrirDashboard(page)
+    await grupoEstado(page).getByRole('button', { name: 'Normal (5)' }).click()
+    await expect(cardsDash(page)).toHaveCount(5)
+    await semMovimento(page, 'Dashboard: filtro de estado')
+    await grupoConect(page).getByRole('button', { name: 'Online (5)' }).click()
+    await semMovimento(page, 'Dashboard: filtro de conectividade')
+    await busca(page).fill('zzz-inexistente')
+    await expect(vazio(page)).toBeVisible()
+    await semMovimento(page, 'Dashboard: estado vazio')
+    await limpar(page).last().click()
+    await expect(cardsDash(page)).toHaveCount(8)
+    await semMovimento(page, 'Dashboard: limpar filtros')
+  })
+
+  test('Pontos: aplicar filtros, estado vazio e limpar', async ({ page }) => {
+    await abrirPontos(page)
+    await (await abrirMais(page)).selectOption({ label: 'Lapa (1)' })
+    await expect(itensPontos(page)).toHaveCount(1)
+    await semMovimento(page, 'Pontos: bairro')
+    await busca(page).fill('zzz-inexistente')
+    await expect(vazio(page)).toBeVisible()
+    await semMovimento(page, 'Pontos: estado vazio')
+    await limpar(page).last().click()
+    await expect(itensPontos(page)).toHaveCount(8)
+    await semMovimento(page, 'Pontos: limpar filtros')
+  })
+})
+
+// ---------------------------------------------------------------- 375 px
+
+test.describe('mobile 375 px', () => {
+  test.use({ viewport: { width: 375, height: 812 } })
+
+  const menu = (page) => page.getByRole('button', { name: 'Menu', exact: true })
+  /** Em 375 px a navegação vive no drawer "Menu" (dialog modal): abre-o (se ainda fechado) antes de agir sobre os links. */
+  async function abrirMenu(page) {
+    // Outro diálogo (ex.: o popover "Mais filtros") pode estar aberto: o que importa é a navegação estar visível.
+    if (!(await page.getByRole('navigation', { name: 'Navegação principal' }).isVisible())) await menu(page).click()
+    await expect(page.getByRole('navigation', { name: 'Navegação principal' })).toBeVisible()
+  }
+
+  /** Cada item da navegação (menu aberto): inteiramente visível na janela e com alvo de pelo menos 44 px. */
+  async function verificarNavegacao(page, esperados, rotulo) {
+    await abrirMenu(page)
+    const nav = page.getByRole('navigation', { name: 'Navegação principal' })
+    const links = nav.getByRole('link')
+    await expect(links).toHaveText(esperados)
+    for (let i = 0; i < esperados.length; i++) {
+      const caixa = await links.nth(i).boundingBox()
+      expect(caixa, `${rotulo}: ${esperados[i]} sem caixa`).not.toBeNull()
+      expect(caixa.x, `${rotulo}: ${esperados[i]} cortado à esquerda`).toBeGreaterThanOrEqual(0)
+      expect(caixa.x + caixa.width, `${rotulo}: ${esperados[i]} cortado à direita`).toBeLessThanOrEqual(375.5)
+      expect(caixa.height, `${rotulo}: ${esperados[i]} com alvo pequeno`).toBeGreaterThanOrEqual(43.5)
+      await expect(links.nth(i)).toBeInViewport({ ratio: 1 })
+    }
+    // sem rolagem interna: a lista cabe na própria largura
+    const rolagem = Math.max(...(await nav.locator('ul').evaluateAll((uls) => uls.map((ul) => ul.scrollWidth - ul.clientWidth))))
+    expect(rolagem, `${rotulo}: navegação com rolagem interna`).toBeLessThanOrEqual(0)
+    expect(await horizontalOverflow(page), `${rotulo}: rolagem lateral`).toEqual([])
+    const doc = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth)
+    expect(doc, `${rotulo}: documento maior que a janela`).toBeLessThanOrEqual(0)
+    // o drawer é modal: o botão "Menu" fica inerte, então o fechamento é por Esc
+    await page.keyboard.press('Escape')
+    await expect(nav).toBeHidden()
+  }
+
+  /** Vai a uma seção pelo menu móvel (que fecha ao navegar). */
+  async function irPara(page, nome) {
+    await abrirMenu(page)
+    await page.getByRole('navigation', { name: 'Navegação principal' }).getByRole('link', { name: nome, exact: true }).click()
+  }
+
+  const PUBLICOS = ['Visão geral', 'Explorar', 'Análises', 'Histórico', 'Laboratório', 'Relatórios']
+
+  test('visitante: navegação, filtros e estado vazio sem rolagem lateral (Dashboard e Pontos)', async ({ page }) => {
+    await abrirDashboard(page)
+    await settle(page)
+    await verificarNavegacao(page, PUBLICOS, 'Dashboard')
+    await grupoEstado(page).getByRole('button', { name: 'Normal (5)' }).click()
+    await grupoConect(page).getByRole('button', { name: 'Online (5)' }).click()
+    await expect(cardsDash(page)).toHaveCount(3)
+    await settle(page)
+    await verificarNavegacao(page, PUBLICOS, 'Dashboard com filtros')
+    await busca(page).fill('zzz-inexistente')
+    await expect(vazio(page)).toBeVisible()
+    await settle(page)
+    await verificarNavegacao(page, PUBLICOS, 'Dashboard sem resultados')
+
+    await abrirPontos(page)
+    await settle(page)
+    await verificarNavegacao(page, PUBLICOS, 'Pontos')
+    await (await abrirMais(page)).selectOption({ label: 'Itaim Bibi (1)' })
+    await expect(itensPontos(page)).toHaveCount(1)
+    await settle(page)
+    await verificarNavegacao(page, PUBLICOS, 'Pontos com filtros')
+    await busca(page).fill('zzz-inexistente')
+    await expect(vazio(page)).toBeVisible()
+    await settle(page)
+    await verificarNavegacao(page, PUBLICOS, 'Pontos sem resultados')
+  })
+
+  test('visitante: Histórico com navegação completa e sem rolagem lateral', async ({ page }) => {
+    await page.goto('/historico?ponto=MOCK-01&periodo=24h')
+    // em 375 px as leituras viram lista de cartões (não há tabela)
+    await expect(page.getByRole('region', { name: 'Leituras' }).getByRole('listitem').first()).toBeVisible()
+    await settle(page)
+    await verificarNavegacao(page, PUBLICOS, 'Histórico')
+  })
+
+  test('insights em 375 px: texto longo não ultrapassa o cartão nem a janela', async ({ page }) => {
+    await abrirDashboard(page)
+    await settle(page)
+    await page.getByRole('tab', { name: 'Insights', exact: true }).click()
+    const itens = page.getByRole('tabpanel', { name: 'Insights', exact: true }).getByRole('listitem')
+    await expect(itens).toHaveCount(5)
+    for (let i = 0; i < 5; i++) {
+      const caixa = await itens.nth(i).boundingBox()
+      expect(caixa.x).toBeGreaterThanOrEqual(0)
+      expect(caixa.x + caixa.width).toBeLessThanOrEqual(375.5)
+    }
+    expect(await horizontalOverflow(page)).toEqual([])
+  })
+
+  test('admin mock: navegação com "Administração" inteiramente visível em Visão geral, Explorar, Histórico e Administração', async ({ page }) => {
+    const TODOS = [...PUBLICOS, 'Administração']
+    await page.goto('/admin/login')
+    await page.getByLabel('E-mail').fill(ADMIN.email)
+    await page.getByLabel('Senha').fill(ADMIN.senha)
+    await page.getByRole('button', { name: 'Entrar' }).click()
+    await expect(page.getByRole('heading', { level: 1, name: 'Gerenciar pontos' })).toBeVisible()
+    await settle(page)
+    await verificarNavegacao(page, TODOS, 'Gerenciar')
+
+    // a sessão é só memória: a navegação depois do login é sempre por cliques
+    const nav = page.getByRole('navigation', { name: 'Navegação principal' })
+    await irPara(page, 'Visão geral')
+    await expect(cardsDash(page)).toHaveCount(8)
+    await abrirMenu(page)
+    await expect(nav.getByRole('link', { name: 'Visão geral', exact: true })).toHaveAttribute('aria-current', 'page')
+    await settle(page)
+    await verificarNavegacao(page, TODOS, 'Dashboard (admin)')
+    await busca(page).fill('zzz-inexistente')
+    await expect(vazio(page)).toBeVisible()
+    await settle(page)
+    await verificarNavegacao(page, TODOS, 'Dashboard sem resultados (admin)')
+
+    await irPara(page, 'Explorar')
+    await expect(page.getByRole('heading', { level: 1, name: 'Explorar pontos' })).toBeVisible()
+    await page.getByRole('button', { name: 'Lista', exact: true }).click()
+    await expect(itensPontos(page).first()).toBeVisible()
+    await (await abrirMais(page)).selectOption({ label: 'Lapa (1)' })
+    await settle(page)
+    await verificarNavegacao(page, TODOS, 'Pontos com filtros (admin)')
+
+    await irPara(page, 'Histórico')
+    await expect(page.getByRole('heading', { level: 1, name: 'Histórico' })).toBeVisible()
+    await settle(page)
+    await verificarNavegacao(page, TODOS, 'Histórico (admin)')
+  })
+})
