@@ -37,7 +37,7 @@
 
 ## Entrega
 
-Apresentação em slides: [`ClimaPonto_TotalExperience.pdf`](ClimaPonto_TotalExperience.pdf) (23 slides).
+Apresentação em slides: [`ClimaPonto_TotalExperience.pdf`](ClimaPonto_TotalExperience.pdf) (24 slides).
 
 | Critério do edital | Pontos | Slides |
 |---|---:|---|
@@ -46,9 +46,9 @@ Apresentação em slides: [`ClimaPonto_TotalExperience.pdf`](ClimaPonto_TotalExp
 | Escopo da solução | 10 | 5 a 7 |
 | Requisitos funcionais, não funcionais e regras de negócio | 20 | 8 a 11 |
 | Diagrama de caso de uso e contextualização | 15 | 12 e 13 |
-| Protótipo de média fidelidade, heurísticas e tom de voz | 25 | 14 a 19 |
-| Roadmap: próximos passos | 15 | 20 |
-| ODS, indicadores e síntese | — | 21 a 23 |
+| Protótipo de média fidelidade, heurísticas e tom de voz | 25 | 14 a 20 |
+| Roadmap: próximos passos | 15 | 21 |
+| ODS, indicadores e síntese | — | 22 a 24 |
 
 ## Fontes citadas
 
