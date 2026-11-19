@@ -494,7 +494,7 @@ class RoboDeDados(unittest.TestCase):
         self.assertIn("limite de segurança", saida)
 
     def test_workflow_tem_protecoes(self):
-        yml = (RAIZ / ".github" / "workflows" / "atualizar_dados.yml").read_text(encoding="utf-8")
+        yml = (RAIZ.parent / ".github" / "workflows" / "atualizar_dados.yml").read_text(encoding="utf-8")
         for trecho in ("contents: write", "concurrency:", "timeout-minutes:", "workflow_dispatch",
                        "git diff --cached --quiet", "git pull --rebase"):
             self.assertIn(trecho, yml)

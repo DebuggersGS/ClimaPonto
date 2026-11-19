@@ -19,8 +19,8 @@ Aplicação em Python, executada no terminal, que **recebe as leituras de temper
 | **Problema em uma frase** | Quem espera ônibus em São Paulo fica exposto ao calor sem nenhuma informação sobre a temperatura naquele ponto |
 | **Como funciona** | Um ESP32 com sensor DHT22 no ponto mede temperatura e umidade, classifica o calor em *normal*, *atenção* (≥ 30 °C) ou *crítico* (≥ 35 °C) e alerta no próprio ponto, mesmo sem internet. Quando há rede, envia as leituras por MQTT para a plataforma FIWARE, de onde esta Central de Leituras em Python as busca para mostrar o estado de cada ponto e analisá-las |
 | **Papel de cada componente** | ver a tabela da [seção 2](#2-solução-integrada) |
-| **Repositório** | https://github.com/DebuggersGS/ClimaPonto-Python |
-| **Indicador de impacto** | Horas em atenção e em crítico e graus-hora acima de 30 °C por ponto (calor acumulado a que o passageiro fica exposto). Referência: 331 °C·h no ano em Santana (nov/2025 a out/2026, dados INMET, repositório [ClimaPonto-DPS](https://github.com/DebuggersGS/ClimaPonto-DPS)) |
+| **Repositório** | https://github.com/DebuggersGS/ClimaPonto (pasta [`python/`](https://github.com/DebuggersGS/ClimaPonto/tree/main/python)) |
+| **Indicador de impacto** | Horas em atenção e em crítico e graus-hora acima de 30 °C por ponto (calor acumulado a que o passageiro fica exposto). Referência: 331 °C·h no ano em Santana (nov/2025 a out/2026, dados INMET, pasta [`matematica-dps/`](../matematica-dps/)) |
 | **ODS** | **3** Saúde e Bem-Estar (meta 3.d) · **11** Cidades e Comunidades Sustentáveis (meta 11.2) · **13** Ação Contra a Mudança do Clima (meta 13.1), detalhados na [seção 3](#3-impacto-e-contribuição-para-os-ods) |
 
 ---
@@ -78,7 +78,7 @@ Aplicação em Python, executada no terminal, que **recebe as leituras de temper
 | Parte | Disciplina | O que faz |
 |---|---|---|
 | Sensor no ponto (Wokwi) e FIWARE | Edge Computing & Computer Systems | Mede, classifica, alerta no ponto e envia as leituras |
-| **Central de Leituras (este repositório)** | **Computational Thinking with Python** | **Busca as leituras na API do FIWARE, guarda, consulta e analisa** |
+| **Central de Leituras (esta pasta)** | **Computational Thinking with Python** | **Busca as leituras na API do FIWARE, guarda, consulta e analisa** |
 | Modelagem matemática | Differentiated Problem Solving | Define o intervalo de leitura de 10 min, os horários críticos e a tendência |
 | Aplicação web | Front-end Design · Web Development | Mostra os dados ao cidadão e gerencia os pontos |
 | Experiência e apresentação | Software & Total Experience Design · Storytelling | Pesquisa com usuários, protótipos e pitch |
@@ -123,8 +123,8 @@ O programa usa caminhos relativos à própria pasta, então funciona em qualquer
 
    | Terminal | Comando |
    |---|---|
-   | PowerShell ou Prompt de Comando | `cd "C:\Users\SEU_USUARIO\Downloads\ClimaPonto-Python"` e depois `python main.py` |
-   | Git Bash | `cd "/c/Users/SEU_USUARIO/Downloads/ClimaPonto-Python"` e depois `python main.py` |
+   | PowerShell ou Prompt de Comando | `cd "C:\Users\SEU_USUARIO\Downloads\ClimaPonto\python"` e depois `python main.py` |
+   | Git Bash | `cd "/c/Users/SEU_USUARIO/Downloads/ClimaPonto/python"` e depois `python main.py` |
 
 2. **`python` não é reconhecido:** use o inicializador do Windows, `py main.py`. Se também não funcionar, reinstale o Python marcando a opção *Add python.exe to PATH*.
 3. **`pip` não é reconhecido** ou aparece `ModuleNotFoundError: No module named 'requests'`: instale pelo mesmo Python que vai rodar o programa, com `python -m pip install requests` (ou `py -m pip install requests`).
@@ -139,7 +139,7 @@ O programa usa caminhos relativos à própria pasta, então funciona em qualquer
 **Estrutura**
 
 ```
-ClimaPonto-Python/
+ClimaPonto/python/
 ├── main.py                     # aplicação completa (um único arquivo)
 ├── README.md
 ├── prompt.md                   # documentação do uso de IA

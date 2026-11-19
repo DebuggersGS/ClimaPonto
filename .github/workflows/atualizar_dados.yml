@@ -1,5 +1,5 @@
 # Robô do ClimaPonto: baixa os dados mais recentes do INMET uma vez por mês
-# e atualiza dados/inmet_sp.json. O usuário final só baixa esse JSON pequeno.
+# e atualiza matematica-dps/dados/inmet_sp.json. O usuário final só baixa esse JSON pequeno.
 name: Atualizar dados do INMET
 
 on:
@@ -9,7 +9,7 @@ on:
   push:
     branches: [main]
     paths:
-      - "scripts/atualizar_dados.py"
+      - "matematica-dps/scripts/atualizar_dados.py"
       - ".github/workflows/atualizar_dados.yml"
 
 permissions:
@@ -29,12 +29,12 @@ jobs:
         with:
           python-version: "3.12"
       - name: Baixar e processar dados do INMET
-        run: python scripts/atualizar_dados.py
+        run: python matematica-dps/scripts/atualizar_dados.py
       - name: Salvar no repositório (se mudou)
         run: |
           git config user.name "climaponto-bot"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add dados/inmet_sp.json
+          git add matematica-dps/dados/inmet_sp.json
           if git diff --cached --quiet; then
             echo "Sem dados novos."
           else
