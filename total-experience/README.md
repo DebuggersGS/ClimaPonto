@@ -30,7 +30,7 @@
 | Central de Leituras em Python (pasta [`python/`](../python/)) | Computational Thinking with Python | Guilherme |
 | Modelagem matemática (pasta [`matematica-dps/`](../matematica-dps/)) | Differentiated Problem Solving | Guilherme |
 | **Experiência, requisitos, protótipo e roadmap** | **Software & Total Experience Design** | **Vinícius** |
-| Pitch e marca | Storytelling & Inspiração Empreendedora | Vinícius |
+| Pitch e marca (pasta [`storytelling/`](../storytelling/)) | Storytelling & Inspiração Empreendedora | Vinícius |
 
 ## Entrega
 

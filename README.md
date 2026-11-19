@@ -40,6 +40,8 @@
         limites, derivadas e integrais: intervalo de leitura de 10 min, horários críticos e tendência
 
 [Pesquisa com passageiros, requisitos e protótipo]                          → total-experience/
+
+[Pitch de 3 minutos, arquétipo e plataforma de marca]                       → storytelling/
 ```
 
 ## Mapa do repositório
@@ -51,6 +53,7 @@
 | [`matematica-dps/`](matematica-dps/) | Differentiated Problem Solving | Guilherme | Modelagem com limites, derivadas e integrais sobre os dados do INMET, testes e relatório técnico em PDF |
 | [`front-end-web/`](front-end-web/) | Front-end Design · Web Development | Enrico | Aplicação React + Vite + Tailwind com mapa, histórico, alertas e CRUD de pontos no Supabase |
 | [`total-experience/`](total-experience/) | Software & Total Experience Design | Vinícius | Apresentação com problema, escopo, requisitos, caso de uso, protótipo e roadmap |
+| [`storytelling/`](storytelling/) | Storytelling & Inspiração Empreendedora | Vinícius | Videopitch, e-mail ao investidor com o arquétipo da marca (missão, visão, valores e objetivos) e slides do pitch |
 | [`assets/`](assets/) | Todas | Equipe | Logo do ClimaPonto |
 
 Cada pasta tem o próprio `README.md`, com a explicação completa e o passo a passo de execução daquela parte.
@@ -62,7 +65,7 @@ Cada pasta tem o próprio `README.md`, com a explicação completa e o passo a p
 | Aplicação web publicada | https://climaponto.vercel.app |
 | Simulação do ESP32 no Wokwi | https://wokwi.com/projects/480316994502816769 |
 | Vídeo de Edge Computing | https://youtu.be/46aChij6YnE |
-| Pitch (Storytelling & Inspiração Empreendedora) | *link do vídeo a incluir* |
+| Pitch (Storytelling & Inspiração Empreendedora) | https://youtu.be/HLrAQ7t6M1k |
 
 ## Como executar cada parte
 
@@ -98,4 +101,4 @@ O grupo usou IA como copiloto, como o edital permite. O registro de cada parte f
 |---|---|
 | Aplicação web | [`front-end-web/AI.md`](front-end-web/AI.md) e [`front-end-web/prompts.md`](front-end-web/prompts.md) |
 | Central de Leituras | [`python/prompt.md`](python/prompt.md) |
-| Edge, matemática e Total Experience | seção "Uso de inteligência artificial" do README de cada pasta |
+| Edge, matemática, Total Experience e Storytelling | seção "Uso de inteligência artificial" do README de cada pasta |
