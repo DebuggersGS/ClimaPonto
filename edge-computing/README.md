@@ -19,8 +19,8 @@
 | **Problema em uma frase** | Quem espera ônibus em São Paulo fica exposto ao calor sem nenhuma informação sobre a temperatura naquele ponto |
 | **Como funciona** | Um ESP32 com sensor DHT22 no ponto mede temperatura e umidade, suaviza as leituras com média móvel, classifica o calor em *normal*, *atenção* (≥ 30 °C) ou *crítico* (≥ 35 °C) e alerta no próprio ponto com LEDs, buzzer e display LCD, mesmo sem internet. Quando há rede, envia as leituras por MQTT para a plataforma FIWARE, de onde a aplicação web as consulta |
 | **Papel de cada componente** | ver tabela abaixo |
-| **Repositório** | https://github.com/DebuggersGS/ClimaPonto-Edge |
-| **Indicador de impacto** | Graus-hora acima de 30 °C por ponto (calor acumulado a que o passageiro fica exposto). Referência: 331 °C·h no ano em Santana (nov/2025 a out/2026, dados INMET, repositório [ClimaPonto-DPS](https://github.com/DebuggersGS/ClimaPonto-DPS)) |
+| **Repositório** | https://github.com/DebuggersGS/ClimaPonto (pasta [`edge-computing/`](https://github.com/DebuggersGS/ClimaPonto/tree/main/edge-computing)) |
+| **Indicador de impacto** | Graus-hora acima de 30 °C por ponto (calor acumulado a que o passageiro fica exposto). Referência: 331 °C·h no ano em Santana (nov/2025 a out/2026, dados INMET, pasta [`matematica-dps/`](../matematica-dps/)) |
 | **ODS** | 3 Saúde e Bem-Estar · 11 Cidades e Comunidades Sustentáveis · 13 Ação Contra a Mudança do Clima |
 
 ## Entrega da disciplina
@@ -50,10 +50,10 @@ O arquivo do vídeo também está em [`video/`](video/) (3min46s).
 
 | Camada | O que faz | Responsável |
 |---|---|---|
-| Dispositivo IoT (este repositório) | Mede, decide e alerta no ponto | Vinícius |
+| Dispositivo IoT (esta pasta) | Mede, decide e alerta no ponto | Vinícius |
 | Back-end FIWARE (AWS) | Recebe por MQTT, guarda o dado atual e o histórico | Vinícius |
-| Aplicação web | Mostra mapa, estado e histórico ao cidadão e faz o CRUD dos pontos no Supabase ([ClimaPonto-Web](https://github.com/DebuggersGS/ClimaPonto-Web)) | Enrico |
-| Central de Leituras (Python) | Busca as leituras no FIWARE, guarda em JSON e analisa ([ClimaPonto-Python](https://github.com/DebuggersGS/ClimaPonto-Python)) | Guilherme |
+| Aplicação web | Mostra mapa, estado e histórico ao cidadão e faz o CRUD dos pontos no Supabase (pasta [`front-end-web/`](../front-end-web/)) | Enrico |
+| Central de Leituras (Python) | Busca as leituras no FIWARE, guarda em JSON e analisa (pasta [`python/`](../python/)) | Guilherme |
 
 ## Circuito
 
@@ -89,7 +89,7 @@ O arquivo do vídeo também está em [`video/`](video/) (3min46s).
    - A troca de estado leva alguns segundos por causa da média móvel.
 3. Acompanhe o **Serial Monitor**: temperatura, umidade, média móvel, estado e envio MQTT.
 
-Para rodar a partir deste repositório, crie um projeto ESP32 no Wokwi e substitua `sketch.ino`, `diagram.json` e `libraries.txt` pelos arquivos da pasta [`wokwi/`](wokwi/).
+Para rodar a partir desta pasta, crie um projeto ESP32 no Wokwi e substitua `sketch.ino`, `diagram.json` e `libraries.txt` pelos arquivos da pasta [`wokwi/`](wokwi/).
 
 > O endereço do servidor FIWARE em `MQTT_SERVIDOR` é um exemplo: a instância na AWS recebe um novo IP sempre que é ligada. A chave do serviço FIWARE fica visível no código por decisão do grupo; ela é usada só nesta demonstração.
 

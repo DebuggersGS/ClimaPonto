@@ -248,7 +248,7 @@ A camada `services/` converte falhas em `Error` com mensagem em português e pre
 
 ## 10. Correspondência com o ESP32 e o FIWARE
 
-O ESP32 (repositório ClimaPonto-Edge) publica por MQTT no FIWARE (IoT Agent → Orion → STH-Comet), e a Central de Leituras em Python (ClimaPonto-Python) guarda as leituras em JSON. Cada leitura desse formato vira uma linha de `readings` assim:
+O ESP32 (pasta `edge-computing/`) publica por MQTT no FIWARE (IoT Agent → Orion → STH-Comet), e a Central de Leituras em Python (pasta `python/`) guarda as leituras em JSON. Cada leitura desse formato vira uma linha de `readings` assim:
 
 | ESP32 / Python (`dados/leituras.json`) | `readings` (Supabase) | Conversão |
 | --- | --- | --- |

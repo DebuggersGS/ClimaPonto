@@ -19,16 +19,16 @@
 | **Problema em uma frase** | Quem espera ônibus em São Paulo fica exposto ao calor sem nenhuma informação sobre a temperatura naquele ponto |
 | **Como funciona** | Um ESP32 com sensor no ponto mede temperatura e umidade, classifica o calor em *normal*, *atenção* (≥ 30 °C) ou *crítico* (≥ 35 °C) e alerta no local, mesmo sem internet. As leituras seguem por MQTT para a plataforma FIWARE, são coletadas pela Central em Python e aparecem numa aplicação web com mapa, estado, histórico e gerenciamento dos pontos |
 | **Papel de cada componente** | ver tabela abaixo |
-| **Repositório** | https://github.com/DebuggersGS/ClimaPonto-TotalEx |
-| **Indicador de impacto** | Graus-hora acima de 30 °C por ponto. Referência: 331 °C·h no ano em Santana (dados INMET, repositório [ClimaPonto-DPS](https://github.com/DebuggersGS/ClimaPonto-DPS)). Para a experiência: 80 % ou mais das pessoas interpretando o estado corretamente em teste com 5 participantes (meta proposta) |
+| **Repositório** | https://github.com/DebuggersGS/ClimaPonto (pasta [`total-experience/`](https://github.com/DebuggersGS/ClimaPonto/tree/main/total-experience)) |
+| **Indicador de impacto** | Graus-hora acima de 30 °C por ponto. Referência: 331 °C·h no ano em Santana (dados INMET, pasta [`matematica-dps/`](../matematica-dps/)). Para a experiência: 80 % ou mais das pessoas interpretando o estado corretamente em teste com 5 participantes (meta proposta) |
 | **ODS** | 3 Saúde e Bem-Estar · 11 Cidades e Comunidades Sustentáveis · 13 Ação Contra a Mudança do Clima |
 
 | Componente | Disciplina | Responsável |
 |---|---|---|
-| Sensor ESP32 (Wokwi) e integração FIWARE ([ClimaPonto-Edge](https://github.com/DebuggersGS/ClimaPonto-Edge)) | Edge Computing & Computer Systems | Vinícius |
-| Aplicação web com mapa, histórico e CRUD de pontos ([ClimaPonto-Web](https://github.com/DebuggersGS/ClimaPonto-Web)) | Front-end Design · Web Development | Enrico |
-| Central de Leituras em Python ([ClimaPonto-Python](https://github.com/DebuggersGS/ClimaPonto-Python)) | Computational Thinking with Python | Guilherme |
-| Modelagem matemática ([ClimaPonto-DPS](https://github.com/DebuggersGS/ClimaPonto-DPS)) | Differentiated Problem Solving | Guilherme |
+| Sensor ESP32 (Wokwi) e integração FIWARE (pasta [`edge-computing/`](../edge-computing/)) | Edge Computing & Computer Systems | Vinícius |
+| Aplicação web com mapa, histórico e CRUD de pontos (pasta [`front-end-web/`](../front-end-web/)) | Front-end Design · Web Development | Enrico |
+| Central de Leituras em Python (pasta [`python/`](../python/)) | Computational Thinking with Python | Guilherme |
+| Modelagem matemática (pasta [`matematica-dps/`](../matematica-dps/)) | Differentiated Problem Solving | Guilherme |
 | **Experiência, requisitos, protótipo e roadmap** | **Software & Total Experience Design** | **Vinícius** |
 | Pitch e marca | Storytelling & Inspiração Empreendedora | Vinícius |
 
@@ -52,7 +52,7 @@ Apresentação em slides: [`ClimaPonto_TotalExperience.pdf`](ClimaPonto_TotalExp
 - Pesquisa Mackenzie (FAU) sobre diferenças de temperatura entre bairros de São Paulo, 2024.
 - *Estudo sobre as condições das paradas de ônibus na cidade de São Paulo*. Revista ENIAC Pesquisa, 2018.
 - Prefeitura de São Paulo, Câmara Temática da Mobilidade a Pé, reunião de 13/05/2026.
-- INMET, estação A701 Mirante de Santana, nov/2025 a out/2026 (análise do grupo no repositório ClimaPonto-DPS).
+- INMET, estação A701 Mirante de Santana, nov/2025 a out/2026 (análise do grupo na pasta `matematica-dps/`).
 - Pesquisa de campo do grupo: conversa com 2 passageiros que usam ônibus todos os dias, nov/2026. Os nomes foram omitidos para proteger os entrevistados.
 
 ## Equipe Debuggers

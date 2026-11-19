@@ -20,7 +20,7 @@ Aplicação em Python, executada no terminal, que **recebe as leituras de temper
 | **Como funciona** | Um ESP32 com sensor DHT22 no ponto mede temperatura e umidade, classifica o calor em *normal*, *atenção* (≥ 30 °C) ou *crítico* (≥ 35 °C) e alerta no próprio ponto, mesmo sem internet. Quando há rede, envia as leituras por MQTT para a plataforma FIWARE, de onde esta Central de Leituras em Python as busca para mostrar o estado de cada ponto e analisá-las |
 | **Papel de cada componente** | ver a tabela da [seção 2](#2-solução-integrada) |
 | **Repositório** | https://github.com/DebuggersGS/ClimaPonto (pasta [`python/`](https://github.com/DebuggersGS/ClimaPonto/tree/main/python)) |
-| **Indicador de impacto** | Horas em atenção e em crítico e graus-hora acima de 30 °C por ponto (calor acumulado a que o passageiro fica exposto). Referência: 331 °C·h no ano em Santana (nov/2025 a out/2026, dados INMET, pasta [`matematica-dps/`](../matematica-dps/)) |
+| **Indicador de impacto** | Horas em atenção e em crítico e graus-hora acima de 30 °C por ponto (calor acumulado a que o passageiro fica exposto). Referência: 331 °C·h no ano em Santana (nov/2025 a out/2026, dados INMET, pasta [`matematica-dps/`](https://github.com/DebuggersGS/ClimaPonto/tree/main/matematica-dps)) |
 | **ODS** | **3** Saúde e Bem-Estar (meta 3.d) · **11** Cidades e Comunidades Sustentáveis (meta 11.2) · **13** Ação Contra a Mudança do Clima (meta 13.1), detalhados na [seção 3](#3-impacto-e-contribuição-para-os-ods) |
 
 ---
